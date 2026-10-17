@@ -1,0 +1,54 @@
+# Runtime and evaluation policy. Changing an evaluation value after the gold set
+# freeze changes the freeze hash, so ops eval refuses to run.
+policy_version: policy-v1
+
+live_limits:
+  admitted_calls_per_day: 100
+  calls_per_job: 2
+  queued_jobs_per_user: 20
+  max_concurrent_jobs: 2
+  workflow_deadline_seconds: 60
+  planner:
+    max_input_tokens: 2000
+    max_output_tokens: 512
+    max_tool_requests: 3
+  analyst:
+    max_input_tokens: 4000
+    max_output_tokens: 768
+
+queue:
+  relay_poll_seconds: 2
+  lease_seconds: 120
+  visibility_timeout_seconds: 180
+  max_receive_count: 5
+  source_retention_days: 4
+  dlq_retention_days: 14
+
+breaker:
+  consecutive_failures_to_open: 5
+  open_seconds: 60
+  scope: process_local  # one worker; not fleet wide
+
+graph:
+  max_nodes: 50
+  max_depth: 2
+
+eval:
+  ceiling_calls_per_full_run: 1500
+  # Owner decision 2026-10-17. Included in the gold set freeze hash.
+  meaningful_margin:
+    description: >-
+      The candidate beats B0 when it improves investigation task success by at
+      least 10 percentage points, OR reduces the combined error rate (wrong
+      attribution, double counting, unsupported causal claims accepted) by at
+      least 50 percent relative to B0, with no regression on authorization or
+      approval gates.
+    task_success_min_gain_pp: 10
+    combined_error_min_relative_reduction: 0.50
+    combined_error_components:
+      - wrong_attribution
+      - double_counting
+      - unsupported_causal_accepted
+    require_no_regression_on:
+      - authorization_failures_accepted
+      - approval_integrity_failures_accepted
