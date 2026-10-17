@@ -1,0 +1,12 @@
+# Filled from official AWS pricing pages before any paid run (M3/M4.5).
+# Unknown values stay "unknown" and are never treated as zero.
+effective_date: unknown
+source_urls: []
+region: us-east-1
+models:
+  default_model_id: {input_per_1k_tokens_usd: unknown, output_per_1k_tokens_usd: unknown}
+  second_model_id: {input_per_1k_tokens_usd: unknown, output_per_1k_tokens_usd: unknown}
+infrastructure: {}
+planning:
+  experiment_allowance_usd: 25        # planning allowance, not a guaranteed cap
+  hosting_estimate_usd_per_month: [80, 180]  # provisional, pending regional calculation

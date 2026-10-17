@@ -1,0 +1,27 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres_local_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Create local roles
+        run: PGPASSWORD=postgres_local_only psql -h 127.0.0.1 -U postgres -f db/init/01-roles.sql
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ops migrate
+      - run: uv run ops data import --directory data/fixtures --batch fixtures-v1 --download-date 2026-10-17
+      - run: uv run ops data pick-as-of --batch fixtures-v1
+      - run: uv run ops scenario generate --seed 42 --scenario base-v1
+      - run: uv run pytest -q
