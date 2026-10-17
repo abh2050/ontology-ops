@@ -114,3 +114,32 @@ This definition is included in the gold set freeze hash.
 - Scoped result cache: revisit if repeated identical scoped reads dominate load. Keys are principal scope hash, ontology version, batch, as_of, scenario, and filters.
 - Fleet-wide circuit breaker: needed once more than one worker runs.
 - Separate read store or event sourcing: not planned. Revisit only if command and query contention shows up in measured latency.
+
+## D-015 Process-local circuit breaker
+The breaker opens after 5 consecutive known provider failures and stays open for 60 s, then allows one half-open probe. It lives in the worker process (`backend/ops/jobs/breaker.py`). It is **not fleet-wide**, which is correct only while one worker runs, as the spec sizes it. Durable limits do survive restarts, because they live in PostgreSQL: the daily admitted calls and the eval ceiling.
+
+## D-016 Paid call admission and reconciliation
+- Every paid stage reserves the unique `model_calls(job_id, stage)` row and increments `usage_days` (live) or `eval_runs` (evaluation) in one transaction.
+- `sent` is persisted before the call, and the call runs outside any transaction.
+- A completed call and its checkpointed output are written in one transaction, so `complete` always has a reusable output.
+- A redelivered job is handled by the stage's slot state:
+  - `reserved`: resumes.
+  - `sent` or `unknown`: is held as `unknown / RECONCILE_REQUIRED`.
+  - `complete`: is reused only while the request, scope, and evidence hashes match.
+- `ops recover-job <job_id> [--mark-failed]` shows the hold and can resolve it as failed, with an audit event. Unknown paid outcomes are never retried automatically, and the user regenerates the job.
+- A confirmed no-generation rejection (throttling, model not ready, connection refused before send) gets one jittered retry.
+
+## D-017 Proposal hand-off between worker and API
+The worker role cannot insert proposals (spec 11.6). The worker stores the analyst's typed action, the validation report, and deterministic metrics in `jobs.result`. The API creates the proposal row from a ready job (M4), re-validating target existence, batch, scenario, ownership, and eligibility at creation.
+
+## D-018 Numbers in model output
+The model never authors arithmetic. Every number in analyst text must appear verbatim in the deterministic evidence: integer values, or centavos rendered as reais. Otherwise the validator rejects it as `INCORRECT_ARITHMETIC`. Proposal counts and money come from `deterministic_metrics`.
+
+## D-019 Causal language rule (conservative)
+A sentence is rejected when it contains one of "caused", "due to", "because of", "resulted from", or "responsible for" (and close variants), and it also names a seller, carrier, or event, a synthetic event word, or an object ID. Negated forms ("not caused by the carrier") are also rejected. That is deliberately conservative: a false rejection only sends the proposal to `needs_review`.
+
+## D-020 Traversal and comparators
+After the planner's tools run, the worker follows the ontology from an Order target to its sellers (`fulfilled_by`), adding at most 3 seller scopes. B1 receives the same tool results, so no facts are withheld, serialized as flat key=value rows without typed structure. The candidate receives typed, compact evidence.
+
+## D-021 Fixture provider
+`FixtureProvider` is a deterministic stand-in that reads the same prompt Bedrock would receive and returns schema-shaped JSON. It supports injected faults: timeout, throttle, reject, invalid JSON, causal, invented ID, and arithmetic. Fixture runs never count as model evaluation results.

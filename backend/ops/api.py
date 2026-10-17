@@ -270,3 +270,69 @@ def graph(c: Context, root_type: Literal["Order", "Seller"], root_id: str,
 @app.exception_handler(ValueError)
 async def _value_error(_: Request, __: ValueError):
     return JSONResponse({"detail": "invalid request"}, status_code=422)
+
+
+# ---- jobs (M3) -------------------------------------------------------------------------
+
+from ops.jobs.outbox import JobRequest, SubmitError, submit_job  # noqa: E402
+
+JOB_READ_SQL = text("""
+SELECT job_id, subject, batch_id, scenario_id, as_of, state, input, result, scope_hash,
+       evidence_hash, revision, created_at
+FROM jobs WHERE job_id = CAST(:job_id AS uuid)
+""")
+
+
+class JobBody(JobRequest):
+    as_of: datetime | None = None  # defaults to the batch demo as_of
+
+
+@app.post("/api/jobs", status_code=202)
+def create_job(
+    body: JobBody,
+    who: Annotated[Identity, Depends(identity)],
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", max_length=128)],
+    batch: Annotated[str | None, Query(max_length=80)] = None,
+) -> JSONResponse:
+    b = resolve_batch(batch)
+    as_of = body.as_of or datetime.strptime(b["demo_as_of"], TS)
+    req = JobRequest(**{**body.model_dump(), "as_of": as_of})
+    with engine("api").begin() as conn:
+        principal = load_principal(conn, who.subject, b["batch_id"])
+        try:
+            job_id, created = submit_job(conn, principal, req, idempotency_key)
+        except SubmitError as exc:
+            return JSONResponse({"detail": exc.detail}, status_code=exc.status)
+    return JSONResponse({"job_id": job_id, "created": created},
+                        status_code=202 if created else 200)
+
+
+@app.get("/api/jobs/{job_id}")
+def read_job(job_id: str, request: Request,
+             who: Annotated[Identity, Depends(identity)]) -> Response:
+    try:
+        import uuid as _uuid
+
+        _uuid.UUID(job_id)
+    except ValueError:
+        return JSONResponse(NOT_FOUND, status_code=404)
+    with engine("api").connect() as conn:
+        row = conn.execute(JOB_READ_SQL, {"job_id": job_id}).one_or_none()
+        if row is None or row.subject != who.subject:
+            return JSONResponse(NOT_FOUND, status_code=404)
+        principal = load_principal(conn, who.subject, row.batch_id)
+    etag = f'"{row.job_id}-{row.revision}-{principal.scope_hash[:12]}"'
+    headers = {"ETag": etag, "Cache-Control": "private, no-cache"}
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers=headers)
+    body = {"job_id": str(row.job_id), "state": row.state, "batch_id": row.batch_id,
+            "scenario_id": row.scenario_id, "as_of": _iso(row.as_of), "input": row.input,
+            "revision": row.revision, "evidence_hash": row.evidence_hash, "result": None}
+    if not principal.provisioned or principal.scope_hash != row.scope_hash:
+        # Saved results are re-authorized on read; a scope change withholds them.
+        body["state"] = "blocked" if row.state == "ready" else row.state
+        body["result"] = {"reason": "SCOPE_CHANGED", "detail": "regenerate the job"}
+    else:
+        body["result"] = row.result
+    return Response(json.dumps(body, default=str), media_type="application/json",
+                    headers=headers)

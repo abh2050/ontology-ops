@@ -144,3 +144,46 @@ def test_local_tokens_not_issued_outside_local(monkeypatch):
                                                              auth_mode="cognito"))
     with pytest.raises(A.AuthError):
         A.issue_local_token("reviewer")
+
+
+def test_job_submission_and_read(client, db):
+    import uuid
+
+    from sqlalchemy import text
+
+    with db("admin").begin() as c:
+        c.execute(text("UPDATE outbox SET sent_at = now() WHERE sent_at IS NULL"))
+    key = str(uuid.uuid4())
+    body = {"target_type": "Seller", "target_id": LABELS["seller_a01"], "scenario_id": None,
+            "as_of": "2018-03-15T23:59:59"}
+    h = {**auth("operator_a"), "Idempotency-Key": key}
+    first = client.post("/api/jobs", params={"batch": "fixtures-v1"}, json=body, headers=h)
+    assert first.status_code == 202 and first.json()["created"]
+    job_id = first.json()["job_id"]
+    again = client.post("/api/jobs", params={"batch": "fixtures-v1"}, json=body, headers=h)
+    assert again.status_code == 200 and again.json()["job_id"] == job_id
+    changed = client.post("/api/jobs", params={"batch": "fixtures-v1"},
+                          json={**body, "target_id": LABELS["seller_a02"]}, headers=h)
+    assert changed.status_code == 409
+    read = client.get(f"/api/jobs/{job_id}", headers=auth("operator_a"))
+    assert read.status_code == 200 and read.json()["state"] == "queued"
+    etag = read.headers["etag"]
+    assert client.get(f"/api/jobs/{job_id}", headers={**auth("operator_a"),
+                                                       "If-None-Match": etag}).status_code == 304
+    assert client.get(f"/api/jobs/{job_id}", headers=auth("operator_b")).status_code == 404
+    assert client.get("/api/jobs/not-a-uuid", headers=auth("operator_a")).status_code == 404
+
+
+@pytest.mark.parametrize(("subject", "target", "status"), [
+    ("viewer", "seller_a01", 403),
+    ("operator_a", "split_ab_00", 404),
+])
+def test_job_submission_rejections(client, subject, target, status):
+    import uuid
+
+    ttype = "Order" if target.startswith("split") else "Seller"
+    r = client.post("/api/jobs", params={"batch": "fixtures-v1"},
+                    json={"target_type": ttype, "target_id": LABELS[target], "scenario_id": None},
+                    headers={**auth(subject), "Idempotency-Key": str(uuid.uuid4())})
+    assert r.status_code == status
+    assert LABELS[target] not in r.text

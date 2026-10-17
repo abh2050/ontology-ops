@@ -21,7 +21,6 @@ def test_help(cmd):
 @pytest.mark.parametrize(
     "cmd",
     [["eval", "--suite", "frozen"],
-     ["worker", "--queue", "fixture", "--provider", "fixture"], ["recover-job"],
      ["export-demo"], ["preflight", "--cloud", "aws"]],
     ids=" ".join,
 )

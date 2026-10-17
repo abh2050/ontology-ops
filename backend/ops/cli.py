@@ -139,13 +139,30 @@ def worker(
     provider: Annotated[str, typer.Option(help="fixture or bedrock")],
 ) -> None:
     """Run the outbox relay and the bounded job consumer."""
-    _not_yet("M3")
+    from ops.worker import run
+
+    try:
+        run(queue, provider)
+    except RuntimeError as exc:
+        _fail(str(exc))
 
 
 @app.command("recover-job")
-def recover_job() -> None:
+def recover_job(
+    job_id: Annotated[str, typer.Argument(help="Job UUID")],
+    mark_failed: Annotated[bool, typer.Option(help="Resolve the unknown hold as failed.")] = False,
+    note: Annotated[str, typer.Option(help="Reconciliation note for the audit log.")] = "",
+) -> None:
     """Reconcile a job stage held in sent or unknown state."""
-    _not_yet("M3")
+    from ops.jobs.recovery import RecoveryError, describe
+    from ops.jobs.recovery import mark_failed as resolve
+
+    try:
+        typer.echo(describe(job_id))
+        if mark_failed:
+            typer.echo(resolve(job_id, note or "reconciled by operator"))
+    except (RecoveryError, ValueError) as exc:
+        _fail(str(exc))
 
 
 @app.command("export-demo")
