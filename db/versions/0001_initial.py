@@ -21,6 +21,8 @@ REASON_CODES = (
     "BAD_ID", "BAD_TIMESTAMP", "BAD_VALUE",
 )
 
+REASON_LIST = ", ".join(f"'{c}'" for c in REASON_CODES)
+
 STATEMENTS = [
     # ---- source data -------------------------------------------------------
     """
@@ -107,7 +109,7 @@ STATEMENTS = [
         batch_id text NOT NULL REFERENCES source_batches,
         source_file text NOT NULL,
         source_row_number integer NOT NULL,
-        reason_code text NOT NULL CHECK (reason_code IN ({", ".join(f"'{c}'" for c in REASON_CODES)})),
+        reason_code text NOT NULL CHECK (reason_code IN ({REASON_LIST})),
         raw_row jsonb NOT NULL,
         created_at timestamptz NOT NULL DEFAULT now()
     )""",

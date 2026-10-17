@@ -1,0 +1,116 @@
+{
+  "scenario_id": "test-det-a",
+  "seed": 42,
+  "generator_version": "scenario-gen-1.0.0",
+  "anchor_batch": "fixtures-v1",
+  "anchor_as_of": "2018-03-15 23:59:59",
+  "is_synthetic": true,
+  "carriers": {
+    "CARRIER_A": "Zephyr Otter Fictional Freight",
+    "CARRIER_B": "Quartz Heron Demo Haulage",
+    "CARRIER_C": "Mossbank Fictional Couriers",
+    "CARRIER_D": "Lantern Moth Example Logistics",
+    "CARRIER_E": "Saffron Kite Sample Transport"
+  },
+  "assignment_counts": {
+    "CARRIER_A": 3,
+    "CARRIER_B": 27,
+    "CARRIER_C": 7,
+    "CARRIER_D": 18,
+    "CARRIER_E": 17
+  },
+  "events": [
+    {
+      "event_id": "2ae8b69e-f905-5b1d-b1fe-c30c27f5aee9",
+      "scenario_id": "test-det-a",
+      "kind": "carrier_backlog",
+      "role": "overlaps_as_of",
+      "carrier_code": "CARRIER_B",
+      "seller_id": null,
+      "affected_states": [],
+      "starts_at": "2018-03-05 23:59:59",
+      "ends_at": "2018-03-20 23:59:59",
+      "summary": "Synthetic scenario: fictional backlog reported at CARRIER_B."
+    },
+    {
+      "event_id": "cf1b1c95-8184-56aa-b42a-c58c4d47a2ae",
+      "scenario_id": "test-det-a",
+      "kind": "regional_weather",
+      "role": "overlaps_as_of",
+      "carrier_code": null,
+      "seller_id": null,
+      "affected_states": [
+        "BA"
+      ],
+      "starts_at": "2018-03-09 23:59:59",
+      "ends_at": "2018-03-17 23:59:59",
+      "summary": "Synthetic scenario: fictional storm advisory for customer state BA."
+    },
+    {
+      "event_id": "9bb246a8-5d0c-5a76-a727-c6078ef0d5e4",
+      "scenario_id": "test-det-a",
+      "kind": "seller_stockout",
+      "role": "cause_unknown",
+      "carrier_code": null,
+      "seller_id": "d8269977cc6372694a3b3e24a5f33e25",
+      "affected_states": [],
+      "starts_at": "2018-02-08 04:59:59",
+      "ends_at": "2018-03-12 23:59:59",
+      "summary": "Synthetic scenario: fictional stock shortage note for one seller. Its late orders share no backlogged carrier; the data cannot establish a cause."
+    },
+    {
+      "event_id": "9ddcc4ce-acd8-5b81-9f3d-8a9c991d1558",
+      "scenario_id": "test-det-a",
+      "kind": "system_outage",
+      "role": "temporal_decoy",
+      "carrier_code": null,
+      "seller_id": "718a337be301ba63ecfb6833e401c6a5",
+      "affected_states": [],
+      "starts_at": "2018-01-23 08:59:59",
+      "ends_at": "2018-02-02 08:59:59",
+      "summary": "Synthetic scenario: fictional order system outage that ended before this seller's late orders entered transit."
+    },
+    {
+      "event_id": "3a43fb5f-da9a-55b6-8c38-80f6a7d5bbc0",
+      "scenario_id": "test-det-a",
+      "kind": "regional_weather",
+      "role": "future_masked",
+      "carrier_code": null,
+      "seller_id": null,
+      "affected_states": [
+        "BA"
+      ],
+      "starts_at": "2018-03-18 23:59:59",
+      "ends_at": "2018-03-24 23:59:59",
+      "summary": "Synthetic scenario: fictional weather alert for BA starting after as_of."
+    },
+    {
+      "event_id": "91c95312-7baf-5075-a991-180ca5c38c32",
+      "scenario_id": "test-det-a",
+      "kind": "system_outage",
+      "role": "early_window",
+      "carrier_code": null,
+      "seller_id": null,
+      "affected_states": [
+        "SP"
+      ],
+      "starts_at": "2018-02-05 00:00:00",
+      "ends_at": "2018-02-07 00:00:00",
+      "summary": "Synthetic scenario: fictional platform outage early in the window."
+    },
+    {
+      "event_id": "adea0a67-8f50-5fb6-ae7c-2ae12f63b742",
+      "scenario_id": "test-det-a",
+      "kind": "regional_weather",
+      "role": "stale_regional_decoy",
+      "carrier_code": null,
+      "seller_id": null,
+      "affected_states": [
+        "RS"
+      ],
+      "starts_at": "2018-01-29 23:59:59",
+      "ends_at": "2018-02-03 23:59:59",
+      "summary": "Synthetic scenario: fictional rain advisory for RS, ended weeks before as_of."
+    }
+  ]
+}

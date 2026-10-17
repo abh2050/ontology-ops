@@ -66,7 +66,9 @@ def data_import(
 
 @data_app.command("validate")
 def data_validate(
-    batch: Annotated[str | None, typer.Option(help="Batch id (default: latest Olist batch).")] = None,
+    batch: Annotated[
+        str | None, typer.Option(help="Batch id (default: latest Olist batch).")
+    ] = None,
 ) -> None:
     """Recheck an imported batch against its manifest and integrity rules."""
     from ops.data.validate import ValidationFailed, validate_batch
@@ -80,7 +82,9 @@ def data_validate(
 
 @data_app.command("pick-as-of")
 def data_pick_as_of(
-    batch: Annotated[str | None, typer.Option(help="Batch id (default: latest Olist batch).")] = None,
+    batch: Annotated[
+        str | None, typer.Option(help="Batch id (default: latest Olist batch).")
+    ] = None,
 ) -> None:
     """Evaluate every day in the demo window and record the default demo as_of."""
     from ops.data.as_of import AsOfError, pick_as_of
