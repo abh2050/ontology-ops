@@ -1,0 +1,31 @@
+-- query: seller
+-- principal: operator_a
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"batch_id": "olist-full-v1-d689b1282dbe", "seller_id": "c3867b4666c7d76867627c2f7fb22e21", "subject": "operator_a"}
+
+SELECT s.seller_id, s.state, s.provenance FROM sellers s
+WHERE s.batch_id = :batch_id AND s.seller_id = :seller_id AND 
+    EXISTS (SELECT 1 FROM users u WHERE u.subject = :subject AND u.active)
+    AND EXISTS (SELECT 1 FROM seller_grants g
+                WHERE g.subject = :subject AND g.batch_id = :batch_id
+                  AND g.seller_id = :seller_id)
+
+Result  (cost=12.88..20.90 rows=1 width=42) (actual time=0.011..0.011 rows=1 loops=1)
+  One-Time Filter: ($0 AND $1)
+  Buffers: shared hit=10
+  InitPlan 1 (returns $0)
+    ->  Index Scan using users_pkey on users u  (cost=0.15..8.17 rows=1 width=0) (actual time=0.004..0.004 rows=1 loops=1)
+          Index Cond: (subject = 'operator_a'::text)
+          Filter: active
+          Buffers: shared hit=2
+  InitPlan 2 (returns $1)
+    ->  Index Only Scan using seller_grants_pkey on seller_grants g  (cost=0.41..4.43 rows=1 width=0) (actual time=0.003..0.003 rows=1 loops=1)
+          Index Cond: ((subject = 'operator_a'::text) AND (batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (seller_id = 'c3867b4666c7d76867627c2f7fb22e21'::text))
+          Heap Fetches: 1
+          Buffers: shared hit=5
+  ->  Index Scan using sellers_pkey on sellers s  (cost=12.88..20.90 rows=1 width=42) (actual time=0.003..0.004 rows=1 loops=1)
+        Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (seller_id = 'c3867b4666c7d76867627c2f7fb22e21'::text))
+        Buffers: shared hit=3
+Planning Time: 0.033 ms
+Execution Time: 0.017 ms

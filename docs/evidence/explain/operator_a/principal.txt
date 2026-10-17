@@ -1,0 +1,26 @@
+-- query: principal
+-- principal: operator_a
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"batch_id": "olist-full-v1-d689b1282dbe", "subject": "operator_a"}
+
+SELECT u.role, u.active,
+       (SELECT encode(sha256(convert_to(
+                  coalesce(string_agg(g.seller_id, '|' ORDER BY g.seller_id), ''), 'UTF8')),
+               'hex')
+        FROM seller_grants g
+        WHERE g.subject = u.subject AND g.batch_id = :batch_id) AS grants_digest
+FROM users u WHERE u.subject = :subject
+
+Index Scan using users_pkey on users u  (cost=0.15..247.01 rows=1 width=65) (actual time=0.083..0.083 rows=1 loops=1)
+  Index Cond: (subject = 'operator_a'::text)
+  Buffers: shared hit=241
+  SubPlan 1
+    ->  Aggregate  (cost=238.83..238.84 rows=1 width=32) (actual time=0.078..0.078 rows=1 loops=1)
+          Buffers: shared hit=239
+          ->  Index Only Scan using seller_grants_pkey on seller_grants g  (cost=0.41..233.67 rows=2063 width=33) (actual time=0.005..0.045 rows=181 loops=1)
+                Index Cond: ((subject = u.subject) AND (batch_id = 'olist-full-v1-d689b1282dbe'::text))
+                Heap Fetches: 297
+                Buffers: shared hit=239
+Planning Time: 0.032 ms
+Execution Time: 0.092 ms

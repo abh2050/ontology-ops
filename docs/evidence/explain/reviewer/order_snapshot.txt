@@ -1,0 +1,61 @@
+-- query: order_snapshot
+-- principal: reviewer
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"as_of": "2018-03-30 23:59:59", "batch_id": "olist-full-v1-d689b1282dbe", "order_id": "00e054d0da011d5016f31011af488f4f", "subject": "reviewer"}
+
+SELECT o.order_id, o.customer_id, o.provenance, o.purchased_at, o.approved_at,
+       o.carrier_at, o.delivered_at, o.estimated_at, c.state AS customer_state
+FROM orders o
+JOIN customers c ON c.batch_id = o.batch_id AND c.customer_id = o.customer_id
+WHERE o.batch_id = :batch_id AND o.order_id = :order_id
+  AND o.purchased_at <= :as_of
+  AND 
+    EXISTS (SELECT 1 FROM users u WHERE u.subject = :subject AND u.active)
+    AND EXISTS (SELECT 1 FROM order_items vi
+                WHERE vi.batch_id = o.batch_id AND vi.order_id = o.order_id)
+    AND NOT EXISTS (
+        SELECT 1 FROM order_items vi
+        WHERE vi.batch_id = o.batch_id AND vi.order_id = o.order_id
+          AND NOT EXISTS (SELECT 1 FROM seller_grants g
+                          WHERE g.subject = :subject AND g.batch_id = vi.batch_id
+                            AND g.seller_id = vi.seller_id))
+
+Result  (cost=10.25..42.38 rows=1 width=115) (actual time=0.112..0.116 rows=1 loops=1)
+  One-Time Filter: $0
+  Buffers: shared hit=23
+  InitPlan 1 (returns $0)
+    ->  Index Scan using users_pkey on users u  (cost=0.15..8.17 rows=1 width=0) (actual time=0.008..0.008 rows=1 loops=1)
+          Index Cond: (subject = 'reviewer'::text)
+          Filter: active
+          Buffers: shared hit=2
+  ->  Nested Loop Semi Join  (cost=10.25..42.38 rows=1 width=115) (actual time=0.103..0.105 rows=1 loops=1)
+        Buffers: shared hit=21
+        ->  Nested Loop  (cost=1.66..29.77 rows=1 width=141) (actual time=0.085..0.088 rows=1 loops=1)
+              Buffers: shared hit=17
+              ->  Nested Loop Anti Join  (cost=1.24..21.33 rows=1 width=138) (actual time=0.042..0.043 rows=1 loops=1)
+                    Buffers: shared hit=13
+                    ->  Index Scan using orders_pkey on orders o  (cost=0.42..8.44 rows=1 width=138) (actual time=0.017..0.018 rows=1 loops=1)
+                          Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = '00e054d0da011d5016f31011af488f4f'::text))
+                          Filter: (purchased_at <= '2018-03-30 23:59:59'::timestamp without time zone)
+                          Buffers: shared hit=4
+                    ->  Nested Loop Anti Join  (cost=0.82..12.88 rows=1 width=59) (actual time=0.023..0.023 rows=0 loops=1)
+                          Buffers: shared hit=9
+                          ->  Index Scan using order_items_pkey on order_items vi_1  (cost=0.42..8.44 rows=1 width=92) (actual time=0.009..0.010 rows=1 loops=1)
+                                Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = '00e054d0da011d5016f31011af488f4f'::text))
+                                Buffers: shared hit=4
+                          ->  Index Only Scan using seller_grants_pkey on seller_grants g  (cost=0.41..4.43 rows=1 width=59) (actual time=0.012..0.012 rows=1 loops=1)
+                                Index Cond: ((subject = 'reviewer'::text) AND (batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (seller_id = vi_1.seller_id))
+                                Heap Fetches: 1
+                                Buffers: shared hit=5
+              ->  Index Scan using customers_pkey on customers c  (cost=0.42..8.44 rows=1 width=62) (actual time=0.042..0.042 rows=1 loops=1)
+                    Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (customer_id = o.customer_id))
+                    Buffers: shared hit=4
+        ->  Index Only Scan using order_items_pkey on order_items vi  (cost=0.42..4.44 rows=1 width=59) (actual time=0.016..0.016 rows=1 loops=1)
+              Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = '00e054d0da011d5016f31011af488f4f'::text))
+              Heap Fetches: 0
+              Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=44
+Planning Time: 1.035 ms
+Execution Time: 0.171 ms

@@ -1,0 +1,97 @@
+-- query: seller_scope_aggregates
+-- principal: reviewer
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"as_of": "2018-03-30 23:59:59", "batch_id": "olist-full-v1-d689b1282dbe", "seller_id": "c3867b4666c7d76867627c2f7fb22e21", "subject": "reviewer"}
+
+WITH 
+seller_late AS (
+    SELECT o.order_id, o.provenance,
+           (CAST(:as_of AS date) - o.estimated_at::date) AS days_overdue
+    FROM orders o
+    WHERE o.batch_id = :batch_id
+      AND o.order_id IN (SELECT si.order_id FROM order_items si
+                         WHERE si.batch_id = :batch_id AND si.seller_id = :seller_id)
+      AND 
+    o.purchased_at <= :as_of
+    AND o.estimated_at < CAST(:as_of AS date)
+    AND o.estimated_at >= CAST(:as_of AS date) - 30
+    AND (o.delivered_at IS NULL OR o.delivered_at > :as_of)
+
+      AND 
+    EXISTS (SELECT 1 FROM users u WHERE u.subject = :subject AND u.active)
+    AND EXISTS (SELECT 1 FROM order_items vi
+                WHERE vi.batch_id = o.batch_id AND vi.order_id = o.order_id)
+    AND NOT EXISTS (
+        SELECT 1 FROM order_items vi
+        WHERE vi.batch_id = o.batch_id AND vi.order_id = o.order_id
+          AND NOT EXISTS (SELECT 1 FROM seller_grants g
+                          WHERE g.subject = :subject AND g.batch_id = vi.batch_id
+                            AND g.seller_id = vi.seller_id))
+
+)
+
+SELECT count(DISTINCT sl.order_id) AS late_open_orders,
+       coalesce(sum(i.price_centavos) FILTER (WHERE i.seller_id = :seller_id), 0)::bigint
+           AS seller_line_value_centavos,
+       coalesce(sum(i.freight_centavos) FILTER (WHERE i.seller_id = :seller_id), 0)::bigint
+           AS seller_freight_centavos,
+       count(DISTINCT sl.order_id) FILTER (WHERE i.seller_id <> :seller_id)
+           AS multi_seller_orders
+FROM seller_late sl
+JOIN order_items i ON i.batch_id = :batch_id AND i.order_id = sl.order_id
+
+Aggregate  (cost=2116.51..2116.53 rows=1 width=32) (actual time=1.374..1.376 rows=1 loops=1)
+  Buffers: shared hit=1160
+  InitPlan 1 (returns $0)
+    ->  Index Scan using users_pkey on users u  (cost=0.15..8.17 rows=1 width=0) (actual time=0.012..0.012 rows=1 loops=1)
+          Index Cond: (subject = 'reviewer'::text)
+          Filter: active
+          Buffers: shared hit=2
+  ->  Sort  (cost=2108.22..2108.24 rows=6 width=82) (actual time=1.364..1.366 rows=11 loops=1)
+        Sort Key: o.order_id
+        Sort Method: quicksort  Memory: 26kB
+        Buffers: shared hit=1160
+        ->  Result  (cost=32.30..2108.14 rows=6 width=82) (actual time=0.253..1.359 rows=11 loops=1)
+              One-Time Filter: $0
+              Buffers: shared hit=1160
+              ->  Nested Loop  (cost=32.30..2108.14 rows=6 width=82) (actual time=0.240..1.345 rows=11 loops=1)
+                    Join Filter: (i.order_id = o.order_id)
+                    Buffers: shared hit=1158
+                    ->  Nested Loop Anti Join  (cost=31.88..2105.19 rows=5 width=99) (actual time=0.236..1.314 rows=11 loops=1)
+                          Buffers: shared hit=1114
+                          ->  Nested Loop Semi Join  (cost=31.06..2076.12 rows=5 width=125) (actual time=0.224..1.240 rows=11 loops=1)
+                                Buffers: shared hit=1025
+                                ->  Nested Loop  (cost=30.64..2062.34 rows=6 width=92) (actual time=0.218..1.194 rows=11 loops=1)
+                                      Buffers: shared hit=991
+                                      ->  HashAggregate  (cost=30.22..32.80 rows=258 width=33) (actual time=0.087..0.110 rows=245 loops=1)
+                                            Group Key: si.order_id
+                                            Batches: 1  Memory Usage: 61kB
+                                            Buffers: shared hit=11
+                                            ->  Index Only Scan using order_items_batch_seller_order on order_items si  (cost=0.42..29.58 rows=258 width=33) (actual time=0.011..0.046 rows=259 loops=1)
+                                                  Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (seller_id = 'c3867b4666c7d76867627c2f7fb22e21'::text))
+                                                  Heap Fetches: 0
+                                                  Buffers: shared hit=11
+                                      ->  Index Scan using orders_pkey on orders o  (cost=0.42..7.89 rows=1 width=59) (actual time=0.004..0.004 rows=0 loops=245)
+                                            Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = si.order_id))
+                                            Filter: ((purchased_at <= '2018-03-30 23:59:59'::timestamp without time zone) AND (estimated_at < '2018-03-30'::date) AND (estimated_at >= '2018-02-28'::date) AND ((delivered_at IS NULL) OR (delivered_at > '2018-03-30 23:59:59'::timestamp without time zone)))
+                                            Rows Removed by Filter: 1
+                                            Buffers: shared hit=980
+                                ->  Index Only Scan using order_items_pkey on order_items vi  (cost=0.42..2.51 rows=1 width=59) (actual time=0.004..0.004 rows=1 loops=11)
+                                      Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = o.order_id))
+                                      Heap Fetches: 0
+                                      Buffers: shared hit=34
+                          ->  Nested Loop Anti Join  (cost=0.82..5.80 rows=1 width=59) (actual time=0.006..0.006 rows=0 loops=11)
+                                Buffers: shared hit=89
+                                ->  Index Scan using order_items_pkey on order_items vi_1  (cost=0.42..5.36 rows=1 width=92) (actual time=0.003..0.003 rows=1 loops=11)
+                                      Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = o.order_id))
+                                      Buffers: shared hit=44
+                                ->  Index Only Scan using seller_grants_pkey on seller_grants g  (cost=0.41..0.44 rows=1 width=59) (actual time=0.003..0.003 rows=1 loops=11)
+                                      Index Cond: ((subject = 'reviewer'::text) AND (batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (seller_id = vi_1.seller_id))
+                                      Heap Fetches: 11
+                                      Buffers: shared hit=45
+                    ->  Index Scan using order_items_pkey on order_items i  (cost=0.42..0.58 rows=1 width=82) (actual time=0.002..0.002 rows=1 loops=11)
+                          Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = vi.order_id))
+                          Buffers: shared hit=44
+Planning Time: 1.140 ms
+Execution Time: 1.423 ms

@@ -1,0 +1,69 @@
+-- query: selected_orders
+-- principal: reviewer
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"as_of": "2018-03-30 23:59:59", "batch_id": "olist-full-v1-d689b1282dbe", "order_ids": ["00772b2af35643653f108fdac1155ee3", "00e054d0da011d5016f31011af488f4f", "02b9a87c19eb57b9ebaebb3a6850de9f", "03347815dd6e37a668b3954401838318", "03f0acea43a6fd52d268e13d9ce98fbe", "048f3e9b77a965f84a501a7f29076128", "04e46e7fa33e86e068e66a04601ed8e8", "06a07c0ad4e1811f48e86d2c56c7b705", "086731f4ad521c4094b1eda75986b88e", "0d404657f01231a876c9a25b6c91e329", "10ac5d510cf3a86b9f09342e46c3972d", "1155f1a9dc077b5131ec32d2c78e4de7", "11a239a4801f822c98f826b625fc9baa", "164ed456436d367ddcb008d361c1955f", "167b62d7c79628cf5f36776281be5731", "174e79bb542ecdb5565ec80e1c2d1faf", "19c52b120a24c6403bcd081593a2019c", "1ddfa120c8ef1f70ac2fa0aefb241675", "1e4517d4bc3d36a859ca530b462408f5", "1e4d22706831af396dafda3b8e91c30e"], "seller_id": "c3867b4666c7d76867627c2f7fb22e21", "subject": "reviewer"}
+
+SELECT o.order_id
+FROM orders o
+WHERE o.batch_id = :batch_id
+  AND o.order_id = ANY(CAST(:order_ids AS text[]))
+  AND 
+    o.purchased_at <= :as_of
+    AND o.estimated_at < CAST(:as_of AS date)
+    AND o.estimated_at >= CAST(:as_of AS date) - 30
+    AND (o.delivered_at IS NULL OR o.delivered_at > :as_of)
+
+  AND (CAST(:seller_id AS text) IS NULL OR EXISTS (
+        SELECT 1 FROM order_items si WHERE si.batch_id = o.batch_id
+          AND si.order_id = o.order_id AND si.seller_id = :seller_id))
+  AND 
+    EXISTS (SELECT 1 FROM users u WHERE u.subject = :subject AND u.active)
+    AND EXISTS (SELECT 1 FROM order_items vi
+                WHERE vi.batch_id = o.batch_id AND vi.order_id = o.order_id)
+    AND NOT EXISTS (
+        SELECT 1 FROM order_items vi
+        WHERE vi.batch_id = o.batch_id AND vi.order_id = o.order_id
+          AND NOT EXISTS (SELECT 1 FROM seller_grants g
+                          WHERE g.subject = :subject AND g.batch_id = vi.batch_id
+                            AND g.seller_id = vi.seller_id))
+
+Result  (cost=9.83..236.00 rows=1 width=33) (actual time=0.044..0.103 rows=1 loops=1)
+  One-Time Filter: $4
+  Buffers: shared hit=102
+  InitPlan 3 (returns $4)
+    ->  Index Scan using users_pkey on users u  (cost=0.15..8.17 rows=1 width=0) (actual time=0.004..0.004 rows=1 loops=1)
+          Index Cond: (subject = 'reviewer'::text)
+          Filter: active
+          Buffers: shared hit=2
+  ->  Nested Loop Anti Join  (cost=9.83..236.00 rows=1 width=33) (actual time=0.039..0.098 rows=1 loops=1)
+        Buffers: shared hit=100
+        ->  Nested Loop Semi Join  (cost=0.83..218.94 rows=1 width=59) (actual time=0.031..0.089 rows=1 loops=1)
+              Buffers: shared hit=91
+              ->  Index Scan using orders_pkey on orders o  (cost=0.42..215.00 rows=1 width=59) (actual time=0.027..0.085 rows=1 loops=1)
+                    Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = ANY ('{00772b2af35643653f108fdac1155ee3,00e054d0da011d5016f31011af488f4f,02b9a87c19eb57b9ebaebb3a6850de9f,03347815dd6e37a668b3954401838318,03f0acea43a6fd52d268e13d9ce98fbe,048f3e9b77a965f84a501a7f29076128,04e46e7fa33e86e068e66a04601ed8e8,06a07c0ad4e1811f48e86d2c56c7b705,086731f4ad521c4094b1eda75986b88e,0d404657f01231a876c9a25b6c91e329,10ac5d510cf3a86b9f09342e46c3972d,1155f1a9dc077b5131ec32d2c78e4de7,11a239a4801f822c98f826b625fc9baa,164ed456436d367ddcb008d361c1955f,167b62d7c79628cf5f36776281be5731,174e79bb542ecdb5565ec80e1c2d1faf,19c52b120a24c6403bcd081593a2019c,1ddfa120c8ef1f70ac2fa0aefb241675,1e4517d4bc3d36a859ca530b462408f5,1e4d22706831af396dafda3b8e91c30e}'::text[])))
+                    Filter: ((purchased_at <= '2018-03-30 23:59:59'::timestamp without time zone) AND (estimated_at < '2018-03-30'::date) AND (estimated_at >= '2018-02-28'::date) AND ((delivered_at IS NULL) OR (delivered_at > '2018-03-30 23:59:59'::timestamp without time zone)) AND (SubPlan 1))
+                    Rows Removed by Filter: 19
+                    Buffers: shared hit=87
+                    SubPlan 1
+                      ->  Index Only Scan using order_items_batch_seller_order on order_items si  (cost=0.42..4.44 rows=1 width=0) (actual time=0.005..0.005 rows=1 loops=1)
+                            Index Cond: ((batch_id = o.batch_id) AND (seller_id = 'c3867b4666c7d76867627c2f7fb22e21'::text) AND (order_id = o.order_id))
+                            Heap Fetches: 0
+                            Buffers: shared hit=4
+              ->  Index Only Scan using order_items_pkey on order_items vi  (cost=0.42..4.44 rows=1 width=59) (actual time=0.003..0.004 rows=1 loops=1)
+                    Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = o.order_id))
+                    Heap Fetches: 0
+                    Buffers: shared hit=4
+        ->  Nested Loop Anti Join  (cost=0.82..8.88 rows=1 width=59) (actual time=0.008..0.008 rows=0 loops=1)
+              Buffers: shared hit=9
+              ->  Index Scan using order_items_pkey on order_items vi_1  (cost=0.42..8.44 rows=1 width=92) (actual time=0.003..0.003 rows=1 loops=1)
+                    Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = o.order_id))
+                    Buffers: shared hit=4
+              ->  Index Only Scan using seller_grants_pkey on seller_grants g  (cost=0.41..0.44 rows=1 width=59) (actual time=0.005..0.005 rows=1 loops=1)
+                    Index Cond: ((subject = 'reviewer'::text) AND (batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (seller_id = vi_1.seller_id))
+                    Heap Fetches: 1
+                    Buffers: shared hit=5
+Planning:
+  Buffers: shared hit=3
+Planning Time: 0.650 ms
+Execution Time: 0.124 ms

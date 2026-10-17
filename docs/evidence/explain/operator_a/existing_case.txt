@@ -1,0 +1,15 @@
+-- query: existing_case
+-- principal: operator_a
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"case_key": "0000000000000000000000000000000000000000000000000000000000000000"}
+
+SELECT case_id FROM cases WHERE case_key = :case_key
+
+Index Scan using cases_case_key_key on cases  (cost=0.15..8.17 rows=1 width=16) (actual time=0.001..0.001 rows=0 loops=1)
+  Index Cond: (case_key = '0000000000000000000000000000000000000000000000000000000000000000'::text)
+  Buffers: shared hit=2
+Planning:
+  Buffers: shared hit=3
+Planning Time: 0.012 ms
+Execution Time: 0.003 ms

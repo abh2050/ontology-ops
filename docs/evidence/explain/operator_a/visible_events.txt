@@ -1,0 +1,22 @@
+-- query: visible_events
+-- principal: operator_a
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"as_of": "2018-03-30 23:59:59", "scenario_id": "base-v1"}
+
+SELECT e.event_id::text AS event_id, e.kind, e.carrier_code, e.seller_id, e.affected_states,
+       e.starts_at, e.ends_at, e.summary
+FROM disruption_events e
+WHERE e.scenario_id = :scenario_id AND e.starts_at <= :as_of
+ORDER BY e.starts_at, e.event_id
+
+Sort  (cost=1.24..1.26 rows=7 width=230) (actual time=0.008..0.008 rows=6 loops=1)
+  Sort Key: starts_at, event_id
+  Sort Method: quicksort  Memory: 26kB
+  Buffers: shared hit=1
+  ->  Seq Scan on disruption_events e  (cost=0.00..1.14 rows=7 width=230) (actual time=0.003..0.005 rows=6 loops=1)
+        Filter: ((starts_at <= '2018-03-30 23:59:59'::timestamp without time zone) AND (scenario_id = 'base-v1'::text))
+        Rows Removed by Filter: 1
+        Buffers: shared hit=1
+Planning Time: 0.015 ms
+Execution Time: 0.013 ms

@@ -1,0 +1,29 @@
+-- query: order_lines
+-- principal: operator_a
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"batch_id": "olist-full-v1-d689b1282dbe", "order_id": "00e054d0da011d5016f31011af488f4f"}
+
+SELECT i.line_no, i.product_id, p.category, i.seller_id, s.state AS seller_state,
+       i.shipping_limit_at, i.price_centavos, i.freight_centavos
+FROM order_items i
+JOIN products p ON p.batch_id = i.batch_id AND p.product_id = i.product_id
+JOIN sellers s ON s.batch_id = i.batch_id AND s.seller_id = i.seller_id
+WHERE i.batch_id = :batch_id AND i.order_id = :order_id
+ORDER BY i.line_no
+
+Nested Loop  (cost=1.11..25.18 rows=1 width=112) (actual time=0.013..0.014 rows=1 loops=1)
+  Buffers: shared hit=11
+  ->  Nested Loop  (cost=0.83..16.87 rows=1 width=135) (actual time=0.009..0.009 rows=1 loops=1)
+        Buffers: shared hit=8
+        ->  Index Scan using order_items_pkey on order_items i  (cost=0.42..8.44 rows=1 width=120) (actual time=0.003..0.003 rows=1 loops=1)
+              Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = '00e054d0da011d5016f31011af488f4f'::text))
+              Buffers: shared hit=4
+        ->  Index Scan using products_pkey on products p  (cost=0.41..8.43 rows=1 width=74) (actual time=0.005..0.005 rows=1 loops=1)
+              Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (product_id = i.product_id))
+              Buffers: shared hit=4
+  ->  Index Scan using sellers_pkey on sellers s  (cost=0.28..8.30 rows=1 width=62) (actual time=0.004..0.004 rows=1 loops=1)
+        Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (seller_id = i.seller_id))
+        Buffers: shared hit=3
+Planning Time: 0.108 ms
+Execution Time: 0.020 ms

@@ -38,8 +38,11 @@ GRANTED_SELLER = """
 
 PRINCIPAL_SQL = text("""
 SELECT u.role, u.active,
-       (SELECT array_agg(g.seller_id ORDER BY g.seller_id) FROM seller_grants g
-        WHERE g.subject = u.subject AND g.batch_id = :batch_id) AS sellers
+       (SELECT encode(sha256(convert_to(
+                  coalesce(string_agg(g.seller_id, '|' ORDER BY g.seller_id), ''), 'UTF8')),
+               'hex')
+        FROM seller_grants g
+        WHERE g.subject = u.subject AND g.batch_id = :batch_id) AS grants_digest
 FROM users u WHERE u.subject = :subject
 """)
 
@@ -65,8 +68,7 @@ def load_principal(conn: Connection, subject: str, batch_id: str) -> Principal:
     row = conn.execute(PRINCIPAL_SQL, {"subject": subject, "batch_id": batch_id}).one_or_none()
     role = row.role if row else None
     active = bool(row and row.active)
-    sellers = (row.sellers or []) if row and active else []
-    digest = hashlib.sha256(
-        "|".join([subject, batch_id, role or "-", *sellers]).encode()
-    ).hexdigest()
+    grants = row.grants_digest if row and active else "-"
+    digest = hashlib.sha256("|".join([subject, batch_id, role or "-", grants]).encode()
+                            ).hexdigest()
     return Principal(subject, batch_id, role, active, digest)

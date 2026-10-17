@@ -1,0 +1,45 @@
+-- query: late_open_orders
+-- principal: reviewer
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"as_of": "2018-03-30 23:59:59", "batch_id": "olist-full-v1-d689b1282dbe"}
+
+SELECT o.order_id
+FROM orders o
+WHERE o.batch_id = :batch_id
+  AND 
+    o.purchased_at <= :as_of
+    AND o.estimated_at < CAST(:as_of AS date)
+    AND o.estimated_at >= CAST(:as_of AS date) - 30
+    AND (o.delivered_at IS NULL OR o.delivered_at > :as_of)
+
+  AND EXISTS (SELECT 1 FROM order_items i
+              WHERE i.batch_id = o.batch_id AND i.order_id = o.order_id)
+ORDER BY o.order_id
+
+Gather Merge  (cost=7056.95..7188.74 rows=1146 width=33) (actual time=8.582..9.877 rows=825 loops=1)
+  Workers Planned: 1
+  Workers Launched: 1
+  Buffers: shared hit=4906
+  ->  Sort  (cost=6056.94..6059.80 rows=1146 width=33) (actual time=2.951..2.965 rows=412 loops=2)
+        Sort Key: o.order_id
+        Sort Method: quicksort  Memory: 63kB
+        Buffers: shared hit=4906
+        Worker 0:  Sort Method: quicksort  Memory: 25kB
+        ->  Nested Loop Semi Join  (cost=693.88..5998.71 rows=1146 width=33) (actual time=0.528..2.781 rows=412 loops=2)
+              Buffers: shared hit=4898
+              ->  Parallel Bitmap Heap Scan on orders o  (cost=693.46..3016.33 rows=1305 width=59) (actual time=0.519..1.617 rows=432 loops=2)
+                    Recheck Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (estimated_at < '2018-03-30'::date) AND (estimated_at >= '2018-02-28'::date))
+                    Filter: ((purchased_at <= '2018-03-30 23:59:59'::timestamp without time zone) AND ((delivered_at IS NULL) OR (delivered_at > '2018-03-30 23:59:59'::timestamp without time zone)))
+                    Rows Removed by Filter: 3957
+                    Heap Blocks: exact=2160
+                    Buffers: shared hit=2302
+                    ->  Bitmap Index Scan on orders_batch_estimated_order  (cost=0.00..692.90 rows=8679 width=0) (actual time=0.846..0.846 rows=8779 loops=1)
+                          Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (estimated_at < '2018-03-30'::date) AND (estimated_at >= '2018-02-28'::date))
+                          Buffers: shared hit=142
+              ->  Index Only Scan using order_items_pkey on order_items i  (cost=0.42..2.51 rows=1 width=59) (actual time=0.003..0.003 rows=1 loops=865)
+                    Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = o.order_id))
+                    Heap Fetches: 0
+                    Buffers: shared hit=2596
+Planning Time: 0.150 ms
+Execution Time: 9.915 ms

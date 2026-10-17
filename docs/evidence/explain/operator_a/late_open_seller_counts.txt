@@ -1,0 +1,51 @@
+-- query: late_open_seller_counts
+-- principal: operator_a
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"as_of": "2018-03-30 23:59:59", "batch_id": "olist-full-v1-d689b1282dbe"}
+
+SELECT i.seller_id, count(DISTINCT o.order_id) AS late_open_orders
+FROM orders o
+JOIN order_items i ON i.batch_id = o.batch_id AND i.order_id = o.order_id
+WHERE o.batch_id = :batch_id
+  AND 
+    o.purchased_at <= :as_of
+    AND o.estimated_at < CAST(:as_of AS date)
+    AND o.estimated_at >= CAST(:as_of AS date) - 30
+    AND (o.delivered_at IS NULL OR o.delivered_at > :as_of)
+
+GROUP BY i.seller_id
+ORDER BY late_open_orders DESC, i.seller_id ASC
+
+Sort  (cost=7888.78..7894.72 rows=2378 width=41) (actual time=18.402..18.414 rows=361 loops=1)
+  Sort Key: (count(DISTINCT o.order_id)) DESC, i.seller_id
+  Sort Method: quicksort  Memory: 50kB
+  Buffers: shared hit=5047
+  ->  GroupAggregate  (cost=7712.80..7755.42 rows=2378 width=41) (actual time=18.173..18.294 rows=361 loops=1)
+        Group Key: i.seller_id
+        Buffers: shared hit=5047
+        ->  Sort  (cost=7712.80..7719.08 rows=2512 width=66) (actual time=18.169..18.193 rows=913 loops=1)
+              Sort Key: i.seller_id, o.order_id
+              Sort Method: quicksort  Memory: 110kB
+              Buffers: shared hit=5047
+              ->  Hash Join  (cost=3124.47..7570.94 rows=2512 width=66) (actual time=2.508..17.797 rows=913 loops=1)
+                    Hash Cond: (i.order_id = o.order_id)
+                    Buffers: shared hit=5047
+                    ->  Seq Scan on order_items i  (cost=0.00..4151.51 rows=112360 width=92) (actual time=0.008..9.119 rows=112413 loops=1)
+                          Filter: (batch_id = 'olist-full-v1-d689b1282dbe'::text)
+                          Rows Removed by Filter: 108
+                          Buffers: shared hit=2745
+                    ->  Hash  (cost=3096.74..3096.74 rows=2219 width=59) (actual time=2.438..2.439 rows=865 loops=1)
+                          Buckets: 4096  Batches: 1  Memory Usage: 110kB
+                          Buffers: shared hit=2302
+                          ->  Bitmap Heap Scan on orders o  (cost=693.46..3096.74 rows=2219 width=59) (actual time=0.733..2.362 rows=865 loops=1)
+                                Recheck Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (estimated_at < '2018-03-30'::date) AND (estimated_at >= '2018-02-28'::date))
+                                Filter: ((purchased_at <= '2018-03-30 23:59:59'::timestamp without time zone) AND ((delivered_at IS NULL) OR (delivered_at > '2018-03-30 23:59:59'::timestamp without time zone)))
+                                Rows Removed by Filter: 7914
+                                Heap Blocks: exact=2160
+                                Buffers: shared hit=2302
+                                ->  Bitmap Index Scan on orders_batch_estimated_order  (cost=0.00..692.90 rows=8679 width=0) (actual time=0.590..0.590 rows=8779 loops=1)
+                                      Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (estimated_at < '2018-03-30'::date) AND (estimated_at >= '2018-02-28'::date))
+                                      Buffers: shared hit=142
+Planning Time: 0.105 ms
+Execution Time: 18.438 ms

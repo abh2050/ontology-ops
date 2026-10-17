@@ -1,0 +1,49 @@
+{
+  "base_url": "http://127.0.0.1:8000",
+  "readers": 20,
+  "requests_measured": 2000,
+  "warmup_requests": 200,
+  "non_200": 0,
+  "wall_seconds": 6.74,
+  "throughput_rps": 326.4,
+  "overall_ms": {
+    "p50": 39.9,
+    "p95": 188.8,
+    "p99": 347.0,
+    "max": 597.9
+  },
+  "by_endpoint_ms": {
+    "context": {
+      "n": 203,
+      "p50": 45.7,
+      "p95": 211.2
+    },
+    "graph": {
+      "n": 398,
+      "p50": 59.9,
+      "p95": 162.1
+    },
+    "order": {
+      "n": 874,
+      "p50": 35.8,
+      "p95": 192.8
+    },
+    "queue": {
+      "n": 47,
+      "p50": 50.6,
+      "p95": 252.6
+    },
+    "queue_page2": {
+      "n": 43,
+      "p50": 61.2,
+      "p95": 252.6
+    },
+    "seller_scope": {
+      "n": 435,
+      "p50": 37.4,
+      "p95": 174.1
+    }
+  },
+  "target": "p95 < 750 ms at 20 concurrent readers",
+  "host": "Darwin arm64, single uvicorn worker"
+}

@@ -1,0 +1,118 @@
+-- query: late_queue_page
+-- principal: operator_a
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"as_of": "2018-03-30 23:59:59", "batch_id": "olist-full-v1-d689b1282dbe", "c_days": null, "c_order": null, "c_value": null, "customer_state": null, "limit_plus_one": 26, "purchase_from": "2018-01-01", "purchase_to": "2018-08-31", "seller_id": "c3867b4666c7d76867627c2f7fb22e21", "subject": "operator_a"}
+
+WITH 
+late AS (
+    SELECT o.order_id, o.purchased_at, o.estimated_at, o.provenance,
+           (CAST(:as_of AS date) - o.estimated_at::date) AS days_overdue
+    FROM orders o
+    WHERE o.batch_id = :batch_id
+      AND 
+    o.purchased_at <= :as_of
+    AND o.estimated_at < CAST(:as_of AS date)
+    AND o.estimated_at >= CAST(:as_of AS date) - 30
+    AND (o.delivered_at IS NULL OR o.delivered_at > :as_of)
+
+      AND o.purchased_at >= CAST(:purchase_from AS date)
+      AND o.purchased_at < CAST(:purchase_to AS date) + 1
+      AND (CAST(:customer_state AS text) IS NULL OR EXISTS (
+            SELECT 1 FROM customers fc WHERE fc.batch_id = o.batch_id
+              AND fc.customer_id = o.customer_id AND fc.state = :customer_state))
+      AND (CAST(:seller_id AS text) IS NULL OR EXISTS (
+            SELECT 1 FROM order_items fi WHERE fi.batch_id = o.batch_id
+              AND fi.order_id = o.order_id AND fi.seller_id = :seller_id))
+      AND 
+    EXISTS (SELECT 1 FROM users u WHERE u.subject = :subject AND u.active)
+    AND EXISTS (SELECT 1 FROM order_items vi
+                WHERE vi.batch_id = o.batch_id AND vi.order_id = o.order_id)
+    AND NOT EXISTS (
+        SELECT 1 FROM order_items vi
+        WHERE vi.batch_id = o.batch_id AND vi.order_id = o.order_id
+          AND NOT EXISTS (SELECT 1 FROM seller_grants g
+                          WHERE g.subject = :subject AND g.batch_id = vi.batch_id
+                            AND g.seller_id = vi.seller_id))
+
+),
+lined AS (
+    SELECT l.order_id, l.purchased_at, l.estimated_at, l.provenance, l.days_overdue,
+           sum(i.price_centavos)::bigint AS line_value,
+           count(*) AS line_count,
+           count(DISTINCT i.seller_id) AS seller_count,
+           array_agg(DISTINCT i.seller_id ORDER BY i.seller_id) AS seller_ids
+    FROM late l
+    JOIN order_items i ON i.batch_id = :batch_id AND i.order_id = l.order_id
+    GROUP BY l.order_id, l.purchased_at, l.estimated_at, l.provenance, l.days_overdue
+)
+
+SELECT * FROM lined
+WHERE CAST(:c_days AS integer) IS NULL
+   OR days_overdue < :c_days
+   OR (days_overdue = :c_days AND (line_value < :c_value
+       OR (line_value = :c_value AND order_id > :c_order)))
+ORDER BY days_overdue DESC, line_value DESC, order_id ASC
+LIMIT :limit_plus_one
+
+Limit  (cost=44504.71..44504.78 rows=26 width=115) (actual time=4.089..4.092 rows=11 loops=1)
+  Buffers: shared hit=5067
+  ->  Sort  (cost=44504.71..44504.82 rows=43 width=115) (actual time=4.089..4.091 rows=11 loops=1)
+        Sort Key: (('2018-03-30'::date - (o.estimated_at)::date)) DESC, ((sum(i.price_centavos))::bigint) DESC, o.order_id
+        Sort Method: quicksort  Memory: 27kB
+        Buffers: shared hit=5067
+        ->  GroupAggregate  (cost=44501.50..44503.54 rows=43 width=115) (actual time=4.079..4.085 rows=11 loops=1)
+              Group Key: o.order_id, o.purchased_at, o.estimated_at, o.provenance, (('2018-03-30'::date - (o.estimated_at)::date))
+              Buffers: shared hit=5067
+              InitPlan 3 (returns $4)
+                ->  Index Scan using users_pkey on users u  (cost=0.15..8.17 rows=1 width=0) (actual time=0.003..0.003 rows=1 loops=1)
+                      Index Cond: (subject = 'operator_a'::text)
+                      Filter: active
+                      Buffers: shared hit=2
+              ->  Sort  (cost=44493.33..44493.44 rows=43 width=100) (actual time=4.072..4.074 rows=11 loops=1)
+                    Sort Key: o.order_id, o.purchased_at, o.estimated_at, o.provenance, (('2018-03-30'::date - (o.estimated_at)::date)), i.seller_id
+                    Sort Method: quicksort  Memory: 26kB
+                    Buffers: shared hit=5067
+                    ->  Result  (cost=694.65..44492.17 rows=43 width=100) (actual time=0.866..4.068 rows=11 loops=1)
+                          One-Time Filter: $4
+                          Buffers: shared hit=5067
+                          ->  Nested Loop  (cost=694.65..44491.95 rows=43 width=96) (actual time=0.862..4.062 rows=11 loops=1)
+                                Buffers: shared hit=5065
+                                ->  Nested Loop Semi Join  (cost=694.24..44469.62 rows=38 width=88) (actual time=0.859..4.040 rows=11 loops=1)
+                                      Buffers: shared hit=5021
+                                      ->  Nested Loop Anti Join  (cost=693.82..44317.30 rows=43 width=81) (actual time=0.856..4.019 rows=11 loops=1)
+                                            Buffers: shared hit=4987
+                                            ->  Bitmap Heap Scan on orders o  (cost=692.99..41674.43 rows=351 width=81) (actual time=0.847..3.954 rows=11 loops=1)
+                                                  Recheck Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (estimated_at < '2018-03-30'::date) AND (estimated_at >= '2018-02-28'::date))
+                                                  Filter: ((purchased_at <= '2018-03-30 23:59:59'::timestamp without time zone) AND ((delivered_at IS NULL) OR (delivered_at > '2018-03-30 23:59:59'::timestamp without time zone)) AND (purchased_at >= '2018-01-01'::date) AND (purchased_at < '2018-09-01'::date) AND (SubPlan 1))
+                                                  Rows Removed by Filter: 8768
+                                                  Heap Blocks: exact=2160
+                                                  Buffers: shared hit=4898
+                                                  ->  Bitmap Index Scan on orders_batch_estimated_order  (cost=0.00..692.90 rows=8679 width=0) (actual time=0.634..0.634 rows=8779 loops=1)
+                                                        Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (estimated_at < '2018-03-30'::date) AND (estimated_at >= '2018-02-28'::date))
+                                                        Buffers: shared hit=142
+                                                  SubPlan 1
+                                                    ->  Index Only Scan using order_items_batch_seller_order on order_items fi  (cost=0.42..4.44 rows=1 width=0) (actual time=0.002..0.002 rows=0 loops=865)
+                                                          Index Cond: ((batch_id = o.batch_id) AND (seller_id = 'c3867b4666c7d76867627c2f7fb22e21'::text) AND (order_id = o.order_id))
+                                                          Heap Fetches: 0
+                                                          Buffers: shared hit=2596
+                                            ->  Nested Loop Anti Join  (cost=0.82..8.13 rows=1 width=59) (actual time=0.006..0.006 rows=0 loops=11)
+                                                  Buffers: shared hit=89
+                                                  ->  Index Scan using order_items_pkey on order_items vi_1  (cost=0.42..7.69 rows=1 width=92) (actual time=0.003..0.003 rows=1 loops=11)
+                                                        Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = o.order_id))
+                                                        Buffers: shared hit=44
+                                                  ->  Index Only Scan using seller_grants_pkey on seller_grants g  (cost=0.41..0.44 rows=1 width=59) (actual time=0.002..0.002 rows=1 loops=11)
+                                                        Index Cond: ((subject = 'operator_a'::text) AND (batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (seller_id = vi_1.seller_id))
+                                                        Heap Fetches: 11
+                                                        Buffers: shared hit=45
+                                      ->  Index Only Scan using order_items_pkey on order_items vi  (cost=0.42..3.92 rows=1 width=59) (actual time=0.002..0.002 rows=1 loops=11)
+                                            Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = o.order_id))
+                                            Heap Fetches: 0
+                                            Buffers: shared hit=34
+                                ->  Index Scan using order_items_pkey on order_items i  (cost=0.42..0.58 rows=1 width=74) (actual time=0.002..0.002 rows=1 loops=11)
+                                      Index Cond: ((batch_id = 'olist-full-v1-d689b1282dbe'::text) AND (order_id = vi.order_id))
+                                      Buffers: shared hit=44
+Planning:
+  Buffers: shared hit=3
+Planning Time: 0.606 ms
+Execution Time: 4.120 ms

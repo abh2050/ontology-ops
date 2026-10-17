@@ -48,6 +48,7 @@ def token_config(settings: Settings) -> TokenConfig:
     return TokenConfig(issuer, settings.cognito_client_id)
 
 
+@cache
 def _local_private_key() -> rsa.RSAPrivateKey:
     if not LOCAL_KEY.exists():
         LOCAL_KEY.parent.mkdir(parents=True, exist_ok=True)
@@ -60,6 +61,11 @@ def _local_private_key() -> rsa.RSAPrivateKey:
 
 
 @cache
+def _local_public_key() -> rsa.RSAPublicKey:
+    return _local_private_key().public_key()
+
+
+@cache
 def _jwks_client(issuer: str) -> jwt.PyJWKClient:
     return jwt.PyJWKClient(f"{issuer}/.well-known/jwks.json", cache_keys=True)
 
@@ -69,7 +75,7 @@ def _signing_key(token: str, settings: Settings, cfg: TokenConfig):
         header = jwt.get_unverified_header(token)
         if header.get("kid") != LOCAL_KID:
             raise AuthError("unknown key id")
-        return _local_private_key().public_key()
+        return _local_public_key()
     return _jwks_client(cfg.issuer).get_signing_key_from_jwt(token).key
 
 

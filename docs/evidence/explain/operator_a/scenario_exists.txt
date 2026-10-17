@@ -1,0 +1,13 @@
+-- query: scenario_exists
+-- principal: operator_a
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"scenario_id": "base-v1"}
+
+SELECT 1 FROM synthetic_scenarios WHERE scenario_id = :scenario_id
+
+Seq Scan on synthetic_scenarios  (cost=0.00..1.01 rows=1 width=4) (actual time=0.002..0.003 rows=1 loops=1)
+  Filter: (scenario_id = 'base-v1'::text)
+  Buffers: shared hit=1
+Planning Time: 0.009 ms
+Execution Time: 0.005 ms

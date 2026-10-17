@@ -1,0 +1,116 @@
+-- query: daily_scan
+-- principal: reviewer
+-- batch: olist-full-v1-d689b1282dbe
+-- as_of: 2018-03-30 23:59:59
+-- params: {"batch_id": "olist-full-v1-d689b1282dbe", "end": "2018-08-31", "start": "2018-01-01"}
+
+WITH days AS (
+    SELECT d::date AS day,
+           (d::date + interval '1 day' - interval '1 second')::timestamp AS as_of
+    FROM generate_series(CAST(:start AS date), CAST(:end AS date), interval '1 day') AS d
+),
+late AS (
+    SELECT days.day, o.order_id
+    FROM days
+    JOIN orders o
+      ON o.batch_id = :batch_id
+     AND o.purchased_at >= CAST(:start AS date)
+     AND o.purchased_at <= days.as_of
+     AND o.estimated_at::date < days.day
+     AND o.estimated_at::date >= days.day - 30
+     AND (o.delivered_at IS NULL OR o.delivered_at > days.as_of)
+),
+late_sellers AS (
+    SELECT DISTINCT late.day, late.order_id, i.seller_id
+    FROM late
+    JOIN order_items i ON i.batch_id = :batch_id AND i.order_id = late.order_id
+),
+per_order AS (
+    SELECT day, order_id, count(*) AS n_sellers FROM late_sellers GROUP BY day, order_id
+),
+per_seller AS (
+    SELECT day, seller_id, count(*) AS n_orders FROM late_sellers GROUP BY day, seller_id
+)
+SELECT days.day,
+       days.as_of,
+       (SELECT count(*) FROM per_order p WHERE p.day = days.day) AS late_open_orders,
+       (SELECT count(*) FROM per_seller s WHERE s.day = days.day AND s.n_orders >= 3)
+           AS sellers_with_3_plus,
+       (SELECT count(*) FROM per_order p WHERE p.day = days.day AND p.n_sellers > 1)
+           AS late_open_multi_seller_orders
+FROM days
+ORDER BY days.day
+
+Sort  (cost=22143914.24..22143916.74 rows=1000 width=36) (actual time=2574.845..2574.859 rows=243 loops=1)
+  Sort Key: days.day
+  Sort Method: quicksort  Memory: 40kB
+  Buffers: shared hit=104447, temp read=349002 written=1560
+  CTE days
+    ->  Function Scan on generate_series d  (cost=0.01..20.01 rows=1000 width=12) (actual time=182.789..182.822 rows=243 loops=1)
+  CTE late_sellers
+    ->  HashAggregate  (cost=2160070.88..2186836.53 rows=800468 width=70) (actual time=955.591..969.887 rows=60040 loops=1)
+          Group Key: days_1.day, o.order_id, i.seller_id
+          Planned Partitions: 32  Batches: 33  Memory Usage: 8209kB  Disk Usage: 2032kB
+          Buffers: shared hit=104444, temp read=187 written=432
+          ->  Merge Join  (cost=205.63..2063014.14 rows=800468 width=70) (actual time=0.789..934.271 rows=65926 loops=1)
+                Merge Cond: (i.order_id = o.order_id)
+                Buffers: shared hit=104444
+                ->  Index Scan using order_items_pkey on order_items i  (cost=0.42..13074.53 rows=112360 width=66) (actual time=0.018..15.480 rows=112391 loops=1)
+                      Index Cond: (batch_id = 'olist-full-v1-d689b1282dbe'::text)
+                      Buffers: shared hit=3916
+                ->  Materialize  (cost=0.42..2039631.47 rows=707211 width=37) (actual time=0.752..903.100 rows=70736 loops=1)
+                      Buffers: shared hit=100528
+                      ->  Nested Loop  (cost=0.42..2037863.44 rows=707211 width=37) (actual time=0.751..896.326 rows=64773 loops=1)
+                            Join Filter: ((o.purchased_at <= days_1.as_of) AND ((o.delivered_at IS NULL) OR (o.delivered_at > days_1.as_of)) AND ((o.estimated_at)::date < days_1.day) AND ((o.estimated_at)::date >= (days_1.day - 30)))
+                            Rows Removed by Join Filter: 13019562
+                            Buffers: shared hit=100528
+                            ->  Index Scan using orders_pkey on orders o  (cost=0.42..12440.94 rows=54011 width=57) (actual time=0.014..52.310 rows=53845 loops=1)
+                                  Index Cond: (batch_id = 'olist-full-v1-d689b1282dbe'::text)
+                                  Filter: (purchased_at >= '2018-01-01'::date)
+                                  Rows Removed by Filter: 45407
+                                  Buffers: shared hit=100528
+                            ->  CTE Scan on days days_1  (cost=0.00..20.00 rows=1000 width=12) (actual time=0.000..0.008 rows=243 loops=53845)
+  CTE per_order
+    ->  HashAggregate  (cost=22012.87..22412.87 rows=40000 width=44) (actual time=993.508..1003.966 rows=59963 loops=1)
+          Group Key: late_sellers.day, late_sellers.order_id
+          Batches: 5  Memory Usage: 8241kB  Disk Usage: 672kB
+          Buffers: shared hit=104444, temp read=236 written=1134
+          ->  CTE Scan on late_sellers  (cost=0.00..16009.36 rows=800468 width=36) (actual time=955.592..979.851 rows=60040 loops=1)
+                Buffers: shared hit=104444, temp read=187 written=1018
+  ->  CTE Scan on days  (cost=0.00..19934595.00 rows=1000 width=36) (actual time=1198.927..2574.733 rows=243 loops=1)
+        Buffers: shared hit=104444, temp read=349002 written=1560
+        SubPlan 4
+          ->  Aggregate  (cost=900.50..900.51 rows=1 width=8) (actual time=5.945..5.945 rows=1 loops=243)
+                Buffers: shared hit=104444, temp read=103086 written=1558
+                ->  CTE Scan on per_order p  (cost=0.00..900.00 rows=200 width=0) (actual time=4.300..5.937 rows=247 loops=243)
+                      Filter: (day = days.day)
+                      Rows Removed by Filter: 59716
+                      Buffers: shared hit=104444, temp read=103086 written=1558
+        SubPlan 5
+          ->  Aggregate  (cost=18033.88..18033.89 rows=1 width=8) (actual time=2.118..2.118 rows=1 loops=243)
+                Buffers: temp read=142641 written=1
+                ->  HashAggregate  (cost=18030.54..18033.04 rows=67 width=44) (actual time=2.112..2.117 rows=18 loops=243)
+                      Group Key: late_sellers_1.seller_id
+                      Filter: (count(*) >= 3)
+                      Batches: 1  Memory Usage: 109kB
+                      Rows Removed by Filter: 132
+                      Buffers: temp read=142641 written=1
+                      ->  CTE Scan on late_sellers late_sellers_1  (cost=0.00..18010.53 rows=4002 width=36) (actual time=0.155..2.074 rows=247 loops=243)
+                            Filter: (day = days.day)
+                            Rows Removed by Filter: 59793
+                            Buffers: temp read=142641 written=1
+        SubPlan 6
+          ->  Aggregate  (cost=1000.17..1000.18 rows=1 width=8) (actual time=1.778..1.778 rows=1 loops=243)
+                Buffers: temp read=103275 written=1
+                ->  CTE Scan on per_order p_1  (cost=0.00..1000.00 rows=67 width=0) (actual time=1.531..1.778 rows=0 loops=243)
+                      Filter: ((n_sellers > 1) AND (day = days.day))
+                      Rows Removed by Filter: 59963
+                      Buffers: temp read=103275 written=1
+Planning:
+  Buffers: shared hit=11
+Planning Time: 0.247 ms
+JIT:
+  Functions: 63
+  Options: Inlining true, Optimization true, Expressions true, Deforming true
+  Timing: Generation 1.414 ms, Inlining 42.665 ms, Optimization 73.504 ms, Emission 76.157 ms, Total 193.740 ms
+Execution Time: 2589.176 ms

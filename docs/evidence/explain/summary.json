@@ -1,0 +1,73 @@
+{
+  "batch_id": "olist-full-v1-d689b1282dbe",
+  "as_of": "2018-03-30 23:59:59",
+  "execution_ms": {
+    "principal": {
+      "reviewer": 1.48,
+      "operator_a": 0.092
+    },
+    "order_snapshot": {
+      "reviewer": 0.171,
+      "operator_a": 0.045
+    },
+    "order_lines": {
+      "reviewer": 0.034,
+      "operator_a": 0.02
+    },
+    "customer_visible_orders": {
+      "reviewer": 0.056,
+      "operator_a": 0.024
+    },
+    "late_queue_page": {
+      "reviewer": 11.815,
+      "operator_a": 4.12
+    },
+    "late_queue_aggregates": {
+      "reviewer": 6.504,
+      "operator_a": 3.662
+    },
+    "seller": {
+      "reviewer": 0.323,
+      "operator_a": 0.017
+    },
+    "seller_scope_lines": {
+      "reviewer": 3.362,
+      "operator_a": 0.912
+    },
+    "seller_scope_aggregates": {
+      "reviewer": 1.423,
+      "operator_a": 0.663
+    },
+    "selected_orders": {
+      "reviewer": 0.124,
+      "operator_a": 0.067
+    },
+    "existing_case": {
+      "reviewer": 0.008,
+      "operator_a": 0.003
+    },
+    "scenario_exists": {
+      "reviewer": 0.019,
+      "operator_a": 0.005
+    },
+    "visible_events": {
+      "reviewer": 0.055,
+      "operator_a": 0.013
+    },
+    "order_context": {
+      "reviewer": 1.798,
+      "operator_a": 0.419
+    },
+    "daily_scan": {
+      "reviewer": 2589.176
+    },
+    "late_open_orders": {
+      "reviewer": 9.915,
+      "operator_a": 8.739
+    },
+    "late_open_seller_counts": {
+      "reviewer": 18.739,
+      "operator_a": 18.438
+    }
+  }
+}
