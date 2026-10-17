@@ -1,12 +1,47 @@
-# Filled from official AWS pricing pages before any paid run (M3/M4.5).
-# Unknown values stay "unknown" and are never treated as zero.
-effective_date: unknown
-source_urls: []
+# Official on-demand rates, us-east-1, retrieved 2026-10-17 from the AWS Price List
+# Query API (pricing.us-east-1.amazonaws.com, GetProducts) with read-only credentials.
+# These are list prices used for ESTIMATES. Reported costs use actual returned usage;
+# unknown charges are reported as unknown, never as zero.
+effective_date: "2026-10-17"
 region: us-east-1
+source_urls:
+  - https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_pricing_GetProducts.html
+  - https://aws.amazon.com/bedrock/pricing/
+  - https://aws.amazon.com/fargate/pricing/
+  - https://aws.amazon.com/rds/postgresql/pricing/
+  - https://aws.amazon.com/elasticloadbalancing/pricing/
+  - https://aws.amazon.com/vpc/pricing/
 models:
-  default_model_id: {input_per_1k_tokens_usd: unknown, output_per_1k_tokens_usd: unknown}
-  second_model_id: {input_per_1k_tokens_usd: unknown, output_per_1k_tokens_usd: unknown}
-infrastructure: {}
+  default_model_id:            # Nova Lite, on-demand in-region (USE1-NovaLite-*)
+    input_per_1k_tokens_usd: 0.00006
+    output_per_1k_tokens_usd: 0.00024
+    usage_types: [USE1-NovaLite-input-tokens, USE1-NovaLite-output-tokens]
+  second_model_id:             # Nova 2.0 Lite, global cross-region profile (USE1-Nova2.0Lite-*-cross-region-global)
+    input_per_1k_tokens_usd: 0.0003
+    output_per_1k_tokens_usd: 0.0025
+    usage_types: [USE1-Nova2.0Lite-input-tokens-cross-region-global,
+                  USE1-Nova2.0Lite-output-tokens-cross-region-global]
+infrastructure:
+  fargate_arm_vcpu_hour_usd: 0.03238          # USE1-Fargate-ARM-vCPU-Hours:perCPU
+  fargate_arm_gb_hour_usd: 0.00356            # USE1-Fargate-ARM-GB-Hours
+  rds_db_t4g_micro_postgres_single_az_hour_usd: 0.016
+  rds_gp3_storage_gb_month_usd: 0.115
+  alb_hour_usd: 0.0225
+  alb_lcu_hour_usd: 0.008
+  public_ipv4_hour_usd: 0.005                 # USE1-PublicIPv4:InUseAddress
+  secrets_manager_secret_month_usd: 0.40
+  cloudwatch_logs_ingest_gb_usd: unknown      # not queried; small at this volume
+  sqs_requests: unknown                       # expected within free tier at this volume
+  cognito_mau: unknown                        # tier pricing not queried
+assumptions:
+  hours_per_month: 730
+  api_task: {vcpu: 0.25, memory_gb: 0.5, count: 1, arch: arm64}
+  worker_task: {vcpu: 0.5, memory_gb: 1.0, count: 1, arch: arm64}
+  rds: {instance: db.t4g.micro, storage_gb: 20, multi_az: false, encrypted: true}
+  public_ipv4_addresses: 4      # API task, worker task, ALB in two AZs; no NAT gateway
+  alb_lcu_average: 1
+  secrets: 5                    # master, import, api, worker, app config
+  tokens_per_job: {planner_in: 600, planner_out: 150, analyst_in: 3000, analyst_out: 500}
 planning:
   experiment_allowance_usd: 25        # planning allowance, not a guaranteed cap
-  hosting_estimate_usd_per_month: [80, 180]  # provisional, pending regional calculation
+  hosting_estimate_usd_per_month: [80, 180]  # provisional spec band; see preflight table

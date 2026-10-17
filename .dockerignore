@@ -1,0 +1,15 @@
+.git
+.venv
+.local
+.env
+.env.*
+data/raw
+**/node_modules
+frontend/dist
+cdk.out
+mlruns
+docs
+tests
+**/__pycache__
+.pytest_cache
+.ruff_cache

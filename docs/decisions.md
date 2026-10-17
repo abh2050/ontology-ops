@@ -143,3 +143,16 @@ After the planner's tools run, the worker follows the ontology from an Order tar
 
 ## D-021 Fixture provider
 `FixtureProvider` is a deterministic stand-in that reads the same prompt Bedrock would receive and returns schema-shaped JSON. It supports injected faults: timeout, throttle, reject, invalid JSON, causal, invented ID, and arithmetic. Fixture runs never count as model evaluation results.
+
+## D-022 Deployment design (M4.5, prepared and unverified)
+- **One CDK stack** (`infra/stack.py`, Python, CDK v2). Fargate runs ARM64 tasks in public subnets with public IPs for outbound HTTPS, so there is no NAT gateway. RDS PostgreSQL 16 is a single-AZ `db.t4g.micro` with 20 GiB gp3, encrypted, with `rds.force_ssl=1`, in private isolated subnets. Port 5432 is open only to the API, worker, and one-off task security groups.
+- **Services stay at `desired_count=0`** until the image is pushed and the migration, import, and seeding tasks have run, which follows the spec's deployment sequence. They are released with `-c services_running=true`.
+- **One-off ECS tasks each have their own role:**
+  - migration: master credentials plus runtime role passwords; it bootstraps `ops_import`, `ops_api`, and `ops_worker`
+  - import: S3 `imports/` read, import credentials
+  - seeding: Cognito admin, write access to the demo-users secret
+- **Task roles.** The API can read S3 and write `exports/`; it has no Bedrock and no queue access. The worker can use the queue and invoke only the two configured models, including the global profile's foundation models in any region.
+- **Cognito.** Self sign-up is disabled. The public client uses the authorization code grant with PKCE and an HTTPS callback on the owner's domain. `ALLOW_ADMIN_USER_PASSWORD_AUTH` is enabled only for IAM-authenticated smoke tests; it is never usable from a browser.
+- **Nothing account-specific is committed.** No ARN or account number appears in the repo: the certificate ARN is passed as CDK context at deploy time, and `cdk.context.json` is gitignored.
+- **Pricing.** List prices were retrieved from the AWS Price List API on 2026-10-17 into `configs/price_card.yaml`. The estimated infrastructure cost is about $74/month, plus inference of about $0.37 (Nova Lite) or $2.71 (Nova 2 Lite) per 1,000 jobs.
+- **Image.** The runtime image excludes the `dev` and `eval` dependency groups (734 MB).

@@ -38,7 +38,22 @@ class Settings(BaseSettings):
             )
         return self
 
+    # Deployed: host and per-role credentials arrive from Secrets Manager as env vars.
+    ops_db_host: str | None = None
+    ops_db_port: int = 5432
+    ops_db_name: str = "ops"
+
     def database_url(self, role: Literal["admin", "import", "api", "worker"]) -> str:
+        if self.ops_db_host:
+            import os
+            from urllib.parse import quote
+
+            user = os.environ.get(f"OPS_DB_{role.upper()}_USER")
+            password = os.environ.get(f"OPS_DB_{role.upper()}_PASSWORD")
+            if not (user and password):
+                raise RuntimeError(f"credentials for the {role} database role are not configured")
+            return (f"postgresql+psycopg://{quote(user)}:{quote(password)}@{self.ops_db_host}:"
+                    f"{self.ops_db_port}/{self.ops_db_name}?sslmode=require")
         return getattr(self, f"database_url_{role}")
 
 

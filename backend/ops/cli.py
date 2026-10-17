@@ -30,9 +30,18 @@ def _fail(message: str) -> None:
 @app.command()
 def migrate() -> None:
     """Apply Alembic migrations as the migration/admin role."""
+    import os
+
     from alembic import command
     from alembic.config import Config
 
+    if os.environ.get("OPS_BOOTSTRAP_ROLES") == "1":
+        from ops.data.bootstrap import bootstrap_roles
+
+        try:
+            typer.echo("runtime roles ready: " + ", ".join(bootstrap_roles()))
+        except Exception as exc:  # noqa: BLE001
+            _fail(f"role bootstrap failed: {exc}")
     cfg = Config(str(REPO_ROOT / "alembic.ini"))
     cfg.set_main_option("script_location", str(REPO_ROOT / "db"))
     try:
@@ -58,6 +67,12 @@ def data_import(
 
     try:
         dl = date.fromisoformat(download_date) if download_date else None
+        if str(directory).startswith("s3:/"):
+            from ops.data.s3 import download_sources
+
+            directory = download_sources(str(directory).replace("s3:/", "s3://", 1)
+                                         if not str(directory).startswith("s3://")
+                                         else str(directory))
         result = run_import(directory, batch_id=batch, download_date=dl)
     except (ImportError_, ValueError, FileNotFoundError) as exc:
         _fail(str(exc))
@@ -174,7 +189,12 @@ def export_demo() -> None:
 @app.command()
 def preflight(cloud: Annotated[str, typer.Option(help="Cloud target: aws")]) -> None:
     """Verify cloud inputs and model access; print an estimated cost table."""
-    _not_yet("M4.5")
+    from ops.preflight import run_preflight
+
+    ok, report = run_preflight(cloud)
+    typer.echo(report)
+    if not ok:
+        raise typer.Exit(code=1)
 
 
 def main() -> None:
