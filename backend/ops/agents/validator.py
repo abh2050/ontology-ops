@@ -54,7 +54,7 @@ def evidence_index(tool_results: list[dict]) -> tuple[set[str], set[str], set[st
             if isinstance(v, bool):
                 continue
             if isinstance(v, int):
-                numbers.add(str(v))
+                numbers.update({str(v), f"{v:,}"})  # copied values may carry separators
                 if abs(v) >= 100:  # centavos may be quoted as reais
                     reais = Decimal(v) / 100
                     numbers.update({f"{reais:.2f}", f"{reais:,.2f}",

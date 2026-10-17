@@ -133,7 +133,7 @@ The breaker opens after 5 consecutive known provider failures and stays open for
 The worker role cannot insert proposals (spec 11.6). The worker stores the analyst's typed action, the validation report, and deterministic metrics in `jobs.result`. The API creates the proposal row from a ready job (M4), re-validating target existence, batch, scenario, ownership, and eligibility at creation.
 
 ## D-018 Numbers in model output
-The model never authors arithmetic. Every number in analyst text must appear verbatim in the deterministic evidence: integer values, or centavos rendered as reais. Otherwise the validator rejects it as `INCORRECT_ARITHMETIC`. Proposal counts and money come from `deterministic_metrics`.
+The model never authors arithmetic. Every number in analyst text must appear verbatim in the deterministic evidence: integer values (with or without thousands separators, e.g. `162800` or `162,800`; added 2026-10-17 after the first live job showed a false rejection of a correctly copied value), or centavos rendered as reais. Otherwise the validator rejects it as `INCORRECT_ARITHMETIC`. Proposal counts and money come from `deterministic_metrics`.
 
 ## D-019 Causal language rule (conservative)
 A sentence is rejected when it contains one of "caused", "due to", "because of", "resulted from", or "responsible for" (and close variants), and it also names a seller, carrier, or event, a synthetic event word, or an object ID. Negated forms ("not caused by the carrier") are also rejected. That is deliberately conservative: a false rejection only sends the proposal to `needs_review`.

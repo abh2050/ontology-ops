@@ -33,3 +33,10 @@ def test_numbers_from_evidence_include_reais_formats():
     }])
     assert {"7", "123456", "1234.56", "1,234.56"} <= numbers
     assert "a" * 32 in ids
+
+
+def test_thousands_separated_copies_allowed_but_wrong_values_not():
+    _, _, numbers = evidence_index([{"evidence": [],
+                                     "aggregates": {"seller_line_value_centavos": 162800}}])
+    assert "162,800" in numbers and "162800" in numbers
+    assert "162,801" not in numbers and "163,000" not in numbers
