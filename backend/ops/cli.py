@@ -40,8 +40,8 @@ def migrate() -> None:
 
         try:
             typer.echo("runtime roles ready: " + ", ".join(bootstrap_roles()))
-        except Exception as exc:  # noqa: BLE001
-            _fail(f"role bootstrap failed: {exc}")
+        except Exception as exc:  # noqa: BLE001 - report the type only; never echo statements
+            _fail(f"role bootstrap failed: {type(exc).__name__}")
     cfg = Config(str(REPO_ROOT / "alembic.ini"))
     cfg.set_main_option("script_location", str(REPO_ROOT / "db"))
     try:

@@ -12,5 +12,6 @@ Role = Literal["admin", "import", "api", "worker"]
 
 @cache
 def engine(role: Role) -> Engine:
+    # hide_parameters keeps bound values (passwords, IDs) out of exception text and logs.
     return create_engine(get_settings().database_url(role), pool_pre_ping=True,
-                         pool_size=10, max_overflow=20)
+                         pool_size=10, max_overflow=20, hide_parameters=True)

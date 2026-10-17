@@ -30,8 +30,8 @@ def bootstrap_roles() -> list[str]:
                                   {"r": role}).first()
             verb = "ALTER" if exists else "CREATE"
             # Role names are fixed constants; the password is bound via format() server side.
-            stmt = conn.execute(text(f"SELECT format('{verb} ROLE {role} LOGIN PASSWORD %L', :p)"),
-                                {"p": password}).scalar_one()
+            stmt = conn.execute(text(f"SELECT format('{verb} ROLE {role} LOGIN PASSWORD %L', "
+                                     "CAST(:p AS text))"), {"p": password}).scalar_one()
             conn.execute(text(stmt))
             conn.execute(text(f'GRANT CONNECT ON DATABASE "{db}" TO {role}'))
             done.append(role)
