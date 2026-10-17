@@ -1,0 +1,39 @@
+{
+  "batch_id": "fixtures-v1",
+  "as_of": "2018-03-15 23:59:59",
+  "grants_by_label": {
+    "operator_a": [
+      "seller_a01",
+      "seller_a02",
+      "seller_a03",
+      "seller_a04",
+      "seller_a05",
+      "seller_a06",
+      "seller_revoked"
+    ],
+    "operator_b": [
+      "seller_b01",
+      "seller_b02",
+      "seller_b03",
+      "seller_b04",
+      "seller_b05",
+      "seller_b06"
+    ],
+    "reviewer": [
+      "seller_a01",
+      "seller_a02",
+      "seller_a03",
+      "seller_a04",
+      "seller_a05",
+      "seller_a06",
+      "seller_b01",
+      "seller_b02",
+      "seller_b03",
+      "seller_b04",
+      "seller_b05",
+      "seller_b06",
+      "seller_revoked"
+    ],
+    "viewer": []
+  }
+}

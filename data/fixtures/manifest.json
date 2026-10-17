@@ -1,0 +1,60 @@
+{
+  "batch_id": "fixtures-v1",
+  "demo_as_of": {
+    "as_of": "2018-03-15 23:59:59",
+    "late_open_multi_seller_orders": 25,
+    "late_open_orders": 60,
+    "selected_by": "authored fixture as_of",
+    "sellers_with_3_plus_late_open": 11
+  },
+  "download_date": "2026-10-17",
+  "files": {
+    "customers": {
+      "file": "olist_customers_dataset.csv",
+      "rows": 71,
+      "sha256": "78fd7bbe5c3b7e65325c717e360945efec261e262fbd1f7a07aee7abbacf9cd9"
+    },
+    "order_items": {
+      "file": "olist_order_items_dataset.csv",
+      "rows": 109,
+      "sha256": "c4d844a79d38aca5867d4a710861029251157440f7886dace94bd11d284374a6"
+    },
+    "orders": {
+      "file": "olist_orders_dataset.csv",
+      "rows": 73,
+      "sha256": "f0041f34d29da4b91db7301f0cf0087339ad399650d974059c327d88f7a94186"
+    },
+    "products": {
+      "file": "olist_products_dataset.csv",
+      "rows": 13,
+      "sha256": "e0368abc0b07a6de8474197be1e57642f87ed647cf67e7309d0f2aa4a1e91445"
+    },
+    "sellers": {
+      "file": "olist_sellers_dataset.csv",
+      "rows": 13,
+      "sha256": "9bdcad4b4ec28dcc27d62a7f16f96f01daa28c18400331f740a9e4a07f4e6828"
+    }
+  },
+  "importer_version": "importer-1.0.0",
+  "license": "authored for this project",
+  "loaded_rows": {
+    "customers": 71,
+    "order_items": 107,
+    "orders": 73,
+    "products": 13,
+    "sellers": 13
+  },
+  "order_quarantine_cascade": {
+    "order_items_order_quarantined": 0,
+    "orders_quarantined": 0
+  },
+  "provenance": "authored",
+  "quarantine_counts": {
+    "BROKEN_FK": 1,
+    "DUPLICATE_IDENTICAL": 1
+  },
+  "quarantine_total": 2,
+  "selection_version": "full-v1",
+  "source_url": "authored fixtures",
+  "timestamps": "dataset local, no timezone"
+}

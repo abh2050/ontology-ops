@@ -1,0 +1,42 @@
+{
+  "batch_id": "fixtures-v1",
+  "window": [
+    "2018-01-01",
+    "2018-08-31"
+  ],
+  "as_of_convention": "end of day 23:59:59, dataset local",
+  "ranking": "most sellers with >= 3 late open orders, then more late open orders, then earlier date",
+  "days_evaluated": 243,
+  "top5": [
+    {
+      "as_of": "2018-03-31 23:59:59",
+      "late_open_orders": 70,
+      "sellers_with_3_plus_late_open": 13,
+      "late_open_multi_seller_orders": 33
+    },
+    {
+      "as_of": "2018-04-01 23:59:59",
+      "late_open_orders": 70,
+      "sellers_with_3_plus_late_open": 13,
+      "late_open_multi_seller_orders": 33
+    },
+    {
+      "as_of": "2018-04-02 23:59:59",
+      "late_open_orders": 70,
+      "sellers_with_3_plus_late_open": 13,
+      "late_open_multi_seller_orders": 33
+    },
+    {
+      "as_of": "2018-04-03 23:59:59",
+      "late_open_orders": 70,
+      "sellers_with_3_plus_late_open": 13,
+      "late_open_multi_seller_orders": 33
+    },
+    {
+      "as_of": "2018-04-04 23:59:59",
+      "late_open_orders": 70,
+      "sellers_with_3_plus_late_open": 13,
+      "late_open_multi_seller_orders": 33
+    }
+  ]
+}
