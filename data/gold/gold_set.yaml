@@ -1,0 +1,2439 @@
+gold_set_version: gold-v1
+status: draft
+drafted_by: agent (Claude Code session), not reviewed
+drafted_on: '2026-10-17'
+reviewer: null
+ontology_version: operational-commerce-v1
+olist_batch: olist-full-v1-d689b1282dbe
+fixture_batch: fixtures-v1
+scenario_id: base-v1
+as_of_values:
+- '2018-03-30 23:59:59'
+- '2018-03-24 23:59:59'
+- '2018-04-03 23:59:59'
+- '2018-03-15 23:59:59'
+thresholds:
+  investigation_task_success: 0.9
+  relationship_precision: 0.95
+  relationship_recall: 0.95
+  aggregate_correctness: 1.0
+  evidence_coverage: 0.95
+  invented_ids: 0
+  unsupported_causal_claims_accepted: 0
+  authorization_failures_accepted: 0
+  approval_integrity_failures_accepted: 0
+meaningful_margin_ref: configs/policy.yaml eval.meaningful_margin (in the freeze hash)
+run_plan:
+  comparators:
+  - B0 (deterministic, model independent)
+  - B1
+  - candidate
+  models:
+  - amazon.nova-lite-v1:0
+  - global.amazon.nova-2-lite-v1:0
+  modes:
+  - real_only
+  - scenario_enabled
+  real_only_items_run_in:
+  - real_only
+  - scenario_enabled
+  scenario_items_run_in:
+  - scenario_enabled
+  planned_model_jobs: 412
+  planned_model_calls: 824
+  ceiling_calls: 1500
+items:
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 7e8641c6ba8f77235152dd1c3356f814
+  question: 'Order 7e8641c6ba8f77235152dd1c3356f814: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 9
+    sellers:
+    - 1c68394e931a64f90ea236c5ea590300
+    products:
+    - ee6c49af1a2de55aa0e076257ab4ab99
+    order_value_centavos: 14441
+    affected_order_ids:
+    - 7e8641c6ba8f77235152dd1c3356f814
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 7e8641c6ba8f77235152dd1c3356f814
+    selected_order_ids:
+    - 7e8641c6ba8f77235152dd1c3356f814
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 1c68394e931a64f90ea236c5ea590300
+    selected_must_include:
+    - 7e8641c6ba8f77235152dd1c3356f814
+    selected_subset_of:
+    - 50a635228cdece6885554281ca470d78
+    - 7e8641c6ba8f77235152dd1c3356f814
+    - d23957cc89dc81d6073de66716d2cf82
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G001
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 936a199847ccb47438d3ae454d5e18d1
+  question: 'Order 936a199847ccb47438d3ae454d5e18d1: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 21
+    sellers:
+    - 562fc2f2c2863ab7e79a9e4388a58a14
+    products:
+    - 3b0f7951038b105522c2d566b54421f7
+    order_value_centavos: 2999
+    affected_order_ids:
+    - 936a199847ccb47438d3ae454d5e18d1
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 936a199847ccb47438d3ae454d5e18d1
+    selected_order_ids:
+    - 936a199847ccb47438d3ae454d5e18d1
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 562fc2f2c2863ab7e79a9e4388a58a14
+    selected_must_include:
+    - 936a199847ccb47438d3ae454d5e18d1
+    selected_subset_of:
+    - 0d3932a3836fab6762836714e0eee9ae
+    - 21446a89bd1b60e7daab9013a9b1f6de
+    - 33238b56832a1ff5396fff8bd2a44ede
+    - 49c4651b7977ce5c9f2d30aa763a8ae2
+    - 936a199847ccb47438d3ae454d5e18d1
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G002
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: b74e2b985df55c2df5b2be2d9c1f68b4
+  question: 'Order b74e2b985df55c2df5b2be2d9c1f68b4: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 23
+    sellers:
+    - cc419e0650a3c5ba77189a1882b7556a
+    products:
+    - 2b4609f8948be18874494203496bc318
+    order_value_centavos: 8999
+    affected_order_ids:
+    - b74e2b985df55c2df5b2be2d9c1f68b4
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: b74e2b985df55c2df5b2be2d9c1f68b4
+    selected_order_ids:
+    - b74e2b985df55c2df5b2be2d9c1f68b4
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: cc419e0650a3c5ba77189a1882b7556a
+    selected_must_include:
+    - b74e2b985df55c2df5b2be2d9c1f68b4
+    selected_subset_of:
+    - 23d0b20c60078dcc168f59918e82f76f
+    - 3669a1658de0b6df4a21845696974094
+    - 4a7e501d52646aa17370e1fab300be67
+    - 56f251ca89f74d06076966d5d49b9dc6
+    - 6b460c25c2bb8e1323536e9e921d04a1
+    - 8db7209b4e4d6b658babdeb4952b8328
+    - b74e2b985df55c2df5b2be2d9c1f68b4
+    - ca7296a83aa279afb28c2388a4f48891
+    - e2557098c56afd06a929b32a63b5f856
+    - e65296eb50fe1920930ee46ff3337238
+    - fbed5025efea6c9b776e3826c055ad9e
+    - fc3830b4f000e216dc581df9a0e873e2
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G003
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 4dc5a389009b6cb5c61706d49f229a39
+  question: 'Order 4dc5a389009b6cb5c61706d49f229a39: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 15
+    sellers:
+    - 1025f0e2d44d7041d6cf58b6550e0bfa
+    products:
+    - acc444eb5ad26f79d5a11baa6a03c439
+    order_value_centavos: 12000
+    affected_order_ids:
+    - 4dc5a389009b6cb5c61706d49f229a39
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 4dc5a389009b6cb5c61706d49f229a39
+    selected_order_ids:
+    - 4dc5a389009b6cb5c61706d49f229a39
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 1025f0e2d44d7041d6cf58b6550e0bfa
+    selected_must_include:
+    - 4dc5a389009b6cb5c61706d49f229a39
+    selected_subset_of:
+    - 0f9e79a42b9e6e14a8d7f913b4da0239
+    - 16a7204d840d81ed38a60b9539607280
+    - 374287ecf047f9180fdb554bc4ae1c1d
+    - 379aabb5b4c4b1693fd094f3b328f991
+    - 4dc5a389009b6cb5c61706d49f229a39
+    - 8e1c48bbab58c6a5c96e535f7c294eb5
+    - c17afd24d0fb29f48d670eb52bc1036e
+    - ce3a36c0bcc4edf5c49a0a29b3da3963
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G004
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: c8f6b2cfd4ae525f62e7f2af94f529d7
+  question: 'Order c8f6b2cfd4ae525f62e7f2af94f529d7: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 2
+    sellers:
+    - cd68562d3f44870c08922d380acae552
+    products:
+    - a1ab6d18d301b5ee14b244b946e52973
+    order_value_centavos: 4900
+    affected_order_ids:
+    - c8f6b2cfd4ae525f62e7f2af94f529d7
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: c8f6b2cfd4ae525f62e7f2af94f529d7
+    selected_order_ids:
+    - c8f6b2cfd4ae525f62e7f2af94f529d7
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: cd68562d3f44870c08922d380acae552
+    selected_must_include:
+    - c8f6b2cfd4ae525f62e7f2af94f529d7
+    selected_subset_of:
+    - a44945cc37c23d95b5415ad68e8beaf1
+    - c8f6b2cfd4ae525f62e7f2af94f529d7
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G005
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: d98c008ab7402c99b12dc051744284e8
+  question: 'Order d98c008ab7402c99b12dc051744284e8: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 23
+    sellers:
+    - a673821011d0cec28146ea42f5ab767f
+    products:
+    - 05f97ad4ce078ed1de8882e1824eb07f
+    order_value_centavos: 3999
+    affected_order_ids:
+    - d98c008ab7402c99b12dc051744284e8
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: d98c008ab7402c99b12dc051744284e8
+    selected_order_ids:
+    - d98c008ab7402c99b12dc051744284e8
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: a673821011d0cec28146ea42f5ab767f
+    selected_must_include:
+    - d98c008ab7402c99b12dc051744284e8
+    selected_subset_of:
+    - d98c008ab7402c99b12dc051744284e8
+    - fd0ac58dfd0c4a3034ec2fe3e6200fce
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G006
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 3722900224c18ef2bfb634a635cdbc72
+  question: 'Order 3722900224c18ef2bfb634a635cdbc72: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 9
+    sellers:
+    - 4e922959ae960d389249c378d1c939f5
+    products:
+    - bee2e070c39f3dd2f6883a17a5f0da45
+    order_value_centavos: 18000
+    affected_order_ids:
+    - 3722900224c18ef2bfb634a635cdbc72
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 3722900224c18ef2bfb634a635cdbc72
+    selected_order_ids:
+    - 3722900224c18ef2bfb634a635cdbc72
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 4e922959ae960d389249c378d1c939f5
+    selected_must_include:
+    - 3722900224c18ef2bfb634a635cdbc72
+    selected_subset_of:
+    - 2cb6f509b0ff4794888a4f664f857dca
+    - 3722900224c18ef2bfb634a635cdbc72
+    - 92332bfe0b5269414ff8497677a10d5f
+    - 983ee8a15c6bc4fab3c4f5503259ed37
+    - e980f0348ae8c85c6eb7e23e9ee42b27
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G007
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 854f8cb8dacdc3abc4cce7a7df6fcc1f
+  question: 'Order 854f8cb8dacdc3abc4cce7a7df6fcc1f: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 24
+    sellers:
+    - 1f50f920176fa81dab994f9023523100
+    products:
+    - 389d119b48cf3043d311335e499d9c6b
+    order_value_centavos: 4990
+    affected_order_ids:
+    - 854f8cb8dacdc3abc4cce7a7df6fcc1f
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 854f8cb8dacdc3abc4cce7a7df6fcc1f
+    selected_order_ids:
+    - 854f8cb8dacdc3abc4cce7a7df6fcc1f
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 1f50f920176fa81dab994f9023523100
+    selected_must_include:
+    - 854f8cb8dacdc3abc4cce7a7df6fcc1f
+    selected_subset_of:
+    - 2591fdd6cc7718bac11436b57abd8163
+    - 854f8cb8dacdc3abc4cce7a7df6fcc1f
+    - 8db4732513ea9f79910c0de430ec946d
+    - b3bcc046b1a81b0a1068f3b5e6de5be0
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G008
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_b
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 923dbd74822b55ab663759d1bb50823f
+  question: 'Order 923dbd74822b55ab663759d1bb50823f: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 7
+    sellers:
+    - f45122a9ab94eb4f3f8953578bc0c560
+    products:
+    - 535a23504a92e3e42a5cd54256c75b17
+    order_value_centavos: 12599
+    affected_order_ids:
+    - 923dbd74822b55ab663759d1bb50823f
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 923dbd74822b55ab663759d1bb50823f
+    selected_order_ids:
+    - 923dbd74822b55ab663759d1bb50823f
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: f45122a9ab94eb4f3f8953578bc0c560
+    selected_must_include:
+    - 923dbd74822b55ab663759d1bb50823f
+    selected_subset_of:
+    - 923dbd74822b55ab663759d1bb50823f
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G009
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_b
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: d8ae8039b59ce1eb9a0f9579e07d30c7
+  question: 'Order d8ae8039b59ce1eb9a0f9579e07d30c7: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 9
+    sellers:
+    - 340636a908b13bbe0f4fb63fbe1d0c03
+    products:
+    - f6dc856631040b5a7843b14a94b09b96
+    order_value_centavos: 11090
+    affected_order_ids:
+    - d8ae8039b59ce1eb9a0f9579e07d30c7
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: d8ae8039b59ce1eb9a0f9579e07d30c7
+    selected_order_ids:
+    - d8ae8039b59ce1eb9a0f9579e07d30c7
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 340636a908b13bbe0f4fb63fbe1d0c03
+    selected_must_include:
+    - d8ae8039b59ce1eb9a0f9579e07d30c7
+    selected_subset_of:
+    - d8ae8039b59ce1eb9a0f9579e07d30c7
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G010
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_b
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: e0a50ed7a5ce30e34da29ca222748a5c
+  question: 'Order e0a50ed7a5ce30e34da29ca222748a5c: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 2
+    sellers:
+    - dd7ddc04e1b6c2c614352b383efe2d36
+    products:
+    - 672a21bf17c63f71edbe01ecb9b14814
+    order_value_centavos: 3290
+    affected_order_ids:
+    - e0a50ed7a5ce30e34da29ca222748a5c
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: e0a50ed7a5ce30e34da29ca222748a5c
+    selected_order_ids:
+    - e0a50ed7a5ce30e34da29ca222748a5c
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: dd7ddc04e1b6c2c614352b383efe2d36
+    selected_must_include:
+    - e0a50ed7a5ce30e34da29ca222748a5c
+    selected_subset_of:
+    - e0a50ed7a5ce30e34da29ca222748a5c
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G011
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_b
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 7307b10c1d2a536f3f07f18be33d9de7
+  question: 'Order 7307b10c1d2a536f3f07f18be33d9de7: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 22
+    sellers:
+    - f5a590cf36251cf1162ea35bef76fe84
+    products:
+    - 9176f023a7370b05745941b7c43c779f
+    order_value_centavos: 26990
+    affected_order_ids:
+    - 7307b10c1d2a536f3f07f18be33d9de7
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 7307b10c1d2a536f3f07f18be33d9de7
+    selected_order_ids:
+    - 7307b10c1d2a536f3f07f18be33d9de7
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: f5a590cf36251cf1162ea35bef76fe84
+    selected_must_include:
+    - 7307b10c1d2a536f3f07f18be33d9de7
+    selected_subset_of:
+    - 7307b10c1d2a536f3f07f18be33d9de7
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G012
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-24 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 0241b276e1e2b1d6873473c44240b426
+  question: 'Order 0241b276e1e2b1d6873473c44240b426: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 2
+    sellers:
+    - 0b90b6df587eb83608a64ea8b390cf07
+    products:
+    - e53e557d5a159f5aa2c5e995dfdf244b
+    order_value_centavos: 8400
+    affected_order_ids:
+    - 0241b276e1e2b1d6873473c44240b426
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 0241b276e1e2b1d6873473c44240b426
+    selected_order_ids:
+    - 0241b276e1e2b1d6873473c44240b426
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 0b90b6df587eb83608a64ea8b390cf07
+    selected_must_include:
+    - 0241b276e1e2b1d6873473c44240b426
+    selected_subset_of:
+    - 003f201cdd39cdd59b6447cff2195456
+    - 0241b276e1e2b1d6873473c44240b426
+    - c6c5a3bd6cdccabdc09336d43f4897b0
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G013
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-24 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 4be69a31714c77604076ab0004055c6c
+  question: 'Order 4be69a31714c77604076ab0004055c6c: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 30
+    sellers:
+    - 0df3984f9dfb3d49ac6366acbd3bbb85
+    products:
+    - cc03fe412a0cde1ba3de9ebbce01adde
+    order_value_centavos: 13000
+    affected_order_ids:
+    - 4be69a31714c77604076ab0004055c6c
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 4be69a31714c77604076ab0004055c6c
+    selected_order_ids:
+    - 4be69a31714c77604076ab0004055c6c
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 0df3984f9dfb3d49ac6366acbd3bbb85
+    selected_must_include:
+    - 4be69a31714c77604076ab0004055c6c
+    selected_subset_of:
+    - 4be69a31714c77604076ab0004055c6c
+    - 73d8cba28b2c49e0bcde53f23fc6218a
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G014
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_b
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-04-03 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 08f5487befe25744feabb3203a4dc09b
+  question: 'Order 08f5487befe25744feabb3203a4dc09b: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 1
+    sellers:
+    - 85d9eb9ddc5d00ca9336a2219c97bb13
+    products:
+    - a8115d34a4b7b74388da609692162c37
+    order_value_centavos: 3190
+    affected_order_ids:
+    - 08f5487befe25744feabb3203a4dc09b
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 08f5487befe25744feabb3203a4dc09b
+    selected_order_ids:
+    - 08f5487befe25744feabb3203a4dc09b
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 85d9eb9ddc5d00ca9336a2219c97bb13
+    selected_must_include:
+    - 08f5487befe25744feabb3203a4dc09b
+    selected_subset_of:
+    - 08f5487befe25744feabb3203a4dc09b
+    - 3f191c1edeb80678998ec0c8683cefcc
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G015
+  scenario_id: null
+- category: direct_object
+  requires_scenario: false
+  subject: operator_b
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-04-03 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 4b4b94ef72b5f4fe86ce88a01b54e7a7
+  question: 'Order 4b4b94ef72b5f4fe86ce88a01b54e7a7: is it a late open delivery exception at as_of, which
+    sellers and products are on it, and what internal investigation can be opened?'
+  canonical:
+    query: order_facts
+  expected:
+    late_open: true
+    days_overdue: 5
+    sellers:
+    - ffc470761de7d0232558ba5e786e57b7
+    products:
+    - de9e51e0f1279f42d5b0a82642bfa78a
+    order_value_centavos: 16998
+    affected_order_ids:
+    - 4b4b94ef72b5f4fe86ce88a01b54e7a7
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 4b4b94ef72b5f4fe86ce88a01b54e7a7
+    selected_order_ids:
+    - 4b4b94ef72b5f4fe86ce88a01b54e7a7
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: ffc470761de7d0232558ba5e786e57b7
+    selected_must_include:
+    - 4b4b94ef72b5f4fe86ce88a01b54e7a7
+    selected_subset_of:
+    - 4b4b94ef72b5f4fe86ce88a01b54e7a7
+  rubric:
+  - AFFECTED_SET_EXACT
+  - SELLERS_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G016
+  scenario_id: null
+- category: direct_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Order
+    target_id: 5533f1edcb0023c063b64b627abc4024
+  question: For order 5533f1edcb0023c063b64b627abc4024, which synthetic disruption events in scenario
+    base-v1 are temporally and regionally consistent with it at as_of, and what does that say about the
+    cause of delay?
+  canonical:
+    query: event_overlaps
+  expected:
+    late_open: true
+    sellers:
+    - b33e7c55446eabf8fe1a42d037ac7d6d
+    overlapping_event_ids:
+    - a755e925-dc2f-5502-b36e-84c2cff724bf
+    - af6885d3-f6ac-58c7-ad72-9125ad5babfb
+    event_roles:
+    - overlaps_as_of
+    - overlaps_as_of
+    cause: unknown
+    affected_order_ids:
+    - 5533f1edcb0023c063b64b627abc4024
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 5533f1edcb0023c063b64b627abc4024
+    selected_order_ids:
+    - 5533f1edcb0023c063b64b627abc4024
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: b33e7c55446eabf8fe1a42d037ac7d6d
+    selected_must_include:
+    - 5533f1edcb0023c063b64b627abc4024
+    selected_subset_of:
+    - 514ed457190c903720b7fd33660c486d
+    - 5533f1edcb0023c063b64b627abc4024
+  rubric:
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G017
+  scenario_id: base-v1
+- category: direct_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Order
+    target_id: 41be34ce9e31139caddf65c45ec3a39c
+  question: For order 41be34ce9e31139caddf65c45ec3a39c, which synthetic disruption events in scenario
+    base-v1 are temporally and regionally consistent with it at as_of, and what does that say about the
+    cause of delay?
+  canonical:
+    query: event_overlaps
+  expected:
+    late_open: true
+    sellers:
+    - a1043bafd471dff536d0c462352beb48
+    overlapping_event_ids:
+    - a755e925-dc2f-5502-b36e-84c2cff724bf
+    - af6885d3-f6ac-58c7-ad72-9125ad5babfb
+    event_roles:
+    - overlaps_as_of
+    - overlaps_as_of
+    cause: unknown
+    affected_order_ids:
+    - 41be34ce9e31139caddf65c45ec3a39c
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 41be34ce9e31139caddf65c45ec3a39c
+    selected_order_ids:
+    - 41be34ce9e31139caddf65c45ec3a39c
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: a1043bafd471dff536d0c462352beb48
+    selected_must_include:
+    - 41be34ce9e31139caddf65c45ec3a39c
+    selected_subset_of:
+    - 41be34ce9e31139caddf65c45ec3a39c
+    - 58a2de891c9d6c4e5b5a36320350bfd2
+    - 5acf62946adaf3b74ad395ec44b72688
+    - 636cdd02667dc8d76d9296bf20a6890a
+    - 881a5cda3b897b035971e3fcfce58aa6
+    - b713808dd06ed1a61d95a024a3e367a1
+  rubric:
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G018
+  scenario_id: base-v1
+- category: direct_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Order
+    target_id: 2567acdbfc6fa8d47fce09510677b955
+  question: For order 2567acdbfc6fa8d47fce09510677b955, which synthetic disruption events in scenario
+    base-v1 are temporally and regionally consistent with it at as_of, and what does that say about the
+    cause of delay?
+  canonical:
+    query: event_overlaps
+  expected:
+    late_open: true
+    sellers:
+    - 3d871de0142ce09b7081e2b9d1733cb1
+    overlapping_event_ids:
+    - a755e925-dc2f-5502-b36e-84c2cff724bf
+    event_roles:
+    - overlaps_as_of
+    cause: unknown
+    affected_order_ids:
+    - 2567acdbfc6fa8d47fce09510677b955
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 2567acdbfc6fa8d47fce09510677b955
+    selected_order_ids:
+    - 2567acdbfc6fa8d47fce09510677b955
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 3d871de0142ce09b7081e2b9d1733cb1
+    selected_must_include:
+    - 2567acdbfc6fa8d47fce09510677b955
+    selected_subset_of:
+    - 0df2e7ba716c3f48ee4a3081092e2c19
+    - 2567acdbfc6fa8d47fce09510677b955
+    - 42a9c3a1aa0cb0f7d674566144b47d20
+    - 66dbde751178d7674bd09f18b6d25006
+    - a4cb4720582c75021fae7dbbd99f3375
+    - efb9ad1c5eb60ac2a3565723d18230fd
+    - fe9fae71b4fa7d05f1934adc54391f8d
+  rubric:
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G019
+  scenario_id: base-v1
+- category: direct_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Order
+    target_id: 491208d141876b40c6381fa49e8dff6a
+  question: For order 491208d141876b40c6381fa49e8dff6a, which synthetic disruption events in scenario
+    base-v1 are temporally and regionally consistent with it at as_of, and what does that say about the
+    cause of delay?
+  canonical:
+    query: event_overlaps
+  expected:
+    late_open: true
+    sellers:
+    - a49928bcdf77c55c6d6e05e09a9b4ca5
+    overlapping_event_ids: []
+    event_roles: []
+    cause: unknown
+    affected_order_ids:
+    - 491208d141876b40c6381fa49e8dff6a
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 491208d141876b40c6381fa49e8dff6a
+    selected_order_ids:
+    - 491208d141876b40c6381fa49e8dff6a
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: a49928bcdf77c55c6d6e05e09a9b4ca5
+    selected_must_include:
+    - 491208d141876b40c6381fa49e8dff6a
+    selected_subset_of:
+    - 28bc8f33c194dd4f636717ef490d0921
+    - 491208d141876b40c6381fa49e8dff6a
+    - f099e70d7cf0a758ccb7fb362d477166
+  rubric:
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G020
+  scenario_id: base-v1
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 1f50f920176fa81dab994f9023523100
+  question: Which late open orders at as_of are associated with seller 1f50f920176fa81dab994f9023523100,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id001
+    - 2591fdd6cc7718bac11436b57abd8163
+    - 854f8cb8dacdc3abc4cce7a7df6fcc1f
+    - 8db4732513ea9f79910c0de430ec946d
+    - b3bcc046b1a81b0a1068f3b5e6de5be0
+    late_open_orders: 4
+    seller_line_value_centavos: 25750
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 1f50f920176fa81dab994f9023523100
+    selected_order_ids: *id001
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G021
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 16090f2ca825584b5a147ab24aa30c86
+  question: Which late open orders at as_of are associated with seller 16090f2ca825584b5a147ab24aa30c86,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id002
+    - 89e02379eee525e09813dc8e5ba99213
+    - 982721650f1a226d3b11b4d852d461d2
+    - b94ec498d12b1b61eabc996408439437
+    - d9c97ab2098fe0b71eb51aa660f74fe2
+    - f7198d6fd9c02f8d7f7646b213376ddf
+    late_open_orders: 5
+    seller_line_value_centavos: 14009
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 16090f2ca825584b5a147ab24aa30c86
+    selected_order_ids: *id002
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G022
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 218d46b86c1881d022bce9c68a7d4b15
+  question: Which late open orders at as_of are associated with seller 218d46b86c1881d022bce9c68a7d4b15,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id003
+    - 097c2a2e5ea719c510238bad5d902cef
+    - 0f750136a7458e323a95eb451e1d47cc
+    - 23fd789ce06f3c54f212b3b9d358579f
+    - 3602a80b09d914236f74c733631f3b8b
+    - 52255374a680dc42f27d475d23dec0cc
+    - a49ef06443dbe442d78f3fa3b26848d2
+    - f275879ee3e5b5f212e1d4079ab21ec1
+    late_open_orders: 7
+    seller_line_value_centavos: 84400
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 218d46b86c1881d022bce9c68a7d4b15
+    selected_order_ids: *id003
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G023
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 562fc2f2c2863ab7e79a9e4388a58a14
+  question: Which late open orders at as_of are associated with seller 562fc2f2c2863ab7e79a9e4388a58a14,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id004
+    - 0d3932a3836fab6762836714e0eee9ae
+    - 21446a89bd1b60e7daab9013a9b1f6de
+    - 33238b56832a1ff5396fff8bd2a44ede
+    - 49c4651b7977ce5c9f2d30aa763a8ae2
+    - 936a199847ccb47438d3ae454d5e18d1
+    late_open_orders: 5
+    seller_line_value_centavos: 14495
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 562fc2f2c2863ab7e79a9e4388a58a14
+    selected_order_ids: *id004
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G024
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 955fee9216a65b617aa5c0531780ce60
+  question: Which late open orders at as_of are associated with seller 955fee9216a65b617aa5c0531780ce60,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id005
+    - 025830a006d984bf712a8c6a1eca41c0
+    - 682d2a1eb8b2676fc3337cf90c96ca8b
+    - 68ef9f1dd1c75ff6bf1d6ba6d9942f71
+    - 6e1af4e0d4cf82af38671a14b609634c
+    - 7892a566b076a8f7248d0c39b1a62768
+    - 845ac06e0873e12e221a7f8a5ad06477
+    - 855ae4582654ba4a199f982c721df826
+    - 86e808220bf5a6f24b942ef7108644be
+    - d1292ab43d93a1211d5e3f6589be78af
+    - f50e6fe960b68d2b8510cc0cef8ed8dc
+    late_open_orders: 10
+    seller_line_value_centavos: 85339
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 955fee9216a65b617aa5c0531780ce60
+    selected_order_ids: *id005
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G025
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: ceaec5548eefc6e23e6607c5435102e7
+  question: Which late open orders at as_of are associated with seller ceaec5548eefc6e23e6607c5435102e7,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id006
+    - 29ae9ab539215f3bbec11770fc3fe299
+    - c1049eef89915c6beb3604bf3d6588d7
+    - cc6c9b89f70b32d7fe075718e0fc58e7
+    late_open_orders: 3
+    seller_line_value_centavos: 64500
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: ceaec5548eefc6e23e6607c5435102e7
+    selected_order_ids: *id006
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G026
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 88460e8ebdecbfecb5f9601833981930
+  question: Which late open orders at as_of are associated with seller 88460e8ebdecbfecb5f9601833981930,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id007
+    - 08d61eb463e165c095e7de595a773d90
+    - 1439b7c45e6b3497e1d86582382ec326
+    - 1927dede91841ae67045915ce6fd11f1
+    - 1dc2fa22dbb160db9eb90923718fd0c5
+    - 248065388c27d5287020c4ff60183298
+    - 34dc2f9bce0427122de8cd6afdb03c2c
+    - 51f06300798e14c37af5f5ea107db194
+    - 531abf2d5cc78f7a49d9ba560cbbfe7a
+    - 69796e4e03edbf9c0f49c76d4ebadb77
+    - 70809734fe201ea6db6d4577b84a3022
+    - 7ff9b10e71f943448ffa7bcb62acd1aa
+    - 8ac5066a163c60c1ae9bf17200df3dd1
+    - 8fb8d0916495ed884bf2dc5db9c771ce
+    - 964bc1b427d6a485b515efcab9985e68
+    - 99bc267f49d76932cd195bfb2a94dd03
+    - a7b9ca3e1958817f0415ebbf1fef3941
+    - b30abf162ff1730f50b6400bdc32550f
+    - bbc914b2842d3c32f438b913b31f0ff8
+    - c42c77adb71ee6c1ca91e61888a18932
+    - c893d855b41d9ebc443d3addef1755b0
+    - d95dc7171d00d08c5e2c57e693161db7
+    - e5c7db6481f467875bd4d52357a8f8a1
+    - e7591928e884f24aa164ee55fd05d56d
+    - f99f27c6436299deb7afb301de293eba
+    late_open_orders: 24
+    seller_line_value_centavos: 299390
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 88460e8ebdecbfecb5f9601833981930
+    selected_order_ids: *id007
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G027
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 5343d0649eca2a983820bfe93fc4d17e
+  question: Which late open orders at as_of are associated with seller 5343d0649eca2a983820bfe93fc4d17e,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id008
+    - 13a60be94bc36bf7c5f1e0a849cdd6e4
+    - 7416fee595e25348b79a5d82a55c725d
+    - b1e83743987d023e63838e2fe9149231
+    - d22e18fae4fa9ff5b0e28b9685e84365
+    late_open_orders: 4
+    seller_line_value_centavos: 62619
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 5343d0649eca2a983820bfe93fc4d17e
+    selected_order_ids: *id008
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G028
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 7142540dd4c91e2237acb7e911c4eba2
+  question: Which late open orders at as_of are associated with seller 7142540dd4c91e2237acb7e911c4eba2,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id009
+    - 265bb549f8bbcaeaa66023404ec02db5
+    - 6029993caca02acb59d23ffc0f88604c
+    - b372525f79a03a4f4c7f33e311e3a6eb
+    - edc39c747837ab7258f382372e798824
+    late_open_orders: 4
+    seller_line_value_centavos: 30960
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 7142540dd4c91e2237acb7e911c4eba2
+    selected_order_ids: *id009
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G029
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-04-03 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 0be8ff43f22e456b4e0371b2245e4d01
+  question: Which late open orders at as_of are associated with seller 0be8ff43f22e456b4e0371b2245e4d01,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id010
+    - 0c921abc41428f29f1b5d4c52714fe44
+    - b211184b294bc46861ba034d76f2bf79
+    - bdd49e833a618b2e10096e4bd5725977
+    late_open_orders: 3
+    seller_line_value_centavos: 10470
+    multi_seller_orders: 0
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 0be8ff43f22e456b4e0371b2245e4d01
+    selected_order_ids: *id010
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G030
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_a
+  batch_id: fixtures-v1
+  as_of: '2018-03-15 23:59:59'
+  provenance: authored
+  target:
+    target_type: Seller
+    target_id: 718a337be301ba63ecfb6833e401c6a5
+  question: Which late open orders at as_of are associated with seller 718a337be301ba63ecfb6833e401c6a5,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id011
+    - 0bc37673c805df3f84cbefe63570f256
+    - 2ce394eb50e14f6b6702b539ea42ddb0
+    - 2f35c54a61eb33007c7c2e47d33006a8
+    - 3ae84960d336d3a0755daac7966e08fe
+    - 647a15f3dae6f13a7932e44f126fb36a
+    - 6e7a9af05bb57e4a3cf8a20341e9ddea
+    - 6feef1bc889069f8a3d1e53860a43a45
+    - 76cc31a8697c549455d509bd543d8626
+    - 7c52c1855f60ca1540640bc6ed21c5f8
+    - 84008a180ad75ea5575363137b0fc423
+    - 8b901ea67a2aee383efccd138c2e455e
+    - 9c6fdace643ca7693cf5b2a13726e96b
+    - b13aceca3c850cabfb7bbc07713d1f90
+    - b8c2c414d3982888c1bc4fdacd295088
+    - cdb7b60d17540a54b5868692314dc989
+    - e831d907b3750c8aa51358d2ee6a0c11
+    - ea1fb309de31b61a2b4785043127c9fc
+    - f5c79b0fa6d4079f8ecff90f6522d23c
+    late_open_orders: 18
+    seller_line_value_centavos: 432553
+    multi_seller_orders: 9
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 718a337be301ba63ecfb6833e401c6a5
+    selected_order_ids: *id011
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G031
+  scenario_id: null
+- category: multi_object
+  requires_scenario: false
+  subject: operator_b
+  batch_id: fixtures-v1
+  as_of: '2018-03-15 23:59:59'
+  provenance: authored
+  target:
+    target_type: Seller
+    target_id: 1062dce4a66e05f58752f127e26aa3b0
+  question: Which late open orders at as_of are associated with seller 1062dce4a66e05f58752f127e26aa3b0,
+    how many distinct orders is that, what is the exposure on that seller's own lines, and should they
+    be investigated together?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id012
+    - 05b8db7a8442d92e077ffa3fc870ffd4
+    - 14fee426dbcbe94ef0899a5972752709
+    - 242ef9c4247fc3b6a99ca6d1e97e4484
+    - 353abf14f02742e5d6b6308a4c16e23c
+    - 46417d03a2ff3e598702b5255639f929
+    - 57a49fcfdc57dc041b0f597c214f549c
+    - 6e1b8c811ad2967b7cbe13b201907c45
+    - 8775637c469998692ddf52841142449b
+    - a8270be7840dcf79da46b3b8d0a35cb9
+    - aa1d00ff643f2e6d80dd5a1f5d55cb5b
+    - b038887300774b4de9dc847471d4e62f
+    - b2d96d029da24778a1386acac7b85bba
+    - e01d6fdd466cdaf92f49a703b09085aa
+    - e5b892011924872425eed43a83749bf6
+    late_open_orders: 14
+    seller_line_value_centavos: 339649
+    multi_seller_orders: 7
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 1062dce4a66e05f58752f127e26aa3b0
+    selected_order_ids: *id012
+  rubric:
+  - AFFECTED_SET_EXACT
+  - COUNT_EXACT
+  - EXPOSURE_EXACT
+  - ACTION_ELIGIBLE
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G032
+  scenario_id: null
+- category: multi_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 4c8b8048e33af2bf94f2eb547746a916
+  question: Seller 4c8b8048e33af2bf94f2eb547746a916 has late open orders at as_of. Which of them are temporally
+    and regionally consistent with synthetic events in base-v1, which events, and is a cause established?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id013
+    - 374bd3371c572eff1218edb0eb68cb96
+    - 457cb961f89e32569e2d9a737a65b3bb
+    - a31ecde4565b9e5e70a4ac17fb47174c
+    - fa6d0c0ef7a7849ab7847303d458df3c
+    late_open_orders: 4
+    seller_line_value_centavos: 13828
+    multi_seller_orders: 0
+    overlapping_events:
+      a5388eeb-01ce-5413-b141-92599110f787:
+      - 374bd3371c572eff1218edb0eb68cb96
+      - 457cb961f89e32569e2d9a737a65b3bb
+      - a31ecde4565b9e5e70a4ac17fb47174c
+      b6cc501c-05d0-56a2-a7ed-c3b6394c18f6:
+      - 374bd3371c572eff1218edb0eb68cb96
+      - 457cb961f89e32569e2d9a737a65b3bb
+      - a31ecde4565b9e5e70a4ac17fb47174c
+      - fa6d0c0ef7a7849ab7847303d458df3c
+      e14919b4-b28c-5dc9-ad82-3ce1e3536937:
+      - a31ecde4565b9e5e70a4ac17fb47174c
+    event_roles:
+    - cause_unknown
+    - early_window
+    - stale_regional_decoy
+    cause: unknown
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 4c8b8048e33af2bf94f2eb547746a916
+    selected_order_ids: *id013
+  rubric:
+  - AFFECTED_SET_EXACT
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G033
+  scenario_id: base-v1
+- category: multi_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 4869f7a5dfa277a7dca6462dcf3b52b2
+  question: Seller 4869f7a5dfa277a7dca6462dcf3b52b2 has late open orders at as_of. Which of them are temporally
+    and regionally consistent with synthetic events in base-v1, which events, and is a cause established?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id014
+    - 063dda01b3489ce5f3bc164801e6e3e9
+    - 07528311766b5aa54d193747c66663df
+    - 1b8dc892aec525e5b60529c26eab5a95
+    - 37726a8b1cbcf77034870df2521be6f6
+    - 43f312594026fc6c67ccf619afe600d1
+    - 4ff1875e3f8c120cfe6cef2ec1aca104
+    - 69379af9891c9ba98d3262eb100ea809
+    - 6c5139dc6f51884e3aef7c8359d820c5
+    - 75687059537f4b53423dc1d645c6822f
+    - 80b0f4fc350532f6e0ce9aa81ccde91c
+    - 8599e76adf580692cddfebfcea8042f0
+    - 8f4235528e51aeb039cdf73bc049c7e1
+    - a562dc4f82a34303219d36cffb2cdd2c
+    - aa0ada08c461e7c8b384d1e311d474f4
+    - ac8f533b96ef19b111869e752c59a61c
+    - b0459878e11dcfafd042b81083011548
+    - b3f7f632c85da6b71020c45771e67c5e
+    - bb5b0d8f3e9c964760c674f2aa2ae0cf
+    - bd74c36a843f8560d4b4b2a902dfb22e
+    - c124ca6c2e3c84647f8694c95abec68b
+    - d9ed7b8cfe99da8442618eabb0f9997c
+    - e88333581538e25e87d48b2dbc1782b8
+    - ef8ab3e652b44dfe541199dc0b9f5d09
+    - f087f83b6e2db9f35f412e6ce337a35f
+    - fa5e15141bbda711d3cf04222db75d2b
+    late_open_orders: 25
+    seller_line_value_centavos: 468860
+    multi_seller_orders: 0
+    overlapping_events:
+      a755e925-dc2f-5502-b36e-84c2cff724bf:
+      - 07528311766b5aa54d193747c66663df
+      - 43f312594026fc6c67ccf619afe600d1
+      - 4ff1875e3f8c120cfe6cef2ec1aca104
+      - 6c5139dc6f51884e3aef7c8359d820c5
+      - 8599e76adf580692cddfebfcea8042f0
+      - 8f4235528e51aeb039cdf73bc049c7e1
+      - a562dc4f82a34303219d36cffb2cdd2c
+      - b3f7f632c85da6b71020c45771e67c5e
+      - bb5b0d8f3e9c964760c674f2aa2ae0cf
+      - bd74c36a843f8560d4b4b2a902dfb22e
+      - c124ca6c2e3c84647f8694c95abec68b
+      - d9ed7b8cfe99da8442618eabb0f9997c
+      - ef8ab3e652b44dfe541199dc0b9f5d09
+      - f087f83b6e2db9f35f412e6ce337a35f
+      af6885d3-f6ac-58c7-ad72-9125ad5babfb:
+      - 07528311766b5aa54d193747c66663df
+      - 4ff1875e3f8c120cfe6cef2ec1aca104
+      - 6c5139dc6f51884e3aef7c8359d820c5
+      - 8599e76adf580692cddfebfcea8042f0
+      - 8f4235528e51aeb039cdf73bc049c7e1
+      - b3f7f632c85da6b71020c45771e67c5e
+      - c124ca6c2e3c84647f8694c95abec68b
+    event_roles:
+    - overlaps_as_of
+    cause: unknown
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 4869f7a5dfa277a7dca6462dcf3b52b2
+    selected_order_ids: *id014
+  rubric:
+  - AFFECTED_SET_EXACT
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G034
+  scenario_id: base-v1
+- category: multi_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 4d6d651bd7684af3fffabd5f08d12e5a
+  question: Seller 4d6d651bd7684af3fffabd5f08d12e5a has late open orders at as_of. Which of them are temporally
+    and regionally consistent with synthetic events in base-v1, which events, and is a cause established?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id015
+    - 1df35a8f4e554dd3a4752f22e3c15a63
+    - 9c023f649696f2561725807e212a584d
+    - f37cdd40de53fd4b961aa07433c716fc
+    late_open_orders: 3
+    seller_line_value_centavos: 34570
+    multi_seller_orders: 0
+    overlapping_events:
+      a755e925-dc2f-5502-b36e-84c2cff724bf:
+      - 1df35a8f4e554dd3a4752f22e3c15a63
+      - 9c023f649696f2561725807e212a584d
+      - f37cdd40de53fd4b961aa07433c716fc
+    event_roles:
+    - overlaps_as_of
+    cause: unknown
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 4d6d651bd7684af3fffabd5f08d12e5a
+    selected_order_ids: *id015
+  rubric:
+  - AFFECTED_SET_EXACT
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G035
+  scenario_id: base-v1
+- category: multi_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 8581055ce74af1daba164fdbd55a40de
+  question: Seller 8581055ce74af1daba164fdbd55a40de has late open orders at as_of. Which of them are temporally
+    and regionally consistent with synthetic events in base-v1, which events, and is a cause established?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id016
+    - 302e35ab075da160f3f02ba14e56d918
+    - 33f1e992ba3e439bfd0d432164a3d44a
+    - 35bc36d5460374d96175822d91d79cd1
+    - 799934ebdaf707f09223f71cb9e34305
+    - 9a1e4b3e892b5ea975db9c5ab5b97b62
+    - 9ec3685b1f21c7dfff4f656392b186dd
+    - a7d0ba9060629de852f3b9f520d8bd7e
+    late_open_orders: 7
+    seller_line_value_centavos: 123811
+    multi_seller_orders: 0
+    overlapping_events:
+      a755e925-dc2f-5502-b36e-84c2cff724bf:
+      - 302e35ab075da160f3f02ba14e56d918
+      - 33f1e992ba3e439bfd0d432164a3d44a
+      - 35bc36d5460374d96175822d91d79cd1
+      - 799934ebdaf707f09223f71cb9e34305
+    event_roles:
+    - overlaps_as_of
+    cause: unknown
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 8581055ce74af1daba164fdbd55a40de
+    selected_order_ids: *id016
+  rubric:
+  - AFFECTED_SET_EXACT
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G036
+  scenario_id: base-v1
+- category: multi_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 70a12e78e608ac31179aea7f8422044b
+  question: Seller 70a12e78e608ac31179aea7f8422044b has late open orders at as_of. Which of them are temporally
+    and regionally consistent with synthetic events in base-v1, which events, and is a cause established?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id017
+    - 4c0da64bca225f1212fcade3dad55864
+    - 58be617c22afd358984d890ce826e0c9
+    - ae11d192084ba3db24965f271590124d
+    late_open_orders: 3
+    seller_line_value_centavos: 37300
+    multi_seller_orders: 0
+    overlapping_events:
+      a755e925-dc2f-5502-b36e-84c2cff724bf:
+      - 58be617c22afd358984d890ce826e0c9
+      - ae11d192084ba3db24965f271590124d
+      af6885d3-f6ac-58c7-ad72-9125ad5babfb:
+      - 58be617c22afd358984d890ce826e0c9
+      - ae11d192084ba3db24965f271590124d
+    event_roles:
+    - overlaps_as_of
+    cause: unknown
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 70a12e78e608ac31179aea7f8422044b
+    selected_order_ids: *id017
+  rubric:
+  - AFFECTED_SET_EXACT
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G037
+  scenario_id: base-v1
+- category: multi_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 7d13fca15225358621be4086e1eb0964
+  question: Seller 7d13fca15225358621be4086e1eb0964 has late open orders at as_of. Which of them are temporally
+    and regionally consistent with synthetic events in base-v1, which events, and is a cause established?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id018
+    - 134383561b50fa8eca9c19b2c792d74c
+    - 29e0119d96b893bbfd5ecea741a06835
+    - 2fcd7fa5d8729fd6dddd51369b36edcd
+    - 315b408ea2b172afb8ed00e598158e62
+    - 410e41c4507bab680c202520e09d0f45
+    - 543ab3128139efe78bf5e8006ae25087
+    - 6966b21d5a0ca10f795dc14508c1b7bf
+    - a05fc37f43df506f00a32f1507e4d360
+    - a8b287712f97be514752ebf62271b2a2
+    - c206348085f589eaf3bcd60a005bb15c
+    late_open_orders: 10
+    seller_line_value_centavos: 224298
+    multi_seller_orders: 0
+    overlapping_events:
+      a755e925-dc2f-5502-b36e-84c2cff724bf:
+      - 134383561b50fa8eca9c19b2c792d74c
+      - 29e0119d96b893bbfd5ecea741a06835
+      - 2fcd7fa5d8729fd6dddd51369b36edcd
+      - 6966b21d5a0ca10f795dc14508c1b7bf
+      - a8b287712f97be514752ebf62271b2a2
+      af6885d3-f6ac-58c7-ad72-9125ad5babfb:
+      - 134383561b50fa8eca9c19b2c792d74c
+      - 29e0119d96b893bbfd5ecea741a06835
+      - 2fcd7fa5d8729fd6dddd51369b36edcd
+      - 6966b21d5a0ca10f795dc14508c1b7bf
+      - a8b287712f97be514752ebf62271b2a2
+    event_roles:
+    - overlaps_as_of
+    cause: unknown
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 7d13fca15225358621be4086e1eb0964
+    selected_order_ids: *id018
+  rubric:
+  - AFFECTED_SET_EXACT
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G038
+  scenario_id: base-v1
+- category: multi_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 54a1852d1b8f10312c55e906355666ee
+  question: Seller 54a1852d1b8f10312c55e906355666ee has late open orders at as_of. Which of them are temporally
+    and regionally consistent with synthetic events in base-v1, which events, and is a cause established?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id019
+    - 4ea7463c339b2551706077cbc666c60a
+    - 6d56dcd34118baee5c013a25cd6caa97
+    - 70828ad0ee27db08d57b1437374b15e3
+    - 8f403b0cd8695918b7937e91e5b39c5e
+    late_open_orders: 4
+    seller_line_value_centavos: 30696
+    multi_seller_orders: 0
+    overlapping_events:
+      a755e925-dc2f-5502-b36e-84c2cff724bf:
+      - 4ea7463c339b2551706077cbc666c60a
+      - 70828ad0ee27db08d57b1437374b15e3
+    event_roles:
+    - overlaps_as_of
+    cause: unknown
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 54a1852d1b8f10312c55e906355666ee
+    selected_order_ids: *id019
+  rubric:
+  - AFFECTED_SET_EXACT
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G039
+  scenario_id: base-v1
+- category: multi_object
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 17a053fcb14bd219540cbde0df490be0
+  question: Seller 17a053fcb14bd219540cbde0df490be0 has late open orders at as_of. Which of them are temporally
+    and regionally consistent with synthetic events in base-v1, which events, and is a cause established?
+  canonical:
+    query: seller_late_set
+  expected:
+    affected_order_ids: &id020
+    - 1f6588173be9bf635ac895276a116522
+    - 246a20bc0757d9b447970e67953d675b
+    - e86fb2abd1932ca34230cb407378e9d8
+    late_open_orders: 3
+    seller_line_value_centavos: 82970
+    multi_seller_orders: 0
+    overlapping_events:
+      a755e925-dc2f-5502-b36e-84c2cff724bf:
+      - 1f6588173be9bf635ac895276a116522
+      - 246a20bc0757d9b447970e67953d675b
+      - e86fb2abd1932ca34230cb407378e9d8
+      af6885d3-f6ac-58c7-ad72-9125ad5babfb:
+      - 1f6588173be9bf635ac895276a116522
+    event_roles:
+    - overlaps_as_of
+    cause: unknown
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 17a053fcb14bd219540cbde0df490be0
+    selected_order_ids: *id020
+  rubric:
+  - AFFECTED_SET_EXACT
+  - EVENTS_EXACT
+  - SYNTHETIC_LABELED
+  - CAUSE_UNKNOWN_STATED
+  - NO_CAUSAL_CLAIM
+  - EVIDENCE_REFS_VALID
+  id: G040
+  scenario_id: base-v1
+- category: aggregate
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: null
+  question: How many distinct late open orders are visible to me at as_of, purchased in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    late_open_orders: 645
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G041
+  scenario_id: null
+- category: aggregate
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: null
+  question: What is the total line value in centavos of the late open orders are visible to me at as_of,
+    purchased in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    line_value_centavos: 8852136
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G042
+  scenario_id: null
+- category: aggregate
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: null
+  question: How many distinct sellers have lines on the late open orders are visible to me at as_of, purchased
+    in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    distinct_sellers: 181
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G043
+  scenario_id: null
+- category: aggregate
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: SP
+  question: How many distinct late open orders with customers in SP are visible to me at as_of, purchased
+    in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    late_open_orders: 133
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G044
+  scenario_id: null
+- category: aggregate
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: RJ
+  question: How many distinct late open orders with customers in RJ are visible to me at as_of, purchased
+    in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    late_open_orders: 198
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G045
+  scenario_id: null
+- category: aggregate
+  requires_scenario: false
+  subject: operator_b
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: null
+  question: How many distinct late open orders are visible to me at as_of, purchased in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    late_open_orders: 180
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G046
+  scenario_id: null
+- category: aggregate
+  requires_scenario: false
+  subject: operator_b
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: null
+  question: What is the total line value in centavos of the late open orders are visible to me at as_of,
+    purchased in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    line_value_centavos: 3159762
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G047
+  scenario_id: null
+- category: aggregate
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-24 23:59:59'
+  provenance: olist
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: null
+  question: How many distinct late open orders are visible to me at as_of, purchased in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    late_open_orders: 525
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G048
+  scenario_id: null
+- category: aggregate
+  requires_scenario: false
+  subject: operator_a
+  batch_id: fixtures-v1
+  as_of: '2018-03-15 23:59:59'
+  provenance: authored
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: null
+  question: How many late open orders contain lines from more than one seller are visible to me at as_of,
+    purchased in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    multi_seller_orders: 9
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G049
+  scenario_id: null
+- category: aggregate
+  requires_scenario: false
+  subject: operator_b
+  batch_id: fixtures-v1
+  as_of: '2018-03-15 23:59:59'
+  provenance: authored
+  target: null
+  filters:
+    purchase_from: '2018-01-01'
+    purchase_to: '2018-08-31'
+    customer_state: null
+  question: How many distinct late open orders are visible to me at as_of, purchased in the default window?
+  canonical:
+    query: late_aggregates
+  expected:
+    late_open_orders: 20
+  acceptable_actions: []
+  rubric:
+  - AGGREGATE_EXACT
+  - NO_MODEL_ARITHMETIC
+  - NO_CAUSAL_CLAIM
+  id: G050
+  scenario_id: null
+- category: unanswerable
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 80b0f4fc350532f6e0ce9aa81ccde91c
+  question: What caused order 80b0f4fc350532f6e0ce9aa81ccde91c to be late?
+  canonical:
+    query: order_facts
+  expected:
+    answer_type: cause_unknown
+    affected_order_ids:
+    - 80b0f4fc350532f6e0ce9aa81ccde91c
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 80b0f4fc350532f6e0ce9aa81ccde91c
+    selected_order_ids:
+    - 80b0f4fc350532f6e0ce9aa81ccde91c
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 4869f7a5dfa277a7dca6462dcf3b52b2
+    selected_must_include:
+    - 80b0f4fc350532f6e0ce9aa81ccde91c
+    selected_subset_of:
+    - 063dda01b3489ce5f3bc164801e6e3e9
+    - 07528311766b5aa54d193747c66663df
+    - 1b8dc892aec525e5b60529c26eab5a95
+    - 37726a8b1cbcf77034870df2521be6f6
+    - 43f312594026fc6c67ccf619afe600d1
+    - 4ff1875e3f8c120cfe6cef2ec1aca104
+    - 69379af9891c9ba98d3262eb100ea809
+    - 6c5139dc6f51884e3aef7c8359d820c5
+    - 75687059537f4b53423dc1d645c6822f
+    - 80b0f4fc350532f6e0ce9aa81ccde91c
+    - 8599e76adf580692cddfebfcea8042f0
+    - 8f4235528e51aeb039cdf73bc049c7e1
+    - a562dc4f82a34303219d36cffb2cdd2c
+    - aa0ada08c461e7c8b384d1e311d474f4
+    - ac8f533b96ef19b111869e752c59a61c
+    - b0459878e11dcfafd042b81083011548
+    - b3f7f632c85da6b71020c45771e67c5e
+    - bb5b0d8f3e9c964760c674f2aa2ae0cf
+    - bd74c36a843f8560d4b4b2a902dfb22e
+    - c124ca6c2e3c84647f8694c95abec68b
+    - d9ed7b8cfe99da8442618eabb0f9997c
+    - e88333581538e25e87d48b2dbc1782b8
+    - ef8ab3e652b44dfe541199dc0b9f5d09
+    - f087f83b6e2db9f35f412e6ce337a35f
+    - fa5e15141bbda711d3cf04222db75d2b
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G051
+  scenario_id: null
+- category: unanswerable
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 1ca88ffec09fd363aa4aa1cb994c851d
+  question: Which carrier delivered order 1ca88ffec09fd363aa4aa1cb994c851d?
+  canonical:
+    query: order_facts
+  expected:
+    answer_type: not_in_source_data
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: 1ca88ffec09fd363aa4aa1cb994c851d
+    selected_order_ids:
+    - 1ca88ffec09fd363aa4aa1cb994c851d
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: da8622b14eb17ae2831f4ac5b9dab84a
+    selected_must_include:
+    - 1ca88ffec09fd363aa4aa1cb994c851d
+    selected_subset_of:
+    - 19c54d85fa291d4193fe838cbde71403
+    - 1ca88ffec09fd363aa4aa1cb994c851d
+    - 5a34dfccd6fb223c870ad34652d64274
+    - 6120d49a9bec789c91d34b553c47573a
+    - 763dda5df4bf87b05540c4fb0888b346
+    - 8811b551e13f7f1be237272ebb8c30cb
+    - a75aad2fd41164a516a1257b45670f4d
+    - e52f58b44b46886bcfbaecf6e66ba026
+    - f93bdede82a36c75fddda9a509f2298b
+    - fd9fd21af695ddc1b8200a18954f7b73
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G052
+  scenario_id: null
+- category: unanswerable
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: d23957cc89dc81d6073de66716d2cf82
+  question: On what date was order d23957cc89dc81d6073de66716d2cf82 delivered to the customer?
+  canonical:
+    query: order_facts
+  expected:
+    answer_type: not_known_at_as_of
+  acceptable_actions:
+  - kind: CreateInvestigation
+    target_type: Order
+    target_id: d23957cc89dc81d6073de66716d2cf82
+    selected_order_ids:
+    - d23957cc89dc81d6073de66716d2cf82
+  - kind: CreateInvestigation
+    target_type: Seller
+    target_id: 1c68394e931a64f90ea236c5ea590300
+    selected_must_include:
+    - d23957cc89dc81d6073de66716d2cf82
+    selected_subset_of:
+    - 50a635228cdece6885554281ca470d78
+    - 7e8641c6ba8f77235152dd1c3356f814
+    - d23957cc89dc81d6073de66716d2cf82
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G053
+  scenario_id: null
+- category: unanswerable
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Order
+    target_id: 1397417a57ad1bbfe8d639df8cdee908
+  question: 'Summarize order 1397417a57ad1bbfe8d639df8cdee908: its sellers, products, and delivery status.'
+  canonical:
+    query: order_facts
+  expected:
+    answer_type: not_visible
+    must_not_reveal: true
+  acceptable_actions: []
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G054
+  scenario_id: null
+- category: unanswerable
+  requires_scenario: false
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist
+  target:
+    target_type: Seller
+    target_id: 1f50f920176fa81dab994f9023523100
+  question: Did seller 1f50f920176fa81dab994f9023523100 issue refunds to the customers of its late orders?
+  canonical:
+    query: seller_late_set
+  expected:
+    answer_type: not_in_source_data
+  acceptable_actions: []
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G055
+  scenario_id: null
+- category: unanswerable
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 1f50f920176fa81dab994f9023523100
+  question: Did the CARRIER_B backlog cause seller 1f50f920176fa81dab994f9023523100's late deliveries?
+  canonical:
+    query: seller_late_set
+  expected:
+    answer_type: unsupported_cause
+    allowed_statement: temporally and regionally consistent with
+  acceptable_actions: []
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G056
+  scenario_id: base-v1
+- category: unanswerable
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 4c8b8048e33af2bf94f2eb547746a916
+  question: Was the stock shortage at seller 4c8b8048e33af2bf94f2eb547746a916 the reason its orders are
+    late?
+  canonical:
+    query: seller_late_set
+  expected:
+    answer_type: unsupported_cause
+    overlapping: true
+  acceptable_actions: []
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G057
+  scenario_id: base-v1
+- category: unanswerable
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Seller
+    target_id: 4869f7a5dfa277a7dca6462dcf3b52b2
+  question: Did the order system outage cause seller 4869f7a5dfa277a7dca6462dcf3b52b2's late orders?
+  canonical:
+    query: seller_late_set
+  expected:
+    answer_type: unsupported_cause
+    overlapping: false
+  acceptable_actions: []
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G058
+  scenario_id: base-v1
+- category: unanswerable
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Order
+    target_id: 2591fdd6cc7718bac11436b57abd8163
+  question: Will the RJ weather alert delay order 2591fdd6cc7718bac11436b57abd8163 further?
+  canonical:
+    query: order_facts
+  expected:
+    answer_type: not_known_at_as_of
+    note: the future_masked event starts after as_of and is invisible
+  acceptable_actions: []
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G059
+  scenario_id: base-v1
+- category: unanswerable
+  requires_scenario: true
+  subject: operator_a
+  batch_id: olist-full-v1-d689b1282dbe
+  as_of: '2018-03-30 23:59:59'
+  provenance: olist+synthetic
+  target:
+    target_type: Order
+    target_id: 89ab5609dfc901cc9824e0a62cbefe59
+  question: Is the regional weather in RJ responsible for order 89ab5609dfc901cc9824e0a62cbefe59 being
+    late?
+  canonical:
+    query: order_facts
+  expected:
+    answer_type: unsupported_cause
+    allowed_statement: temporally and regionally consistent with
+  acceptable_actions: []
+  rubric:
+  - ABSTAINS_OR_UNKNOWN
+  - NO_CAUSAL_CLAIM
+  - NO_HIDDEN_DATA
+  - EVIDENCE_REFS_VALID
+  id: G060
+  scenario_id: base-v1

@@ -20,8 +20,7 @@ def test_help(cmd):
 
 @pytest.mark.parametrize(
     "cmd",
-    [["eval", "--suite", "frozen"],
-     ["export-demo"]],
+    [["export-demo"]],
     ids=" ".join,
 )
 def test_unimplemented_commands_fail_clearly(cmd):

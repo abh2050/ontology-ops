@@ -1,0 +1,54 @@
+# 15 reliability scenarios (spec 14.4). DRAFT for owner review.
+# "local" = fixture queue and provider against PostgreSQL 16; "deployed_drill" = repeated
+# against SQS and Bedrock in M5 (failure drills, recorded).
+version: reliability-v1
+scenarios:
+  - id: R01
+    name: Idempotent submission (same key and hash returns the job; different hash 409)
+    tests: [tests/integration/test_m3_jobs.py::test_idempotent_submission, tests/integration/test_api.py::test_job_submission_and_read]
+  - id: R02
+    name: Crash between queue send and outbox mark duplicates the message; one result
+    tests: [tests/integration/test_m3_jobs.py::test_crash_between_send_and_mark_duplicates_but_one_result]
+  - id: R03
+    name: Duplicate delivery after ready is acknowledged without work
+    tests: [tests/integration/test_m3_jobs.py::test_duplicate_message_after_ready_is_acked_without_work]
+  - id: R04
+    name: Worker crash after ready, before ack; SQS redelivery still produces one case
+    tests: [tests/integration/test_m4_actions.py::test_crash_and_redelivery_still_produce_one_case]
+    deployed_drill: true
+  - id: R05
+    name: Crash after a paid call was sent holds for reconciliation; no second paid call
+    tests: [tests/integration/test_m3_jobs.py::test_crash_after_paid_call_sent_holds_without_second_call]
+  - id: R06
+    name: Crash after checkpoint resumes and reuses the completed stage
+    tests: [tests/integration/test_m3_jobs.py::test_crash_after_checkpoint_resumes_and_reuses_completed_stage]
+  - id: R07
+    name: Reserved but never sent stage resumes safely
+    tests: [tests/integration/test_m3_jobs.py::test_reserved_but_never_sent_stage_resumes]
+  - id: R08
+    name: Lease blocks a second worker; writes after lease loss are refused
+    tests: [tests/integration/test_m3_jobs.py::test_lease_blocks_second_worker_and_guards_writes]
+  - id: R09
+    name: Unknown provider outcome (timeout) is held, never retried automatically
+    tests: [tests/integration/test_m3_jobs.py::test_unknown_outcome_holds_and_never_retries, tests/integration/test_m3_jobs.py::test_bedrock_timeout_is_unknown_with_one_call]
+    deployed_drill: true
+  - id: R10
+    name: Confirmed no-generation throttle is retried exactly once
+    tests: [tests/integration/test_m3_jobs.py::test_confirmed_throttle_retried_once]
+  - id: R11
+    name: Five consecutive known failures open the breaker; one half-open probe
+    tests: [tests/integration/test_m3_jobs.py::test_persistent_rejection_fails_and_breaker_opens, tests/integration/test_m3_jobs.py::test_breaker_half_open_allows_one_probe]
+    deployed_drill: true
+  - id: R12
+    name: Poison message reaches the DLQ after five receives
+    tests: [tests/integration/test_m3_jobs.py::test_poison_message_reaches_dlq_after_five_receives]
+    deployed_drill: true
+  - id: R13
+    name: Daily admitted-call cap blocks paid admission durably
+    tests: [tests/integration/test_m3_jobs.py::test_daily_cap_blocks_admission]
+  - id: R14
+    name: Invalid model JSON fails safely without a repair loop
+    tests: [tests/integration/test_m3_jobs.py::test_invalid_json_fails_without_repair]
+  - id: R15
+    name: SDK automatic retries disabled on the Bedrock client
+    tests: [tests/integration/test_m3_jobs.py::test_bedrock_client_has_sdk_retries_disabled]

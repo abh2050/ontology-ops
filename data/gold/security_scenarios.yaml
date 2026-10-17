@@ -1,0 +1,70 @@
+# 20 security and approval scenarios (spec 14.4). DRAFT for owner review.
+# Each maps to an automated test; "local" tests run against PostgreSQL 16 with fixture
+# queue and provider. "deployed" drills repeat selected scenarios against AWS in M5.
+version: security-v1
+scenarios:
+  - id: S01
+    name: Viewer with valid identity and no grants sees nothing
+    expect: empty queue, zero counts and totals, 404 on objects
+    tests: [tests/integration/test_api.py::test_viewer_sees_nothing, tests/integration/test_m2_tools.py::test_viewer_sees_nothing]
+    deployed_drill: true
+  - id: S02
+    name: Valid token for an unprovisioned subject grants no data
+    tests: [tests/integration/test_api.py::test_valid_token_without_provisioned_user_sees_nothing]
+  - id: S03
+    name: Inactive user sees nothing
+    tests: [tests/integration/test_m2_tools.py::test_unprovisioned_and_inactive_subjects_see_nothing]
+  - id: S04
+    name: Order spanning operator_a and operator_b sellers is invisible to both operators
+    tests: [tests/integration/test_m2_tools.py::test_split_orders_invisible_to_both_operators]
+  - id: S05
+    name: Split order can never become a case (owner decision 4)
+    tests: [tests/integration/test_m4_actions.py::test_split_order_can_never_become_a_case]
+  - id: S06
+    name: Hidden and nonexistent objects return identical 404s; no ID in body or server logs
+    tests: [tests/integration/test_api.py::test_hidden_and_missing_orders_are_indistinguishable]
+    deployed_drill: true
+  - id: S07
+    name: Hidden IDs absent from counts, totals, and graph nodes
+    tests: [tests/integration/test_m2_tools.py::test_split_orders_invisible_to_both_operators]
+  - id: S08
+    name: Customer traversal exposes only visible orders
+    tests: [tests/integration/test_m2_tools.py::test_customer_traversal_exposes_only_visible_orders]
+  - id: S09
+    name: Token claim checks (signature, issuer, expiry, token_use=access, client_id)
+    tests: [tests/integration/test_api.py::test_token_claims_verified, tests/integration/test_api.py::test_missing_or_malformed_token]
+    deployed_drill: true
+  - id: S10
+    name: Local identity refused outside DEPLOY_ENV=local
+    tests: [tests/integration/test_api.py::test_api_refuses_local_auth_outside_local]
+  - id: S11
+    name: Self approval refused, including two tabs and later role change
+    tests: [tests/integration/test_m4_actions.py::test_self_approval_rejected_even_with_reviewer_role, tests/integration/test_m4_actions.py::test_operator_cannot_approve]
+  - id: S12
+    name: Reviewer must independently hold scope over every target
+    tests: [tests/integration/test_m4_actions.py::test_reviewer_must_independently_hold_scope]
+  - id: S13
+    name: Stale revision returns 409
+    tests: [tests/integration/test_m4_actions.py::test_stale_revision_rejected]
+  - id: S14
+    name: Duplicate execution (sequential and 4 concurrent) creates one case
+    tests: [tests/integration/test_m4_actions.py::test_duplicate_execution_rejected, tests/integration/test_m4_actions.py::test_concurrent_duplicate_approvals_create_one_case]
+  - id: S15
+    name: Competing proposals for one target open one investigation
+    tests: [tests/integration/test_m4_actions.py::test_competing_proposals_open_one_investigation]
+  - id: S16
+    name: needs_review proposal cannot execute and stays in audit history
+    tests: [tests/integration/test_m4_actions.py::test_needs_review_cannot_execute_and_stays_in_history]
+  - id: S17
+    name: Stale evidence at execution marks the proposal stale (409)
+    tests: [tests/integration/test_m4_actions.py::test_stale_evidence_at_execution]
+  - id: S18
+    name: Grant revoked mid job, before proposal, or before execution blocks or invalidates
+    tests: [tests/integration/test_m4_actions.py::test_grant_revoked_mid_job_blocks, tests/integration/test_m4_actions.py::test_grant_revoked_between_job_and_proposal, tests/integration/test_m4_actions.py::test_proposer_grant_revoked_before_execution]
+  - id: S19
+    name: Database role privilege matrix; runtime roles cannot modify users, grants, or audit history
+    tests: [tests/integration/test_m4_security.py::test_table_privileges_match_policy, tests/integration/test_m4_security.py::test_column_update_privileges_match_policy, tests/integration/test_m4_security.py::test_runtime_roles_cannot_touch_identity_or_audit_history]
+  - id: S20
+    name: Prompt injection in a product category is returned as data and cannot change actor, scope, or limits
+    tests: [tests/integration/test_m2_tools.py::test_prompt_injection_is_returned_as_data, tests/integration/test_m2_tools.py::test_strict_input_schemas]
+    note: live-model behaviour on the injection fixture is measured in M5 (gold items can be added on owner request)

@@ -145,7 +145,21 @@ def seed_users(mode: Annotated[str, typer.Option(help="local or aws")]) -> None:
 @app.command("eval")
 def eval_(suite: Annotated[str, typer.Option(help="Evaluation suite, e.g. frozen.")]) -> None:
     """Run the frozen evaluation within the eval budget."""
-    _not_yet("M5")
+    from ops.evals.gold import GoldNotFrozen, load_gold, verify_frozen
+
+    if suite != "frozen":
+        _fail("only --suite frozen is supported")
+    try:
+        meta = verify_frozen()
+    except GoldNotFrozen as exc:
+        _fail(f"refusing to evaluate: {exc}")
+    plan = load_gold()["run_plan"]
+    typer.echo(f"gold set frozen by {meta['reviewer']} on {meta['review_date']}; "
+               f"planned model calls {plan['planned_model_calls']} "
+               f"(ceiling {plan['ceiling_calls']})")
+    if plan["planned_model_calls"] > plan["ceiling_calls"]:
+        _fail("planned calls exceed the evaluation ceiling")
+    _fail("evaluation runner not implemented until M5 (blocked by M4.5)")
 
 
 @app.command()
