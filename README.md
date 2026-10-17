@@ -72,4 +72,4 @@ Olist contains order level delivery timestamps only: no seller shipment tracking
 
 ## Cloud resource status
 
-Nothing deployed.
+Deployed 2026-10-17 in us-east-2 (account SCP; decisions.md D-023) behind CloudFront's default HTTPS domain (D-024). Estimated run rate about $74/month. Teardown: `scripts/teardown.py`. See docs/progress/M4.5.md.
