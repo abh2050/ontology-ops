@@ -2,8 +2,8 @@
   "scenario_id": "base-v1",
   "seed": 42,
   "generator_version": "scenario-gen-1.0.0",
-  "anchor_batch": "fixtures-v1",
-  "anchor_as_of": "2018-03-15 23:59:59",
+  "anchor_batch": "olist-full-v1-d689b1282dbe",
+  "anchor_as_of": "2018-03-30 23:59:59",
   "is_synthetic": true,
   "carriers": {
     "CARRIER_A": "Zephyr Otter Fictional Freight",
@@ -13,11 +13,11 @@
     "CARRIER_E": "Saffron Kite Sample Transport"
   },
   "assignment_counts": {
-    "CARRIER_A": 3,
-    "CARRIER_B": 27,
-    "CARRIER_C": 7,
-    "CARRIER_D": 18,
-    "CARRIER_E": 17
+    "CARRIER_A": 4556,
+    "CARRIER_B": 33274,
+    "CARRIER_C": 5475,
+    "CARRIER_D": 39359,
+    "CARRIER_E": 14877
   },
   "events": [
     {
@@ -28,8 +28,8 @@
       "carrier_code": "CARRIER_B",
       "seller_id": null,
       "affected_states": [],
-      "starts_at": "2018-03-05 23:59:59",
-      "ends_at": "2018-03-20 23:59:59",
+      "starts_at": "2018-03-20 23:59:59",
+      "ends_at": "2018-04-04 23:59:59",
       "summary": "Synthetic scenario: fictional backlog reported at CARRIER_B."
     },
     {
@@ -40,11 +40,11 @@
       "carrier_code": null,
       "seller_id": null,
       "affected_states": [
-        "BA"
+        "RJ"
       ],
-      "starts_at": "2018-03-09 23:59:59",
-      "ends_at": "2018-03-17 23:59:59",
-      "summary": "Synthetic scenario: fictional storm advisory for customer state BA."
+      "starts_at": "2018-03-24 23:59:59",
+      "ends_at": "2018-04-01 23:59:59",
+      "summary": "Synthetic scenario: fictional storm advisory for customer state RJ."
     },
     {
       "event_id": "b6cc501c-05d0-56a2-a7ed-c3b6394c18f6",
@@ -52,10 +52,10 @@
       "kind": "seller_stockout",
       "role": "cause_unknown",
       "carrier_code": null,
-      "seller_id": "d8269977cc6372694a3b3e24a5f33e25",
+      "seller_id": "4c8b8048e33af2bf94f2eb547746a916",
       "affected_states": [],
-      "starts_at": "2018-02-08 04:59:59",
-      "ends_at": "2018-03-12 23:59:59",
+      "starts_at": "2018-01-29 21:55:59",
+      "ends_at": "2018-03-27 23:59:59",
       "summary": "Synthetic scenario: fictional stock shortage note for one seller. Its late orders share no backlogged carrier; the data cannot establish a cause."
     },
     {
@@ -64,10 +64,10 @@
       "kind": "system_outage",
       "role": "temporal_decoy",
       "carrier_code": null,
-      "seller_id": "718a337be301ba63ecfb6833e401c6a5",
+      "seller_id": "4869f7a5dfa277a7dca6462dcf3b52b2",
       "affected_states": [],
-      "starts_at": "2018-01-23 08:59:59",
-      "ends_at": "2018-02-02 08:59:59",
+      "starts_at": "2018-02-10 00:22:25",
+      "ends_at": "2018-02-20 00:22:25",
       "summary": "Synthetic scenario: fictional order system outage that ended before this seller's late orders entered transit."
     },
     {
@@ -78,11 +78,11 @@
       "carrier_code": null,
       "seller_id": null,
       "affected_states": [
-        "BA"
+        "RJ"
       ],
-      "starts_at": "2018-03-18 23:59:59",
-      "ends_at": "2018-03-24 23:59:59",
-      "summary": "Synthetic scenario: fictional weather alert for BA starting after as_of."
+      "starts_at": "2018-04-02 23:59:59",
+      "ends_at": "2018-04-08 23:59:59",
+      "summary": "Synthetic scenario: fictional weather alert for RJ starting after as_of."
     },
     {
       "event_id": "e14919b4-b28c-5dc9-ad82-3ce1e3536937",
@@ -106,11 +106,11 @@
       "carrier_code": null,
       "seller_id": null,
       "affected_states": [
-        "RS"
+        "SP"
       ],
-      "starts_at": "2018-01-29 23:59:59",
-      "ends_at": "2018-02-03 23:59:59",
-      "summary": "Synthetic scenario: fictional rain advisory for RS, ended weeks before as_of."
+      "starts_at": "2018-02-13 23:59:59",
+      "ends_at": "2018-02-18 23:59:59",
+      "summary": "Synthetic scenario: fictional rain advisory for SP, ended weeks before as_of."
     }
   ]
 }

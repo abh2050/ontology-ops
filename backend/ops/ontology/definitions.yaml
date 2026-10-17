@@ -132,9 +132,10 @@ derived_functions:
   late_open_order:
     inputs: [as_of]
     semantics: >-
-      Order purchased at or before as_of, date(as_of) > date(estimated_at), and no
-      customer delivery known at as_of (delivered_at is null or after as_of).
-      Never reads order_status.
+      Order purchased at or before as_of, date(as_of) is 1 to 30 days after
+      date(estimated_at), and no customer delivery known at as_of (delivered_at is
+      null or after as_of). The 30 day cap stops orders that never receive a
+      delivery timestamp from staying late open forever. Never reads order_status.
   known_delivery_state:
     inputs: [as_of]
     semantics: >-

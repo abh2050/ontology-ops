@@ -65,6 +65,18 @@ def test_late_open_semantics_and_masking(db, fixture_batch):
     assert LABELS["delivered_on_time"] not in at
     assert LABELS["not_late_00"] not in at
     assert LABELS["single_late_00"] in at
+    assert LABELS["long_overdue"] not in at  # more than 30 days past the estimate
+
+
+def test_overdue_cap_boundary(db, fixture_batch):
+    with db("import").connect() as conn:
+        estimated = conn.execute(text(
+            "SELECT estimated_at FROM orders WHERE batch_id = :b AND order_id = :o"),
+            {"b": FIXTURE_BATCH, "o": LABELS["long_overdue"]}).scalar_one()
+        on_cap = estimated + timedelta(days=30, hours=23, minutes=59, seconds=59)
+        past_cap = on_cap + timedelta(days=1)
+        assert LABELS["long_overdue"] in late_open_order_ids(conn, FIXTURE_BATCH, on_cap)
+        assert LABELS["long_overdue"] not in late_open_order_ids(conn, FIXTURE_BATCH, past_cap)
 
 
 def test_rank_days_tie_breaks():

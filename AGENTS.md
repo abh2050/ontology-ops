@@ -45,7 +45,7 @@ React 19, TS 5, Vite, Tailwind 4, TanStack Query, Cytoscape.js · Python 3.12, F
 4. Split operator orders are invisible to both operators (see Security rules).
 5. Fixture batch grants follow the same split rule, applied to authored assignments.
 6. `provenance` column on all five source tables.
-7. Late open means `date(as_of) > date(estimated_at)` with no delivery known at as_of. `line_no` = `order_item_id`.
+7. Late open means `date(as_of)` is 1 to 30 days after `date(estimated_at)`, with no delivery known at as_of (30-day cap, D-003). `pick-as-of` counts only purchases inside the default window. `line_no` = `order_item_id`.
 8. Static builds publish authored fixtures only.
 9. The agent drafts the gold set, then stops for owner review.
 10. M6 also fills every measurable cell in `docs/business_case.md`, recomputes §5 with measured inputs, and completes the §10 decision table.

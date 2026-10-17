@@ -124,6 +124,10 @@ for i in range(4):
     add_order(f"not_late_{i:02d}", [A[i]], late=False)
 add_order("no_carrier_late", ["seller_a02"], carrier=False)
 
+# 5b. Overdue by more than 30 days: outside late_open_order's cap.
+add_order("long_overdue", ["seller_a03"], purchase=AS_OF - timedelta(days=60))
+orders[-1][7] = (AS_OF.replace(hour=0, minute=0, second=0) - timedelta(days=40)).strftime(TS)
+
 # 6. Customer with several orders, one of which spans both groups.
 shared = add_customer("customer_shared", "SP")
 add_order("shared_customer_a", ["seller_a01"], customer=shared)

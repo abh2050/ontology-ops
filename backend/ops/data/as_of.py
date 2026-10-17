@@ -83,6 +83,8 @@ def pick_as_of(batch_id: str | None = None) -> str:
             "batch_id": batch_id,
             "window": [DEMO_WINDOW[0].isoformat(), DEMO_WINDOW[1].isoformat()],
             "as_of_convention": "end of day 23:59:59, dataset local",
+            "counted_orders": "purchased inside the window; late open = 1 to 30 days past "
+                              "the estimated date with no delivery known at as_of",
             "ranking": "most sellers with >= 3 late open orders, then more late open orders, "
                        "then earlier date",
             "days_evaluated": len(days),

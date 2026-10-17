@@ -49,7 +49,7 @@ def test_fixture_batch_validates(fixture_dir):
     batch = validate_sources(fixture_dir, FIXTURE_BATCH)
     assert batch.provenance == "authored"
     assert batch.quarantine_counts() == {"BROKEN_FK": 1, "DUPLICATE_IDENTICAL": 1}
-    assert batch.loaded_counts()["orders"] == 73
+    assert batch.loaded_counts()["orders"] == 74
 
 
 @pytest.mark.parametrize("name", list(S.SOURCES))
@@ -172,7 +172,7 @@ def test_manifest_is_deterministic(fixture_dir, tmp_path):
     b = build_manifest(validate_sources(fixture_dir), "v", date(2026, 10, 17))
     assert manifest_hash(a) == manifest_hash(b)
     assert a["batch_id"].startswith("olist-full-v1-")
-    assert a["files"]["orders"]["sha256"] and a["files"]["orders"]["rows"] == 73
+    assert a["files"]["orders"]["sha256"] and a["files"]["orders"]["rows"] == 74
     assert a["order_quarantine_cascade"]["order_items_order_quarantined"] == 0
 
 

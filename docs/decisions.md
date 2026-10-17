@@ -8,13 +8,21 @@ Olist gives one seller and one product per order line, with no history. Historic
 ## D-002 Dataset-local timestamps
 Source timestamps have no timezone. Commerce timestamps are stored as `timestamp without time zone` and labelled "dataset local". Application audit timestamps use `timestamptz`.
 
-## D-003 Late open definition (owner decision 7, 2026-10-17)
-An order is late open at `as_of` when all of these hold: `purchased_at <= as_of`, `date(as_of) > date(estimated_at)`, and `delivered_at` is null or later than `as_of`.
+## D-003 Late open definition (owner decisions 7 and 2026-10-17 overdue cap)
+An order is late open at `as_of` when all of these hold:
+- `purchased_at <= as_of`
+- `date(as_of)` is **1 to 30 days** after `date(estimated_at)`
+- `delivered_at` is null or later than `as_of`
 
+Why the 30-day cap: on the full Olist data, the uncapped rule kept every order that never receives a delivery timestamp (orders still "shipped", "processing", "canceled", ... since 2016) late open forever. The spec forbids reading final status or reconstructing cancellations. At the uncapped pick (2018-08-25), only 106 of 2,268 late open orders (about 5 %) were ever delivered. With the purchase window alone (2018-08-18), it was 103 of 1,026. With the window plus the cap, the pick is 2018-03-30 and 643 of 825 are later delivered, which is real in-flight lateness.
+
+The owner chose window plus cap on 2026-10-17, before operational-commerce-v1 was frozen.
+
+- `ops data pick-as-of` counts only orders purchased inside the default queue purchase window (2018-01-01 to 2018-08-31). The window is still only a default filter for queries.
 - `line_no` = source `order_item_id`.
 - Demo as_of values are end of day (`23:59:59`, dataset local).
 - Orders with no lines are excluded from late-open counts because no actor can see them (spec 11.4).
-- Enforced in `backend/ops/queries/late_orders.py`.
+- Enforced in `backend/ops/queries/late_orders.py` (`MAX_OVERDUE_DAYS`), with the cap boundary covered by `tests/integration/test_m1_data.py::test_overdue_cap_boundary`.
 
 ## D-004 Carrier assignment rule (synthetic)
 `CARRIER_{A..E}` is chosen as `sha256(f"{seller_state}|{customer_state}|{seed}") mod 5`, in code order A–E.

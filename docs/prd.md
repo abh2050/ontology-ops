@@ -4,6 +4,8 @@
 >   calculation below is kept as the **capacity only illustration**; every value is an assumption.
 > - "Meaningful margin" over B0 is defined in configs/policy.yaml and docs/business_case.md.
 > - second_model_id is global.amazon.nova-2-lite-v1:0 (configs/models.yaml).
+> - Late open adds a 30 day overdue cap, and pick-as-of counts only purchases in the
+>   default window (docs/decisions.md D-003).
 
 MASTER BUILD SPECIFICATION
 ONTOLOGY DRIVEN OPERATIONAL AI

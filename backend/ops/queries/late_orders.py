@@ -1,8 +1,11 @@
 """Server authored SQL for late_open_order(as_of) and the demo as_of scan.
 
 late_open_order(as_of): purchased at or before as_of, date(as_of) is later than
-date(estimated_at), and no customer delivery is known at as_of. Orders with no
-lines are excluded because no actor can see an order with an empty line set.
+date(estimated_at) by 1 to MAX_OVERDUE_DAYS days, and no customer delivery is known
+at as_of. The cap (owner decision 2026-10-17, decisions.md D-003) keeps orders that
+never receive a delivery timestamp from staying late open forever, since final
+status and cancellation history may not be used. Orders with no lines are
+excluded because no actor can see an order with an empty line set.
 This module never reads final order status.
 """
 
@@ -13,15 +16,18 @@ from datetime import date, datetime
 from sqlalchemy import Connection, text
 
 DEMO_WINDOW = (date(2018, 1, 1), date(2018, 8, 31))
+MAX_OVERDUE_DAYS = 30
 
 # Predicate fragment: o = orders alias, :as_of = timestamp.
-LATE_OPEN_PREDICATE = """
+LATE_OPEN_PREDICATE = f"""
     o.purchased_at <= :as_of
     AND o.estimated_at::date < CAST(:as_of AS timestamp)::date
+    AND o.estimated_at::date >= CAST(:as_of AS timestamp)::date - {MAX_OVERDUE_DAYS}
     AND (o.delivered_at IS NULL OR o.delivered_at > :as_of)
 """
 
-DAILY_SCAN_SQL = text("""
+# The daily scan counts only purchases inside the default queue purchase window.
+DAILY_SCAN_SQL = text(f"""
 WITH days AS (
     SELECT d::date AS day,
            (d::date + interval '1 day' - interval '1 second')::timestamp AS as_of
@@ -32,8 +38,10 @@ late AS (
     FROM days
     JOIN orders o
       ON o.batch_id = :batch_id
+     AND o.purchased_at >= CAST(:start AS date)
      AND o.purchased_at <= days.as_of
      AND o.estimated_at::date < days.day
+     AND o.estimated_at::date >= days.day - {MAX_OVERDUE_DAYS}
      AND (o.delivered_at IS NULL OR o.delivered_at > days.as_of)
 ),
 late_sellers AS (

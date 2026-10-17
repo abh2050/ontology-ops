@@ -1,0 +1,61 @@
+{
+  "batch_id": "olist-full-v1-d689b1282dbe",
+  "demo_as_of": {
+    "as_of": "2018-03-30 23:59:59",
+    "late_open_multi_seller_orders": 0,
+    "late_open_orders": 825,
+    "selected_by": "ranking",
+    "sellers_with_3_plus_late_open": 80
+  },
+  "download_date": "2026-10-17",
+  "files": {
+    "customers": {
+      "file": "olist_customers_dataset.csv",
+      "rows": 99441,
+      "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2"
+    },
+    "order_items": {
+      "file": "olist_order_items_dataset.csv",
+      "rows": 112650,
+      "sha256": "0bc4d068c4fe38cbb01bd90e8746e3c613fe7b4baef75fab7b0e329701c3e279"
+    },
+    "orders": {
+      "file": "olist_orders_dataset.csv",
+      "rows": 99441,
+      "sha256": "8df58ef3d2d7e9944010f7beecd9b75367f5588ec6e3c91cec19ae3345ef9ecf"
+    },
+    "products": {
+      "file": "olist_products_dataset.csv",
+      "rows": 32951,
+      "sha256": "3e6569628a17fbc75fd206ee357b59e20364b9afa90f5b6cd5b4d624c58aa9cc"
+    },
+    "sellers": {
+      "file": "olist_sellers_dataset.csv",
+      "rows": 3095,
+      "sha256": "1f643d2b950373b85735e7794b20986f528d7a000432e7c6f9bcbb44d0846a0e"
+    }
+  },
+  "importer_version": "importer-1.0.0",
+  "license": "CC BY-NC-SA 4.0",
+  "loaded_rows": {
+    "customers": 99441,
+    "order_items": 112413,
+    "orders": 99252,
+    "products": 32951,
+    "sellers": 3095
+  },
+  "order_quarantine_cascade": {
+    "order_items_order_quarantined": 237,
+    "orders_quarantined": 189
+  },
+  "provenance": "olist",
+  "quarantine_counts": {
+    "CARRIER_BEFORE_PURCHASE": 166,
+    "DELIVERED_BEFORE_CARRIER": 23,
+    "ORDER_QUARANTINED": 237
+  },
+  "quarantine_total": 426,
+  "selection_version": "full-v1",
+  "source_url": "https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce",
+  "timestamps": "dataset local, no timezone"
+}

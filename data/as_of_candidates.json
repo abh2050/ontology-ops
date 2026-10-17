@@ -1,0 +1,43 @@
+{
+  "batch_id": "olist-full-v1-d689b1282dbe",
+  "window": [
+    "2018-01-01",
+    "2018-08-31"
+  ],
+  "as_of_convention": "end of day 23:59:59, dataset local",
+  "counted_orders": "purchased inside the window; late open = 1 to 30 days past the estimated date with no delivery known at as_of",
+  "ranking": "most sellers with >= 3 late open orders, then more late open orders, then earlier date",
+  "days_evaluated": 243,
+  "top5": [
+    {
+      "as_of": "2018-03-30 23:59:59",
+      "late_open_orders": 825,
+      "sellers_with_3_plus_late_open": 80,
+      "late_open_multi_seller_orders": 0
+    },
+    {
+      "as_of": "2018-03-31 23:59:59",
+      "late_open_orders": 813,
+      "sellers_with_3_plus_late_open": 79,
+      "late_open_multi_seller_orders": 0
+    },
+    {
+      "as_of": "2018-04-01 23:59:59",
+      "late_open_orders": 799,
+      "sellers_with_3_plus_late_open": 77,
+      "late_open_multi_seller_orders": 0
+    },
+    {
+      "as_of": "2018-04-03 23:59:59",
+      "late_open_orders": 727,
+      "sellers_with_3_plus_late_open": 76,
+      "late_open_multi_seller_orders": 0
+    },
+    {
+      "as_of": "2018-03-24 23:59:59",
+      "late_open_orders": 741,
+      "sellers_with_3_plus_late_open": 75,
+      "late_open_multi_seller_orders": 2
+    }
+  ]
+}

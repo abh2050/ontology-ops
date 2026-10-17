@@ -13,11 +13,11 @@
     "CARRIER_E": "Saffron Kite Sample Transport"
   },
   "assignment_counts": {
-    "CARRIER_A": 3,
-    "CARRIER_B": 27,
-    "CARRIER_C": 7,
-    "CARRIER_D": 18,
-    "CARRIER_E": 17
+    "CARRIER_A": 4556,
+    "CARRIER_B": 33274,
+    "CARRIER_C": 5475,
+    "CARRIER_D": 39359,
+    "CARRIER_E": 14877
   },
   "events": [
     {
@@ -40,11 +40,11 @@
       "carrier_code": null,
       "seller_id": null,
       "affected_states": [
-        "BA"
+        "RS"
       ],
       "starts_at": "2018-03-09 23:59:59",
       "ends_at": "2018-03-17 23:59:59",
-      "summary": "Synthetic scenario: fictional storm advisory for customer state BA."
+      "summary": "Synthetic scenario: fictional storm advisory for customer state RS."
     },
     {
       "event_id": "9bb246a8-5d0c-5a76-a727-c6078ef0d5e4",
@@ -78,11 +78,11 @@
       "carrier_code": null,
       "seller_id": null,
       "affected_states": [
-        "BA"
+        "RS"
       ],
       "starts_at": "2018-03-18 23:59:59",
       "ends_at": "2018-03-24 23:59:59",
-      "summary": "Synthetic scenario: fictional weather alert for BA starting after as_of."
+      "summary": "Synthetic scenario: fictional weather alert for RS starting after as_of."
     },
     {
       "event_id": "91c95312-7baf-5075-a991-180ca5c38c32",
@@ -106,11 +106,11 @@
       "carrier_code": null,
       "seller_id": null,
       "affected_states": [
-        "RS"
+        "SP"
       ],
       "starts_at": "2018-01-29 23:59:59",
       "ends_at": "2018-02-03 23:59:59",
-      "summary": "Synthetic scenario: fictional rain advisory for RS, ended weeks before as_of."
+      "summary": "Synthetic scenario: fictional rain advisory for SP, ended weeks before as_of."
     }
   ]
 }

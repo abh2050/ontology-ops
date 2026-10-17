@@ -11,18 +11,18 @@
   "files": {
     "customers": {
       "file": "olist_customers_dataset.csv",
-      "rows": 71,
-      "sha256": "78fd7bbe5c3b7e65325c717e360945efec261e262fbd1f7a07aee7abbacf9cd9"
+      "rows": 72,
+      "sha256": "0958aa764fe3f0d1fbb99804d5989c3ae1ee8aa5e2874e9ded97c744130f3401"
     },
     "order_items": {
       "file": "olist_order_items_dataset.csv",
-      "rows": 109,
-      "sha256": "c4d844a79d38aca5867d4a710861029251157440f7886dace94bd11d284374a6"
+      "rows": 110,
+      "sha256": "eb9ec5785c616a2550d66e664a789b5a860b62f491b6d4bf8fafef3e6a855e84"
     },
     "orders": {
       "file": "olist_orders_dataset.csv",
-      "rows": 73,
-      "sha256": "f0041f34d29da4b91db7301f0cf0087339ad399650d974059c327d88f7a94186"
+      "rows": 74,
+      "sha256": "7ea833e23941ac5f5a6ca34c6f611c5f538c5b7c1f2adb4e54373ccc78c8e7d8"
     },
     "products": {
       "file": "olist_products_dataset.csv",
@@ -38,9 +38,9 @@
   "importer_version": "importer-1.0.0",
   "license": "authored for this project",
   "loaded_rows": {
-    "customers": 71,
-    "order_items": 107,
-    "orders": 73,
+    "customers": 72,
+    "order_items": 108,
+    "orders": 74,
     "products": 13,
     "sellers": 13
   },
