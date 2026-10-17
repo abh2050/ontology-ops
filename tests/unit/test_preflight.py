@@ -20,6 +20,9 @@ def test_account_numbers_masked():
 
 
 def test_foundation_model_id_strips_profile_prefix():
+    import pytest
+
+    pytest.importorskip("aws_cdk", reason="infra dependency group not installed")
     from stack import foundation_model_id
 
     assert foundation_model_id("global.vendor.model-v1:0") == "vendor.model-v1:0"

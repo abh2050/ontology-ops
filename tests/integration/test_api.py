@@ -153,6 +153,8 @@ def test_job_submission_and_read(client, db):
 
     with db("admin").begin() as c:
         c.execute(text("UPDATE outbox SET sent_at = now() WHERE sent_at IS NULL"))
+        c.execute(text("UPDATE jobs SET state = 'failed', lease_token = NULL, lease_until = NULL "
+                       "WHERE state IN ('queued', 'running', 'validating')"))
     key = str(uuid.uuid4())
     body = {"target_type": "Seller", "target_id": LABELS["seller_a01"], "scenario_id": None,
             "as_of": "2018-03-15T23:59:59"}
