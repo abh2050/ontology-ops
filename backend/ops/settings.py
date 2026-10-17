@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     database_url_import: str = _LOCAL.format(role="ops_import")
     database_url_api: str = _LOCAL.format(role="ops_api")
     database_url_worker: str = _LOCAL.format(role="ops_worker")
+    aws_region: str = "us-east-1"
+    cognito_user_pool_id: str | None = None
+    cognito_client_id: str | None = None
+    local_issuer: str = "https://local.ops.invalid/local-user-pool"
+    local_client_id: str = "local-client"
 
     @model_validator(mode="after")
     def _local_auth_only_locally(self) -> "Settings":

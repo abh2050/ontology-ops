@@ -13,3 +13,4 @@ cdk.out/
 !.env.example
 data/raw/
 .DS_Store
+.local/

@@ -122,7 +122,8 @@ def _add_context(b: _Builder, conn, principal, target_type, target_id, as_of, sc
         if f"Order:{order_id}" in b.nodes and b.node(Node(
                 id=cid, type="Carrier", label=carrier["display_name"], depth=1,
                 is_synthetic=True, provenance="synthetic", data=carrier)):
-            b.edge(f"Order:{order_id}", cid, "shipped_by", {"carrier_code": carrier["carrier_code"]})
+            b.edge(f"Order:{order_id}", cid, "shipped_by",
+                   {"carrier_code": carrier["carrier_code"]})
     for e in ctx.events:
         eid = f"DisruptionEvent:{scenario_id}/{e.event_id}"
         if b.node(Node(id=eid, type="DisruptionEvent", label=e.kind, depth=1,

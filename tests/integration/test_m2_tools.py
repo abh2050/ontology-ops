@@ -229,7 +229,8 @@ def test_multi_seller_exposure_excludes_other_sellers(conn):
     for o in multi:
         snap = T.get_order_snapshot(conn, p, T.OrderSnapshotInput(order_id=o.order_id,
                                                                   as_of=AS_OF))
-        assert o.seller_line_value_centavos == snap.metrics.value_by_seller_centavos[L("seller_a01")]
+        by_seller = snap.metrics.value_by_seller_centavos
+        assert o.seller_line_value_centavos == by_seller[L("seller_a01")]
         assert o.seller_line_value_centavos < snap.metrics.order_value_centavos
 
 
