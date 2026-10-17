@@ -14,7 +14,7 @@ from collections import Counter
 from ops.providers.base import Outcome
 
 FAULTS = {"timeout", "throttle", "throttle_once", "reject", "invalid_json", "causal",
-          "invented_id", "arithmetic"}
+          "invented_id", "arithmetic", "draft"}
 
 
 class FixtureProvider:
@@ -125,6 +125,13 @@ class FixtureProvider:
             action = {"kind": "CreateInvestigation", "target_type": "Order", "target_id": oid,
                       "selected_order_ids": [oid], "reason_codes": ["LATE_OPEN", "CAUSE_UNKNOWN"]}
 
+        if fault == "draft" and snapshots and snapshots[0]["order"]["late_open"]:
+            oid = snapshots[0]["order"]["order_id"]
+            action = {"kind": "DraftCustomerUpdate", "target_type": "Order", "target_id": oid,
+                      "selected_order_ids": [oid], "reason_codes": ["LATE_OPEN", "CAUSE_UNKNOWN"],
+                      "draft_text": "Internal draft: the order is past its estimated delivery "
+                                    "date and has no confirmed delivery yet. We do not know the "
+                                    "cause and cannot promise a new date."}
         if fault == "causal":
             findings.insert(0, {"kind": "observed_fact",
                                 "text": "The delay was caused by the seller's carrier backlog.",

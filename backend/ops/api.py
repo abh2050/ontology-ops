@@ -336,3 +336,100 @@ def read_job(job_id: str, request: Request,
         body["result"] = row.result
     return Response(json.dumps(body, default=str), media_type="application/json",
                     headers=headers)
+
+
+# ---- proposals and approval (M4) -------------------------------------------------------
+
+from pydantic import BaseModel as _Body  # noqa: E402
+
+from ops.commands import proposals as P  # noqa: E402
+
+
+class Decision(_Body):
+    decision: Literal["approve", "reject"]
+    expected_revision: int
+    reason: str = ""
+
+
+def _uuid_or_404(value: str) -> None:
+    import uuid as _uuid
+
+    try:
+        _uuid.UUID(value)
+    except ValueError:
+        raise HTTPException(404, NOT_FOUND["detail"]) from None
+
+
+@app.post("/api/jobs/{job_id}/proposal")
+def propose(job_id: str, who: Annotated[Identity, Depends(identity)],
+            batch: Annotated[str | None, Query(max_length=80)] = None) -> JSONResponse:
+    _uuid_or_404(job_id)
+    b = resolve_batch(batch)
+    error = None
+    with engine("api").begin() as conn:
+        principal = load_principal(conn, who.subject, b["batch_id"])
+        try:
+            proposal, created = P.create_proposal(conn, principal, job_id)
+        except P.CommandError as exc:
+            error = exc
+    if error is not None:
+        return JSONResponse({"detail": error.detail, "code": error.code},
+                            status_code=error.status)
+    return JSONResponse(proposal, status_code=201 if created else 200)
+
+
+@app.get("/api/proposals")
+def list_proposals(c: Context, state: str | None = Query(None, max_length=20)) -> dict:
+    rows = c.conn.execute(text(
+        f"SELECT {P.PROPOSAL_COLUMNS} FROM proposals WHERE payload->>'batch_id' = :b "
+        "AND (CAST(:s AS text) IS NULL OR state = :s) ORDER BY created_at DESC LIMIT 200"),
+        {"b": c.principal.batch_id, "s": state}).all()
+    visible = [P.serialize(r) for r in rows if P.actor_can_see(c.conn, c.principal, r)][:50]
+    return {"items": visible, "batch_id": c.principal.batch_id}
+
+
+@app.get("/api/proposals/{proposal_id}")
+def read_proposal(proposal_id: str, c: Context) -> dict:
+    _uuid_or_404(proposal_id)
+    row = P._proposal_row(c.conn, proposal_id)
+    if row is None or not P.actor_can_see(c.conn, c.principal, row):
+        raise HTTPException(404, NOT_FOUND["detail"])
+    return P.serialize(row)
+
+
+@app.post("/api/proposals/{proposal_id}/decision")
+def decide(proposal_id: str, body: Decision, who: Annotated[Identity, Depends(identity)],
+           batch: Annotated[str | None, Query(max_length=80)] = None) -> JSONResponse:
+    _uuid_or_404(proposal_id)
+    b = resolve_batch(batch)
+    error = None
+    with engine("api").begin() as conn:
+        reviewer = load_principal(conn, who.subject, b["batch_id"])
+        try:
+            outcome = P.decide(conn, reviewer, proposal_id, body.decision,
+                               body.expected_revision, body.reason)
+        except P.CommandError as exc:
+            error = exc  # stale transitions and audit rows still commit
+    if error is not None:
+        return JSONResponse({"detail": error.detail, "code": error.code},
+                            status_code=error.status)
+    return JSONResponse(outcome)
+
+
+@app.get("/api/cases")
+def list_cases(c: Context) -> dict:
+    rows = c.conn.execute(text(
+        "SELECT c.case_id, c.case_key, c.owner_subject, c.case_payload, c.created_at, "
+        "p.proposal_id, p.created_by, p.kind, p.target_type, p.target_id, p.payload, p.state, "
+        "p.revision, p.reviewed_by, p.review_reason, p.evidence_hash, p.proposal_hash, "
+        "p.job_id, p.created_at AS p_created FROM cases c JOIN proposals p "
+        "ON p.proposal_id = c.proposal_id WHERE c.case_payload->>'batch_id' = :b "
+        "ORDER BY c.created_at DESC LIMIT 200"), {"b": c.principal.batch_id}).all()
+    out = []
+    for r in rows:
+        if r.owner_subject == c.principal.subject or (
+                c.principal.role == "reviewer" and P.actor_can_see(c.conn, c.principal, r)):
+            out.append({"case_id": str(r.case_id), "owner": r.owner_subject,
+                        "proposal_id": str(r.proposal_id), "payload": r.case_payload,
+                        "created_at": r.created_at.isoformat()})
+    return {"items": out[:50]}
