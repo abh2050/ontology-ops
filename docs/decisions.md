@@ -157,16 +157,15 @@ After the planner's tools run, the worker follows the ontology from an Order tar
 - **Pricing.** List prices were retrieved from the AWS Price List API on 2026-10-17 into `configs/price_card.yaml`. The estimated infrastructure cost is about $74/month, plus inference of about $0.37 (Nova Lite) or $2.71 (Nova 2 Lite) per 1,000 jobs.
 - **Image.** The runtime image excludes the `dev` and `eval` dependency groups (734 MB).
 
-## D-023 Single project region us-east-2 for infrastructure and Bedrock (owner decisions, 2026-10-17)
-The account's organization SCP allows the services the stack needs only in **us-east-2 (Ohio)**: ECS, RDS, ELB, Cognito, SQS, ECR, CloudFormation, Secrets Manager, SSM, EC2/VPC, and Lambda. In us-east-1 and us-west-2 only Bedrock is permitted. (This matches the owner's earlier machine-failure-api project, which deployed successfully in us-east-2.)
+## D-023 Single project region us-east-2 for infrastructure and Bedrock (owner decision, 2026-10-17)
+The account's AWS Organizations SCP explicitly denies EC2, ECS, RDS, ELB, Cognito, SQS, ECR, CloudFormation, Secrets Manager, and SSM in us-east-1 and us-west-2, and allows them in **us-east-2 (Ohio)**. Only the organization's management account can change the SCP, and the member account's `AccountFullAccessRole` cannot. Amazon Q confirmed us-east-2 as the account's working region. The owner's earlier machine-failure-api project also deployed there.
 
-The CDK stack therefore deploys to us-east-2. This is a **deviation from spec §15 ("one CDK stack in us-east-1")**, made at the owner's request.
+After briefly requiring us-east-1, the owner chose **us-east-2 for everything**: the CDK stack and Bedrock inference. This is a deviation from spec §15 ("one CDK stack in us-east-1") and §10.6 ("Nova Lite in us-east-1").
 
-The owner then decided to **keep everything in one region**. Bedrock inference also moved to us-east-2, which replaces the spec's "`amazon.nova-lite-v1:0` in us-east-1" and the earlier instruction to invoke the global profile from us-east-1.
+- On 2026-10-17 both models were verified invocable from us-east-2: `amazon.nova-lite-v1:0` on demand, and the `global.amazon.nova-2-lite-v1:0` profile ACTIVE (it routes globally, see D-009).
+- Bedrock and infrastructure list prices for us-east-2 (USE2-*) equal the us-east-1 rates.
+- The ACM certificate and the Route 53 alias must serve the us-east-2 ALB, so the certificate is issued in us-east-2.
+- The CDK bootstrap (`CDKToolkit`) exists in us-east-2.
 
-- On 2026-10-17 both models were verified invocable from us-east-2: Nova Lite on demand, and the `global.amazon.nova-2-lite-v1:0` profile ACTIVE.
-- Bedrock list prices for us-east-2 (USE2-*) equal the us-east-1 rates.
+A correction kept for the record: an earlier probe wrongly reported every region as denied, because the loop passed unsplit command strings under zsh.
 
-Infrastructure list prices were re-queried for us-east-2 and are identical to us-east-1. The ACM certificate must be issued in us-east-2.
-
-Correction: an earlier region probe on 2026-10-17 wrongly reported every region as denied. The loop passed unsplit command strings under zsh. A corrected probe gives the result above.
