@@ -109,6 +109,8 @@ def scenario_cleanup(db):
     with db("import").begin() as conn:
         for s in created:
             conn.execute(text("DELETE FROM synthetic_scenarios WHERE scenario_id = :s"), {"s": s})
+    for s in created:
+        (REPO_ROOT / "data" / "scenarios" / f"{s}.json").unlink(missing_ok=True)
 
 
 def test_scenario_same_seed_identical_rows(db, fixture_batch, scenario_cleanup):
@@ -132,7 +134,6 @@ def test_scenario_rules(db, fixture_batch, scenario_cleanup):
     scenario_cleanup.append("test-rules")
     generate(seed=42, scenario_id="test-rules", anchor_batch=FIXTURE_BATCH)
     record = json.loads((REPO_ROOT / "data" / "scenarios" / "test-rules.json").read_text())
-    (REPO_ROOT / "data" / "scenarios" / "test-rules.json").unlink()
     ts = lambda s: datetime.strptime(s, "%Y-%m-%d %H:%M:%S")  # noqa: E731
     events = record["events"]
     assert 6 <= len(events) <= 8
