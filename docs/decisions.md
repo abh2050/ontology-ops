@@ -72,7 +72,7 @@ The whole import runs in one transaction as the import role, using COPY in batch
 `fixtures-v1` uses the authored as_of `2018-03-15 23:59:59`. `ops data pick-as-of --batch fixtures-v1` still writes ranked candidates, but records the authored as_of as the demo as_of (`selected_by: authored fixture as_of`).
 
 ## D-009 Global cross-region inference profile (owner decision, 2026-10-17)
-`second_model_id` is `global.amazon.nova-2-lite-v1:0`, invoked from the project region (us-east-2 since D-023; originally specified as us-east-1). Bedrock may route this global profile's requests outside that region. This is a **known deviation from the single-region data boundary**. It is acceptable because the project sends only public Olist data and authored fixtures.
+`second_model_id` is `global.amazon.nova-2-lite-v1:0`, invoked from the project region, us-east-1. Bedrock may route this global profile's requests outside that region. This is a **known deviation from the single-region data boundary**. It is acceptable because the project sends only public Olist data and authored fixtures.
 
 - Preflight must verify the profile is invocable from the project region and fail clearly if it is not.
 - No ARN or account number is committed; preflight resolves the account at runtime.
@@ -157,16 +157,14 @@ After the planner's tools run, the worker follows the ontology from an Order tar
 - **Pricing.** List prices were retrieved from the AWS Price List API on 2026-10-17 into `configs/price_card.yaml`. The estimated infrastructure cost is about $74/month, plus inference of about $0.37 (Nova Lite) or $2.71 (Nova 2 Lite) per 1,000 jobs.
 - **Image.** The runtime image excludes the `dev` and `eval` dependency groups (734 MB).
 
-## D-023 Single project region us-east-2 for infrastructure and Bedrock (owner decisions, 2026-10-17)
-The account's organization SCP allows the services the stack needs only in **us-east-2 (Ohio)**: ECS, RDS, ELB, Cognito, SQS, ECR, CloudFormation, Secrets Manager, SSM, EC2/VPC, and Lambda. In us-east-1 and us-west-2 only Bedrock is permitted. (This matches the owner's earlier machine-failure-api project, which deployed successfully in us-east-2.)
+## D-023 Single project region us-east-1 (owner correction, 2026-10-17)
+On 2026-10-17 the stack and Bedrock were briefly re-targeted to us-east-2, because the account's organization SCP denied ECS, RDS, ELB, Cognito, SQS, ECR, CloudFormation, Secrets Manager, SSM, and EC2 in us-east-1 and allowed them in us-east-2.
 
-The CDK stack therefore deploys to us-east-2. This is a **deviation from spec §15 ("one CDK stack in us-east-1")**, made at the owner's request.
+The owner corrected this: **everything deploys in us-east-1, as the specification states, and no resource may use us-east-2.** All configs, defaults, and docs were returned to us-east-1.
 
-The owner then decided to **keep everything in one region**. Bedrock inference also moved to us-east-2, which replaces the spec's "`amazon.nova-lite-v1:0` in us-east-1" and the earlier instruction to invoke the global profile from us-east-1.
+Consequences:
+- Preflight will fail in us-east-1 until the account's SCP permits those services there. The SCP is not bypassed.
+- The CDK bootstrap stack (`CDKToolkit`) created in us-east-2 on 2026-10-17 conflicts with this rule. Deleting it needs the owner's confirmation.
 
-- On 2026-10-17 both models were verified invocable from us-east-2: Nova Lite on demand, and the `global.amazon.nova-2-lite-v1:0` profile ACTIVE.
-- Bedrock list prices for us-east-2 (USE2-*) equal the us-east-1 rates.
+A correction kept for the record: an earlier region probe wrongly reported every region as denied, because the loop passed unsplit command strings under zsh. The corrected probe gave the per-region result above.
 
-Infrastructure list prices were re-queried for us-east-2 and are identical to us-east-1. The ACM certificate must be issued in us-east-2.
-
-Correction: an earlier region probe on 2026-10-17 wrongly reported every region as denied. The loop passed unsplit command strings under zsh. A corrected probe gives the result above.

@@ -1,7 +1,7 @@
 # The only place model IDs may appear in this repository (enforced by a test).
 # No ARNs or account numbers: preflight resolves the account at runtime.
-region: us-east-2                # single project region (D-023)
+region: us-east-1                # single project region (spec §10.6, §15)
 default_model_id: amazon.nova-lite-v1:0
-# Global cross region inference profile. Invoked from us-east-2, but Bedrock may
-# route requests outside us-east-2 (see docs/decisions.md D-009).
+# Global cross region inference profile. Invoked from us-east-1, but Bedrock may
+# route requests outside us-east-1 (see docs/decisions.md D-009).
 second_model_id: global.amazon.nova-2-lite-v1:0

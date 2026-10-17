@@ -27,7 +27,7 @@ React 19, TS 5, Vite, Tailwind 4, TanStack Query, Cytoscape.js · Python 3.12, F
 
 ## Model and cost rules
 - Model IDs appear **only** in `configs/models.yaml`. A test enforces this. Never commit ARNs or AWS account numbers.
-- Never substitute a model silently. Preflight must verify every configured model is invocable from us-east-2, the single project region (D-023).
+- Never substitute a model silently. Preflight must verify every configured model is invocable from us-east-1, the single project region (spec §15; D-023).
 - Disable SDK retries. Never retry an unknown paid outcome. Invalid JSON fails safely, with no repair loop.
 - Write one-time content (fixtures, gold set, test cases) by hand in-session, not through paid model APIs. Estimate spend before any paid run and ask the owner before anything over a few dollars. Keep evaluations small.
 - The model comparison is a **within-family Nova generation comparison**, not a cross-vendor comparison.

@@ -1,5 +1,5 @@
-"""One CDK stack (spec 15), in the single project region us-east-2 (D-023), which also
-serves Bedrock.
+"""One CDK stack in us-east-1 (spec 15), the single project region, which also serves
+Bedrock.
 
 VPC (2 public + 2 private isolated subnets, no NAT), ALB with ACM HTTPS, ECS Fargate
 API and worker services (public subnets with public IPs for outbound HTTPS), private
