@@ -1,4 +1,5 @@
-"""One CDK stack in us-east-1 (spec 15).
+"""One CDK stack (spec 15). Deployed to us-east-2 because of the account SCP (D-023);
+Bedrock calls go to us-east-1.
 
 VPC (2 public + 2 private isolated subnets, no NAT), ALB with ACM HTTPS, ECS Fargate
 API and worker services (public subnets with public IPs for outbound HTTPS), private
@@ -194,14 +195,15 @@ class OntologyOpsStack(Stack):
         queue.grant_consume_messages(worker_role)
         queue.grant_send_messages(worker_role)
         model_ids = [models["default_model_id"], models["second_model_id"]]
+        model_region = models["region"]  # Bedrock runs in us-east-1 even when the stack does not
         resources = []
         for mid in model_ids:
             base = foundation_model_id(mid)
-            resources += [f"arn:aws:bedrock:{self.region}::foundation-model/{base}",
+            resources += [f"arn:aws:bedrock:{model_region}::foundation-model/{base}",
                           f"arn:aws:bedrock:*::foundation-model/{base}",
                           f"arn:aws:bedrock:::foundation-model/{base}"]
             if base != mid:
-                resources.append(f"arn:aws:bedrock:{self.region}:{self.account}:"
+                resources.append(f"arn:aws:bedrock:{model_region}:{self.account}:"
                                  f"inference-profile/{mid}")
         worker_role.add_to_policy(iam.PolicyStatement(
             actions=["bedrock:InvokeModel"], resources=sorted(set(resources))))

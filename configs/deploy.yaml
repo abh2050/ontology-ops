@@ -2,7 +2,9 @@
 # preflight resolves the account and the ACM certificate at runtime.
 project_tag: ontology-ops
 stack_name: OntologyOpsStack
-region: us-east-1
+region: us-east-2              # infrastructure region: the only region the account's SCP allows
+                               # for ECS/RDS/ELB/etc. (D-023). Bedrock stays in us-east-1
+                               # (configs/models.yaml region).
 aws_profile: awsnew            # local CLI profile used by preflight and CDK
 domain: null                   # OWNER FILLS IN BEFORE M4.5, e.g. ops.example.com
 hosted_zone_name: null         # optional: Route 53 zone to create the alias record in

@@ -3,7 +3,8 @@
 # These are list prices used for ESTIMATES. Reported costs use actual returned usage;
 # unknown charges are reported as unknown, never as zero.
 effective_date: "2026-10-17"
-region: us-east-1
+region: us-east-1              # Bedrock region
+infrastructure_region: us-east-2   # D-023; Ohio infra rates re-queried 2026-10-17: identical
 source_urls:
   - https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_pricing_GetProducts.html
   - https://aws.amazon.com/bedrock/pricing/
@@ -22,7 +23,8 @@ models:
     usage_types: [USE1-Nova2.0Lite-input-tokens-cross-region-global,
                   USE1-Nova2.0Lite-output-tokens-cross-region-global]
 infrastructure:
-  fargate_arm_vcpu_hour_usd: 0.03238          # USE1-Fargate-ARM-vCPU-Hours:perCPU
+  # us-east-2 usage types (USE2-*) carry the same rates as USE1-* below.
+  fargate_arm_vcpu_hour_usd: 0.03238          # USE1/USE2-Fargate-ARM-vCPU-Hours:perCPU
   fargate_arm_gb_hour_usd: 0.00356            # USE1-Fargate-ARM-GB-Hours
   rds_db_t4g_micro_postgres_single_az_hour_usd: 0.016
   rds_gp3_storage_gb_month_usd: 0.115

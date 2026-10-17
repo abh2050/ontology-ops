@@ -105,7 +105,7 @@ def check_domain_and_cert(cfg: dict) -> tuple[list[Check], str | None]:
             match = c["CertificateArn"]
             break
     checks.append(Check("valid ACM certificate", match is not None,
-                        "issued certificate found in us-east-1" if match else
+                        f"issued certificate found in {cfg['region']}" if match else
                         f"no ISSUED certificate covers {domain} in {cfg['region']}"))
     checks.append(Check("HTTPS Cognito callback on the domain", True,
                         f"https://{domain}/auth/callback"))
@@ -164,8 +164,9 @@ def check_services(region: str) -> list[Check]:
         _client("ssm", region).get_parameter(Name="/cdk-bootstrap/hnb659fds/version")
         checks.append(Check("CDK bootstrap", True, "bootstrap stack present"))
     except Exception as exc:  # noqa: BLE001
-        checks.append(Check("CDK bootstrap", False, f"{_err(exc)}; run `cdk bootstrap` once "
-                            "the account allows CloudFormation and SSM"))
+        checks.append(Check("CDK bootstrap", False, f"{_err(exc)}; run `npx aws-cdk@2 bootstrap "
+                            f"aws://<account>/{region}` (creates the CDK staging bucket, "
+                            "ECR repo, and roles)"))
     return checks
 
 

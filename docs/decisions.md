@@ -156,3 +156,14 @@ After the planner's tools run, the worker follows the ontology from an Order tar
 - **Nothing account-specific is committed.** No ARN or account number appears in the repo: the certificate ARN is passed as CDK context at deploy time, and `cdk.context.json` is gitignored.
 - **Pricing.** List prices were retrieved from the AWS Price List API on 2026-10-17 into `configs/price_card.yaml`. The estimated infrastructure cost is about $74/month, plus inference of about $0.37 (Nova Lite) or $2.71 (Nova 2 Lite) per 1,000 jobs.
 - **Image.** The runtime image excludes the `dev` and `eval` dependency groups (734 MB).
+
+## D-023 Infrastructure region us-east-2; Bedrock stays in us-east-1 (owner-requested, 2026-10-17)
+The account's organization SCP allows the services the stack needs only in **us-east-2 (Ohio)**: ECS, RDS, ELB, Cognito, SQS, ECR, CloudFormation, Secrets Manager, SSM, EC2/VPC, and Lambda. In us-east-1 and us-west-2 only Bedrock is permitted. (This matches the owner's earlier machine-failure-api project, which deployed successfully in us-east-2.)
+
+The CDK stack therefore deploys to us-east-2. This is a **deviation from spec §15 ("one CDK stack in us-east-1")**, made at the owner's request.
+
+Bedrock inference stays in us-east-1, as the spec and the owner's model decision require. The worker in us-east-2 calls the `bedrock-runtime` endpoint in us-east-1, and the global profile is still invoked from us-east-1 (D-009). The worker's IAM statement names model ARNs in the model region.
+
+Infrastructure list prices were re-queried for us-east-2 and are identical to us-east-1. The ACM certificate must be issued in us-east-2, because it lives in the ALB's region.
+
+Correction: an earlier region probe on 2026-10-17 wrongly reported every region as denied. The loop passed unsplit command strings under zsh. A corrected probe gives the result above.
