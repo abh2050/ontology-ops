@@ -1,0 +1,25 @@
+ops preflight --cloud aws  (2026-10-17 19:06 UTC)
+
+[PASS] account and region match configuration: account matches OPS_AWS_ACCOUNT_ID; region us-east-2
+[PASS] public HTTPS endpoint (CloudFront default domain): CloudFront API allowed; app URL and Cognito callback are https://<distribution>.cloudfront.net (stack output OutAppUrl)
+[PASS] Bedrock access: amazon.nova-lite-v1:0: invoked from us-east-2: complete, usage 9 in / 5 out
+[PASS] Bedrock access: global.amazon.nova-2-lite-v1:0: profile ACTIVE; invoked from us-east-2: complete, usage 55 in / 5 out
+[PASS] required services reachable (read-only probes): all allowed
+[PASS] ECR repository exists or can be created: will be created by the stack
+[PASS] CDK bootstrap: bootstrap stack present
+[PASS] project tags on all resources: 54 taggable resources tagged project=ontology-ops
+
+Estimated monthly cost (ESTIMATE, list prices from configs/price_card.yaml, effective 2026-10-17):
+  Fargate API task (ARM)                        ~$    7.21  (estimate)
+  Fargate worker task (ARM)                     ~$   14.42  (estimate)
+  RDS db.t4g.micro single AZ                    ~$   11.68  (estimate)
+  RDS gp3 storage                               ~$    2.30  (estimate)
+  ALB hours                                     ~$   16.43  (estimate)
+  ALB LCU (assumed average)                     ~$    5.84  (estimate)
+  Public IPv4 addresses                         ~$   14.60  (estimate)
+  Secrets Manager secrets                       ~$    2.00  (estimate)
+  Inference per 1,000 jobs (default_model_id)   ~$    0.37  (estimate)
+  Inference per 1,000 jobs (second_model_id)    ~$    2.71  (estimate)
+  Infrastructure subtotal                       ~$   74.47  (estimate; excludes CloudFront, CloudWatch, SQS, S3, ECR, Cognito: unknown, expected small)
+
+PREFLIGHT PASSED
