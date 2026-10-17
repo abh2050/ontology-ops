@@ -48,10 +48,56 @@ def fixture_grants() -> dict[str, list[str]]:
     return {user: sorted(labels[label] for label in sellers) for user, sellers in authored.items()}
 
 
+def cognito_subjects() -> dict[str, str]:
+    """Create (or reuse) the four Cognito users; return username -> Cognito sub.
+
+    Self sign-up is disabled; only this command provisions users. Random permanent
+    passwords are stored in Secrets Manager (OPS_DEMO_USERS_SECRET) and never printed.
+    """
+    import os
+    import secrets
+    import string
+
+    import boto3
+
+    pool = os.environ.get("COGNITO_USER_POOL_ID")
+    secret_id = os.environ.get("OPS_DEMO_USERS_SECRET")
+    if not pool or not secret_id:
+        raise SeedError("COGNITO_USER_POOL_ID and OPS_DEMO_USERS_SECRET must be set")
+    idp = boto3.client("cognito-idp")
+    sm = boto3.client("secretsmanager")
+    try:
+        stored = json.loads(sm.get_secret_value(SecretId=secret_id)["SecretString"])
+    except Exception:  # noqa: BLE001 - empty or new secret
+        stored = {}
+    alphabet = string.ascii_letters + string.digits
+    subjects: dict[str, str] = {}
+    for username in USERS:
+        try:
+            user = idp.admin_get_user(UserPoolId=pool, Username=username)
+        except idp.exceptions.UserNotFoundException:
+            user = None
+        if user is None:
+            idp.admin_create_user(UserPoolId=pool, Username=username, MessageAction="SUPPRESS")
+        if user is None or username not in stored:
+            password = ("Aa1-" + "".join(secrets.choice(alphabet) for _ in range(28)))
+            idp.admin_set_user_password(UserPoolId=pool, Username=username, Password=password,
+                                        Permanent=True)
+            stored[username] = password
+            user = idp.admin_get_user(UserPoolId=pool, Username=username)
+        attrs = {a["Name"]: a["Value"] for a in user["UserAttributes"]}
+        subjects[username] = attrs["sub"]
+    sm.put_secret_value(SecretId=secret_id, SecretString=json.dumps(stored))
+    return subjects
+
+
 def seed_users(mode: str) -> str:
+    """Provision users and grants. Local subjects are usernames; AWS subjects are Cognito subs."""
     if mode == "aws":
-        raise SeedError("--mode aws needs the Cognito user pool; not implemented until M4.5")
-    if mode != "local":
+        subjects = cognito_subjects()
+    elif mode == "local":
+        subjects = {u: u for u in USERS}
+    else:
         raise SeedError("--mode must be local or aws")
     lines = []
     with engine("admin").begin() as conn:
@@ -63,16 +109,16 @@ def seed_users(mode: str) -> str:
         conn.execute(text(
             "INSERT INTO users (subject, role, active) VALUES (:s, :r, true) "
             "ON CONFLICT (subject) DO UPDATE SET role = EXCLUDED.role, active = true"),
-            [{"s": s, "r": r} for s, r in USERS.items()])
+            [{"s": subjects[u], "r": r} for u, r in USERS.items()])
         conn.execute(text("DELETE FROM seller_grants WHERE subject = ANY(:subjects)"),
-                     {"subjects": list(USERS)})
+                     {"subjects": list(subjects.values())})
         for b in batches:
             try:
                 grants = (fixture_grants() if b.provenance == "authored"
                           else olist_grants(conn, b.batch_id))
             except AsOfError as exc:
                 raise SeedError(str(exc)) from exc
-            rows = [{"s": user, "b": b.batch_id, "seller": seller}
+            rows = [{"s": subjects[user], "b": b.batch_id, "seller": seller}
                     for user, sellers in grants.items() for seller in sellers]
             if rows:
                 conn.execute(text("INSERT INTO seller_grants (subject, batch_id, seller_id) "
@@ -87,4 +133,4 @@ def seed_users(mode: str) -> str:
                 ) x"""), {"b": b.batch_id, "a": grants["operator_a"],
                           "bb": grants["operator_b"]}).scalar_one()
             lines.append(f"  orders spanning operator_a and operator_b sellers: {split}")
-    return "seeded users " + ", ".join(USERS) + "\n" + "\n".join(lines)
+    return f"seeded users ({mode}) " + ", ".join(USERS) + "\n" + "\n".join(lines)

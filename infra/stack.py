@@ -252,6 +252,7 @@ class OntologyOpsStack(Stack):
         seed_role.add_to_policy(iam.PolicyStatement(
             actions=["cognito-idp:AdminCreateUser", "cognito-idp:AdminSetUserPassword",
                      "cognito-idp:AdminGetUser"], resources=[pool.user_pool_arn]))
+        demo_users_secret.grant_read(seed_role)
         demo_users_secret.grant_write(seed_role)
         seed_task = task_def("Seed", 256, 512, seed_role)
         seed_task.add_container(
