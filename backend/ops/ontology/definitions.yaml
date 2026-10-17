@@ -1,0 +1,186 @@
+# Ontology operational-commerce-v1.
+# PostgreSQL is the source of truth; this file declares identities, edge direction,
+# cardinality, provenance, derived semantics, and action preconditions.
+# Changing a derived function requires a new version and a regression test.
+version: operational-commerce-v1
+
+object_types:
+  Customer:
+    kind: domain
+    identity: [customer_id]
+    table: customers
+    batch_scoped: true
+    provenance: source
+    synthetic: false
+  Order:
+    kind: domain
+    identity: [order_id]
+    table: orders
+    batch_scoped: true
+    provenance: source
+    synthetic: false
+  OrderLine:
+    kind: domain
+    identity: [order_id, line_no]
+    table: order_items
+    batch_scoped: true
+    provenance: source
+    synthetic: false
+  Seller:
+    kind: domain
+    identity: [seller_id]
+    table: sellers
+    batch_scoped: true
+    provenance: source
+    synthetic: false
+  Product:
+    kind: domain
+    identity: [product_id]
+    table: products
+    batch_scoped: true
+    provenance: source
+    synthetic: false
+  Carrier:
+    kind: domain
+    identity: [scenario_id, carrier_code]
+    table: carriers
+    batch_scoped: false
+    provenance: synthetic
+    synthetic: true
+  DisruptionEvent:
+    kind: domain
+    identity: [scenario_id, event_id]
+    table: disruption_events
+    batch_scoped: false
+    provenance: synthetic
+    synthetic: true
+  InvestigationCase:
+    kind: application
+    identity: [case_id]
+    table: cases
+    batch_scoped: false
+    provenance: application
+    synthetic: false
+  ActionProposal:
+    kind: application
+    identity: [proposal_id]
+    table: proposals
+    batch_scoped: false
+    provenance: application
+    synthetic: false
+
+relationships:
+  places:
+    source: Customer
+    target: Order
+    cardinality: one_to_many
+    provenance: source
+    synthetic: false
+    meaning: The customer placed the order.
+    join: orders.customer_id = customers.customer_id (same batch)
+  contains:
+    source: Order
+    target: OrderLine
+    cardinality: one_to_many
+    provenance: source
+    synthetic: false
+    meaning: The order contains this line item.
+    join: order_items.order_id = orders.order_id (same batch)
+  references:
+    source: OrderLine
+    target: Product
+    cardinality: many_to_one
+    provenance: source
+    synthetic: false
+    meaning: The line item is for this product.
+    join: order_items.product_id = products.product_id (same batch)
+  fulfilled_by:
+    source: OrderLine
+    target: Seller
+    cardinality: many_to_one
+    provenance: source
+    synthetic: false
+    meaning: >-
+      This seller fulfils this line item. A seller relationship records who
+      fulfils the line; it is not a statement of fault.
+    join: order_items.seller_id = sellers.seller_id (same batch)
+  shipped_by:
+    source: Order
+    target: Carrier
+    cardinality: many_to_one
+    provenance: synthetic
+    synthetic: true
+    meaning: >-
+      Synthetic scenario. The order is assigned to a fictional carrier by a stable
+      hash of (seller_state, customer_state, seed) modulo 5, using the seller_state
+      of the lowest line_no for multi seller orders. Assigned at the order's
+      carrier handoff; orders without a known handoff have no carrier.
+    join: carrier_assignments (scenario_id, batch_id, order_id)
+  overlaps:
+    source: DisruptionEvent
+    target: Order
+    cardinality: many_to_many
+    provenance: derived
+    derived_by: event_overlap
+    synthetic: true
+    meaning: >-
+      Synthetic scenario. The event scope matches the order and the event window
+      intersects the order interval known at as_of. Temporal and regional
+      consistency only; never a cause.
+
+derived_functions:
+  late_open_order:
+    inputs: [as_of]
+    semantics: >-
+      Order purchased at or before as_of, date(as_of) > date(estimated_at), and no
+      customer delivery known at as_of (delivered_at is null or after as_of).
+      Never reads order_status.
+  known_delivery_state:
+    inputs: [as_of]
+    semantics: >-
+      Approval, carrier handoff, and customer delivery timestamps revealed only
+      when at or before as_of; later events are masked to null.
+  seller_associated_late_orders:
+    inputs: [as_of]
+    semantics: >-
+      For a seller, the distinct late open orders containing at least one line
+      fulfilled by that seller, with exposure summed only over that seller's lines.
+  eligible_investigation:
+    inputs: [scope, as_of]
+    semantics: >-
+      A target (Order, or Seller group) is eligible when every selected order is a
+      late open order at as_of, visible to the actor, and no equivalent case exists.
+  event_overlap:
+    inputs: [order, event, as_of]
+    semantics: >-
+      True only when (1) the order's carrier, any of its sellers, or the customer
+      state matches the event scope and (2) the event window intersects the order
+      interval [carrier_at if known at as_of else purchased_at, as_of]. Only events
+      with starts_at at or before as_of are visible.
+
+actions:
+  CreateInvestigation:
+    target_types: [Order, Seller]
+    side_effects: [insert_case, append_audit_event]
+    preconditions:
+      - actor holds scope over every selected order
+      - every selected order satisfies late_open_order(as_of)
+      - eligible_investigation(scope, as_of)
+      - evidence and snapshot hash match current evidence
+      - ontology version matches
+      - reviewer differs from proposer and independently holds scope
+  DraftCustomerUpdate:
+    target_types: [Order]
+    side_effects: [insert_internal_draft, append_audit_event]
+    preconditions:
+      - actor holds scope over the order
+      - draft states uncertainty and contains no causal claim
+      - no recipient and no send capability
+
+display_projection:
+  collapse:
+    object: OrderLine
+    into_edge: [Order, Seller]
+    edge_fields: [line_no, product_id, price_centavos]
+  max_nodes: 50
+  max_depth: 2
