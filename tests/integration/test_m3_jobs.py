@@ -333,11 +333,11 @@ def test_bedrock_timeout_is_unknown_with_one_call(db, monkeypatch):
     class FakeClient:
         def converse(self, **kw):
             attempts.append(kw["modelId"])
-            raise ReadTimeoutError(endpoint_url="https://bedrock-runtime.us-east-1.amazonaws.com")
+            raise ReadTimeoutError(endpoint_url="https://bedrock-runtime.us-east-2.amazonaws.com")
 
     monkeypatch.setattr(bedrock, "_client", lambda region, timeout: FakeClient())
     job_id, _ = submit(db)
-    drain(db, FixtureQueue(), deps(db, bedrock.BedrockProvider("us-east-1")))
+    drain(db, FixtureQueue(), deps(db, bedrock.BedrockProvider("us-east-2")))
     row = job_row(db, job_id)
     assert row.state == "unknown" and len(attempts) == 1
 
@@ -353,7 +353,7 @@ def test_bedrock_client_has_sdk_retries_disabled(monkeypatch):
     monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", "/nonexistent")
 
     bedrock._client.cache_clear()
-    client = bedrock._client("us-east-1", 30)
+    client = bedrock._client("us-east-2", 30)
     assert client.meta.config.retries["total_max_attempts"] == 1
     bedrock._client.cache_clear()
 

@@ -1,10 +1,9 @@
-# Official on-demand rates, us-east-1, retrieved 2026-10-17 from the AWS Price List
+# Official on-demand rates, us-east-2, retrieved 2026-10-17 from the AWS Price List
 # Query API (pricing.us-east-1.amazonaws.com, GetProducts) with read-only credentials.
 # These are list prices used for ESTIMATES. Reported costs use actual returned usage;
 # unknown charges are reported as unknown, never as zero.
 effective_date: "2026-10-17"
-region: us-east-1              # Bedrock region
-infrastructure_region: us-east-2   # D-023; Ohio infra rates re-queried 2026-10-17: identical
+region: us-east-2              # single project region (D-023); USE2 rates equal USE1 rates
 source_urls:
   - https://docs.aws.amazon.com/aws-cost-management/latest/APIReference/API_pricing_GetProducts.html
   - https://aws.amazon.com/bedrock/pricing/
@@ -13,15 +12,15 @@ source_urls:
   - https://aws.amazon.com/elasticloadbalancing/pricing/
   - https://aws.amazon.com/vpc/pricing/
 models:
-  default_model_id:            # Nova Lite, on-demand in-region (USE1-NovaLite-*)
+  default_model_id:            # Nova Lite, on-demand in-region (USE2-NovaLite-*)
     input_per_1k_tokens_usd: 0.00006
     output_per_1k_tokens_usd: 0.00024
-    usage_types: [USE1-NovaLite-input-tokens, USE1-NovaLite-output-tokens]
-  second_model_id:             # Nova 2.0 Lite, global cross-region profile (USE1-Nova2.0Lite-*-cross-region-global)
+    usage_types: [USE2-NovaLite-input-tokens, USE2-NovaLite-output-tokens]
+  second_model_id:             # Nova 2.0 Lite, global cross-region profile (USE2-Nova2.0Lite-*-cross-region-global)
     input_per_1k_tokens_usd: 0.0003
     output_per_1k_tokens_usd: 0.0025
-    usage_types: [USE1-Nova2.0Lite-input-tokens-cross-region-global,
-                  USE1-Nova2.0Lite-output-tokens-cross-region-global]
+    usage_types: [USE2-Nova2.0Lite-input-tokens-cross-region-global,
+                  USE2-Nova2.0Lite-output-tokens-cross-region-global]
 infrastructure:
   # us-east-2 usage types (USE2-*) carry the same rates as USE1-* below.
   fargate_arm_vcpu_hour_usd: 0.03238          # USE1/USE2-Fargate-ARM-vCPU-Hours:perCPU

@@ -1,5 +1,5 @@
-"""One CDK stack (spec 15). Deployed to us-east-2 because of the account SCP (D-023);
-Bedrock calls go to us-east-1.
+"""One CDK stack (spec 15), in the single project region us-east-2 (D-023), which also
+serves Bedrock.
 
 VPC (2 public + 2 private isolated subnets, no NAT), ALB with ACM HTTPS, ECS Fargate
 API and worker services (public subnets with public IPs for outbound HTTPS), private
@@ -195,7 +195,7 @@ class OntologyOpsStack(Stack):
         queue.grant_consume_messages(worker_role)
         queue.grant_send_messages(worker_role)
         model_ids = [models["default_model_id"], models["second_model_id"]]
-        model_region = models["region"]  # Bedrock runs in us-east-1 even when the stack does not
+        model_region = models["region"]  # same as the stack region (D-023)
         resources = []
         for mid in model_ids:
             base = foundation_model_id(mid)

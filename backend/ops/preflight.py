@@ -2,7 +2,7 @@
 
 Checks: account and region match configuration, a domain the owner controls, an
 issued ACM certificate for it, an HTTPS Cognito callback on that domain, access to
-every configured Bedrock model from us-east-1 (one tiny call each), ECR repository
+every configured Bedrock model from the project region (one tiny call each), ECR repository
 exists or can be created, required services are not blocked by policy, CDK bootstrap,
 and project tags on every taggable resource in the synthesized template. Prints an
 estimated monthly cost table from configs/price_card.yaml, every value an estimate.
