@@ -118,7 +118,13 @@ def _not_yet(milestone: str) -> None:
 @app.command("seed-users")
 def seed_users(mode: Annotated[str, typer.Option(help="local or aws")]) -> None:
     """Provision operator_a, operator_b, reviewer, viewer and seller grants."""
-    _not_yet("M4")
+    from ops.data.users import SeedError
+    from ops.data.users import seed_users as run
+
+    try:
+        typer.echo(run(mode))
+    except SeedError as exc:
+        _fail(str(exc))
 
 
 @app.command("eval")

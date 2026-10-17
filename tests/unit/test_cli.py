@@ -20,7 +20,7 @@ def test_help(cmd):
 
 @pytest.mark.parametrize(
     "cmd",
-    [["seed-users", "--mode", "local"], ["eval", "--suite", "frozen"],
+    [["eval", "--suite", "frozen"],
      ["worker", "--queue", "fixture", "--provider", "fixture"], ["recover-job"],
      ["export-demo"], ["preflight", "--cloud", "aws"]],
     ids=" ".join,

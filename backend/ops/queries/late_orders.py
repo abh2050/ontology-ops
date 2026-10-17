@@ -19,10 +19,11 @@ DEMO_WINDOW = (date(2018, 1, 1), date(2018, 8, 31))
 MAX_OVERDUE_DAYS = 30
 
 # Predicate fragment: o = orders alias, :as_of = timestamp.
+# Written in index-friendly form: estimated_at::date < D  <=>  estimated_at < D 00:00.
 LATE_OPEN_PREDICATE = f"""
     o.purchased_at <= :as_of
-    AND o.estimated_at::date < CAST(:as_of AS timestamp)::date
-    AND o.estimated_at::date >= CAST(:as_of AS timestamp)::date - {MAX_OVERDUE_DAYS}
+    AND o.estimated_at < CAST(:as_of AS date)
+    AND o.estimated_at >= CAST(:as_of AS date) - {MAX_OVERDUE_DAYS}
     AND (o.delivered_at IS NULL OR o.delivered_at > :as_of)
 """
 
