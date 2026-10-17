@@ -1,7 +1,7 @@
 """ops preflight --cloud aws (spec 15). Fails with a clear message when any input is missing.
 
-Checks: account and region match configuration, a domain the owner controls, an
-issued ACM certificate for it, an HTTPS Cognito callback on that domain, access to
+Checks: account and region match configuration, the CloudFront default-domain HTTPS
+entry point (no custom domain or ACM certificate, D-024), access to
 every configured Bedrock model from the project region (one tiny call each), ECR repository
 exists or can be created, required services are not blocked by policy, CDK bootstrap,
 and project tags on every taggable resource in the synthesized template. Prints an
@@ -84,32 +84,15 @@ def check_identity(cfg: dict) -> tuple[Check, str | None]:
                  f"{cfg['region']}"), account
 
 
-def check_domain_and_cert(cfg: dict) -> tuple[list[Check], str | None]:
-    domain = cfg.get("domain")
-    if not domain:
-        return [Check("domain the owner controls", False,
-                      "configs/deploy.yaml domain is not set (owner input before M4.5)"),
-                Check("valid ACM certificate", False, "needs the domain first"),
-                Check("HTTPS Cognito callback on the domain", False, "needs the domain first")
-                ], None
-    checks = [Check("domain the owner controls", True, domain)]
-    acm = _client("acm", cfg["region"])
+def check_public_endpoint(cfg: dict) -> Check:
+    """No custom domain (D-024): HTTPS comes from CloudFront's default domain and certificate."""
     try:
-        certs = acm.list_certificates(CertificateStatuses=["ISSUED"])["CertificateSummaryList"]
+        _client("cloudfront", "us-east-1").list_functions(MaxItems="1")
     except Exception as exc:  # noqa: BLE001
-        return checks + [Check("valid ACM certificate", False, _err(exc))], None
-    match = None
-    for c in certs:
-        names = [c["DomainName"], *c.get("SubjectAlternativeNameSummaries", [])]
-        if any(n == domain or (n.startswith("*.") and domain.endswith(n[1:])) for n in names):
-            match = c["CertificateArn"]
-            break
-    checks.append(Check("valid ACM certificate", match is not None,
-                        f"issued certificate found in {cfg['region']}" if match else
-                        f"no ISSUED certificate covers {domain} in {cfg['region']}"))
-    checks.append(Check("HTTPS Cognito callback on the domain", True,
-                        f"https://{domain}/auth/callback"))
-    return checks, match
+        return Check("public HTTPS endpoint (CloudFront default domain)", False, _err(exc))
+    return Check("public HTTPS endpoint (CloudFront default domain)", True,
+                 "CloudFront API allowed; app URL and Cognito callback are "
+                 "https://<distribution>.cloudfront.net (stack output OutAppUrl)")
 
 
 def check_models(models: dict) -> list[Check]:
@@ -226,8 +209,7 @@ def run_preflight(cloud: str, *, invoke_models: bool = True) -> tuple[bool, str]
     ident, account = check_identity(cfg)
     checks.append(ident)
     if account is not None:
-        dc, _cert = check_domain_and_cert(cfg)
-        checks += dc
+        checks.append(check_public_endpoint(cfg))
         checks += check_models(models) if invoke_models else []
         checks += check_services(cfg["region"])
     checks.append(check_tags(cfg))
@@ -243,8 +225,8 @@ def run_preflight(cloud: str, *, invoke_models: bool = True) -> tuple[bool, str]
         lines.append(f"  {name:45s} ~${usd:8.2f}  (estimate)")
         if not name.startswith("Inference"):
             infra += usd
-    lines += [f"  {'Infrastructure subtotal':45s} ~${infra:8.2f}  (estimate; excludes CloudWatch, "
-              "SQS, S3, ECR, Cognito: unknown, expected small)", ""]
+    lines += [f"  {'Infrastructure subtotal':45s} ~${infra:8.2f}  (estimate; excludes "
+              "CloudFront, CloudWatch, SQS, S3, ECR, Cognito: unknown, expected small)", ""]
     ok = all(c.ok for c in checks)
     lines.append("PREFLIGHT PASSED" if ok else
                  f"PREFLIGHT FAILED: {sum(not c.ok for c in checks)} check(s) need attention")

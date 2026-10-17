@@ -31,8 +31,9 @@ def main() -> int:
     args = ap.parse_args()
     os.environ.setdefault("AWS_PROFILE", cfg["aws_profile"])
     out = json.loads(Path(args.outputs).read_text())[cfg["stack_name"]]
-    domain, region = cfg["domain"], cfg["region"]
-    base = f"https://{domain}"
+    region = cfg["region"]
+    base = out["OutAppUrl"].rstrip("/")
+    domain = base.removeprefix("https://")
     idp = boto3.client("cognito-idp", region_name=region)
     sm = boto3.client("secretsmanager", region_name=region)
     passwords = json.loads(sm.get_secret_value(SecretId=out["OutDemoUsersSecret"])["SecretString"])

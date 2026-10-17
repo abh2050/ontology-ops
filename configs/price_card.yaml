@@ -34,6 +34,7 @@ infrastructure:
   cloudwatch_logs_ingest_gb_usd: unknown      # not queried; small at this volume
   sqs_requests: unknown                       # expected within free tier at this volume
   cognito_mau: unknown                        # tier pricing not queried
+  cloudfront_requests_and_transfer: unknown   # not queried; demo traffic is tiny
 assumptions:
   hours_per_month: 730
   api_task: {vcpu: 0.25, memory_gb: 0.5, count: 1, arch: arm64}

@@ -169,3 +169,19 @@ After briefly requiring us-east-1, the owner chose **us-east-2 for everything**:
 
 A correction kept for the record: an earlier probe wrongly reported every region as denied, because the loop passed unsplit command strings under zsh.
 
+
+## D-024 No custom domain: CloudFront default domain for public HTTPS (owner decision, 2026-10-17)
+The owner does not want a domain for this demo. Public HTTPS therefore comes from a **CloudFront distribution's default `*.cloudfront.net` domain and AWS-managed certificate**, placed in front of the ALB. There is no ACM certificate, Route 53 zone, or alias record.
+
+**Cognito.** Its callback is `https://<distribution>.cloudfront.net/auth/callback`, an HTTPS callback on an AWS-provided domain. The hosted-UI prefix is derived from a hash of the account, never the raw number.
+
+**ALB.** It listens on HTTP:80 only, and its security group admits only the AWS-managed prefix list `com.amazonaws.global.cloudfront.origin-facing`.
+
+**Caching.** CloudFront forwards `Authorization`, query strings, and all viewer headers except Host. Caching is effectively disabled: TTL 0, max 1 s, and the API sends `private, no-store` on entity responses.
+
+**Deviations from the spec:**
+- §15 "ALB with ACM HTTPS" and "a domain the owner controls" are replaced by the CloudFront default domain.
+- §15 "All service calls use TLS" is not met on the CloudFront → ALB hop, which is HTTP inside AWS's network. Viewer → CloudFront is TLS, and API → RDS and SDK calls stay TLS.
+- CloudFront is a service the spec does not list.
+
+**Residual risk, accepted for a demo.** The prefix list admits any CloudFront distribution, so someone could point their own distribution at the ALB. Every API request still requires a verified Cognito access token and a provisioned user, so this exposes no data.

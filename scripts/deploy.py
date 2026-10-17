@@ -10,8 +10,7 @@ steps are run only after the owner approves them.
   uv run python scripts/deploy.py release --tag v1         # services to 1
   uv run python scripts/deploy.py smoke
 
-The certificate ARN is resolved at runtime from ACM and passed as CDK context; it is
-never written to the repository.
+Public HTTPS comes from CloudFront's default domain; no domain or certificate (D-024).
 """
 
 from __future__ import annotations
@@ -52,21 +51,10 @@ def account() -> str:
     return boto3.client("sts", region_name=CFG["region"]).get_caller_identity()["Account"]
 
 
-def certificate_arn() -> str:
-    from ops.preflight import check_domain_and_cert
-
-    checks, arn = check_domain_and_cert(CFG)
-    if arn is None:
-        sys.exit("no ISSUED ACM certificate for the configured domain: " +
-                 "; ".join(c.detail for c in checks if not c.ok))
-    return arn
-
-
 def cdk(action: str, *extra: str) -> None:
     env = {**os.environ, "CDK_DEFAULT_ACCOUNT": account(),
            "JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION": "1"}
-    sh("npx", "--yes", "aws-cdk@2", action, CFG["stack_name"], "-c",
-       f"certificate_arn={certificate_arn()}", *extra, env=env)
+    sh("npx", "--yes", "aws-cdk@2", action, CFG["stack_name"], *extra, env=env)
 
 
 def outputs() -> dict:

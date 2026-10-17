@@ -1,7 +1,9 @@
 """One CDK stack (spec 15), in the single project region us-east-2 (D-023), which also
-serves Bedrock.
+serves Bedrock. Public HTTPS comes from CloudFront's default *.cloudfront.net domain and
+certificate; there is no custom domain, ACM certificate, or Route 53 record (D-024).
 
-VPC (2 public + 2 private isolated subnets, no NAT), ALB with ACM HTTPS, ECS Fargate
+VPC (2 public + 2 private isolated subnets, no NAT), CloudFront HTTPS in front of an
+ALB that accepts only CloudFront origin traffic, ECS Fargate
 API and worker services (public subnets with public IPs for outbound HTTPS), private
 RDS PostgreSQL 16, SQS with DLQ, Cognito user pool and PKCE client, ECR, Secrets
 Manager, S3, and CloudWatch logs and alarms. No account numbers or ARNs are written
@@ -18,7 +20,8 @@ from aws_cdk import (
     RemovalPolicy,
     Stack,
 )
-from aws_cdk import aws_certificatemanager as acm
+from aws_cdk import aws_cloudfront as cloudfront
+from aws_cdk import aws_cloudfront_origins as origins
 from aws_cdk import aws_cloudwatch as cw
 from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_ec2 as ec2
@@ -28,8 +31,6 @@ from aws_cdk import aws_elasticloadbalancingv2 as elbv2
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_logs as logs
 from aws_cdk import aws_rds as rds
-from aws_cdk import aws_route53 as r53
-from aws_cdk import aws_route53_targets as r53_targets
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_secretsmanager as sm
 from aws_cdk import aws_sqs as sqs
@@ -44,7 +45,7 @@ def foundation_model_id(model_id: str) -> str:
 
 class OntologyOpsStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, *, cfg: dict, models: dict,
-                 domain: str, certificate_arn: str, image_tag: str, services_running: bool,
+                 image_tag: str, services_running: bool,
                  **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         project = cfg["project_tag"]
@@ -58,9 +59,13 @@ class OntologyOpsStack(Stack):
             ec2.SubnetConfiguration(name="private", subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,
                                     cidr_mask=24),
         ])
-        alb_sg = ec2.SecurityGroup(self, "AlbSg", vpc=vpc, description="ALB ingress")
-        alb_sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(443), "HTTPS")
-        alb_sg.add_ingress_rule(ec2.Peer.any_ipv4(), ec2.Port.tcp(80), "HTTP redirect")
+        alb_sg = ec2.SecurityGroup(self, "AlbSg", vpc=vpc,
+                                   description="ALB ingress from CloudFront origin-facing only")
+        cloudfront_origin = ec2.PrefixList.from_lookup(
+            self, "CloudFrontOriginFacing",
+            prefix_list_name="com.amazonaws.global.cloudfront.origin-facing")
+        alb_sg.add_ingress_rule(ec2.Peer.prefix_list(cloudfront_origin.prefix_list_id),
+                                ec2.Port.tcp(80), "HTTP from CloudFront only")
         api_sg = ec2.SecurityGroup(self, "ApiSg", vpc=vpc, description="API tasks")
         api_sg.add_ingress_rule(alb_sg, ec2.Port.tcp(8000), "from ALB only")
         worker_sg = ec2.SecurityGroup(self, "WorkerSg", vpc=vpc,
@@ -115,6 +120,32 @@ class OntologyOpsStack(Stack):
                           encryption=sqs.QueueEncryption.SQS_MANAGED,
                           dead_letter_queue=sqs.DeadLetterQueue(queue=dlq, max_receive_count=5))
 
+        # ---- public entry: CloudFront default HTTPS domain in front of the ALB ---------
+        public = ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC)
+        alb = elbv2.ApplicationLoadBalancer(self, "Alb", vpc=vpc, internet_facing=True,
+                                            security_group=alb_sg, vpc_subnets=public)
+        # Caching is effectively off (TTL 0, max 1 s); the API marks entity responses
+        # private, no-store. Authorization and query strings reach the origin.
+        cache_policy = cloudfront.CachePolicy(
+            self, "PassThroughCache", default_ttl=Duration.seconds(0),
+            min_ttl=Duration.seconds(0), max_ttl=Duration.seconds(1),
+            header_behavior=cloudfront.CacheHeaderBehavior.allow_list("Authorization"),
+            query_string_behavior=cloudfront.CacheQueryStringBehavior.all(),
+            cookie_behavior=cloudfront.CacheCookieBehavior.none(),
+            enable_accept_encoding_gzip=True)
+        distribution = cloudfront.Distribution(
+            self, "Cdn", comment=f"{project} public HTTPS entry (default cloudfront.net domain)",
+            price_class=cloudfront.PriceClass.PRICE_CLASS_100,
+            default_behavior=cloudfront.BehaviorOptions(
+                origin=origins.LoadBalancerV2Origin(
+                    alb, protocol_policy=cloudfront.OriginProtocolPolicy.HTTP_ONLY),
+                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                allowed_methods=cloudfront.AllowedMethods.ALLOW_ALL,
+                cache_policy=cache_policy,
+                origin_request_policy=cloudfront.OriginRequestPolicy
+                .ALL_VIEWER_EXCEPT_HOST_HEADER))
+        app_url = f"https://{distribution.distribution_domain_name}"
+
         # ---- identity --------------------------------------------------------------------
         pool = cognito.UserPool(self, "UserPool", self_sign_up_enabled=False,
                                 sign_in_aliases=cognito.SignInAliases(username=True),
@@ -127,11 +158,12 @@ class OntologyOpsStack(Stack):
             o_auth=cognito.OAuthSettings(
                 flows=cognito.OAuthFlows(authorization_code_grant=True),
                 scopes=[cognito.OAuthScope.OPENID, cognito.OAuthScope.PROFILE],
-                callback_urls=[f"https://{domain}/auth/callback"],
-                logout_urls=[f"https://{domain}/"]),
+                callback_urls=[f"{app_url}/auth/callback"],
+                logout_urls=[f"{app_url}/"]),
             prevent_user_existence_errors=True,
             access_token_validity=Duration.hours(1), id_token_validity=Duration.hours(1))
-        prefix = f"{project}-{hashlib.sha256(domain.encode()).hexdigest()[:8]}"
+        # Globally unique, stable, and free of the raw account number.
+        prefix = f"{project}-{hashlib.sha256(str(self.account).encode()).hexdigest()[:8]}"
         pool_domain = pool.add_domain("HostedUi", cognito_domain=cognito.CognitoDomainOptions(
             domain_prefix=prefix))
 
@@ -264,7 +296,6 @@ class OntologyOpsStack(Stack):
             logging=ecs.LogDriver.aws_logs(stream_prefix="seed", log_group=log_groups["tasks"]),
             command=["ops", "seed-users", "--mode", "aws"])
 
-        public = ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC)
         desired = 1 if services_running else 0
         api_service = ecs.FargateService(
             self, "ApiService", cluster=cluster, task_definition=api_task, desired_count=desired,
@@ -278,22 +309,13 @@ class OntologyOpsStack(Stack):
             circuit_breaker=ecs.DeploymentCircuitBreaker(rollback=True),
             min_healthy_percent=0, max_healthy_percent=100)
 
-        # ---- load balancer and DNS -----------------------------------------------------
-        alb = elbv2.ApplicationLoadBalancer(self, "Alb", vpc=vpc, internet_facing=True,
-                                            security_group=alb_sg, vpc_subnets=public)
-        cert = acm.Certificate.from_certificate_arn(self, "Cert", certificate_arn)
-        https = alb.add_listener("Https", port=443, certificates=[cert],
-                                 ssl_policy=elbv2.SslPolicy.RECOMMENDED_TLS, open=False)
-        alb.add_redirect(source_port=80, target_port=443, open=False)
-        https.add_targets("Api", port=8000, protocol=elbv2.ApplicationProtocol.HTTP,
-                          targets=[api_service],
-                          health_check=elbv2.HealthCheck(path="/api/health",
-                                                         healthy_http_codes="200"),
-                          deregistration_delay=Duration.seconds(10))
-        if cfg.get("hosted_zone_name"):
-            zone = r53.HostedZone.from_lookup(self, "Zone", domain_name=cfg["hosted_zone_name"])
-            r53.ARecord(self, "Alias", zone=zone, record_name=domain,
-                        target=r53.RecordTarget.from_alias(r53_targets.LoadBalancerTarget(alb)))
+        # ---- ALB listener (origin for CloudFront) -------------------------------------
+        listener = alb.add_listener("Http", port=80, open=False)
+        listener.add_targets("Api", port=8000, protocol=elbv2.ApplicationProtocol.HTTP,
+                             targets=[api_service],
+                             health_check=elbv2.HealthCheck(path="/api/health",
+                                                            healthy_http_codes="200"),
+                             deregistration_delay=Duration.seconds(10))
 
         # ---- alarms ----------------------------------------------------------------------
         cw.Alarm(self, "DlqNotEmpty", metric=dlq.metric_approximate_number_of_messages_visible(),
@@ -308,7 +330,8 @@ class OntologyOpsStack(Stack):
 
         # ---- outputs (consumed by scripts; not committed) ---------------------------
         outputs = {
-            "AlbDnsName": alb.load_balancer_dns_name, "ClusterName": cluster.cluster_name,
+            "AppUrl": app_url, "AlbDnsName": alb.load_balancer_dns_name,
+            "ClusterName": cluster.cluster_name,
             "UserPoolId": pool.user_pool_id, "UserPoolClientId": client.user_pool_client_id,
             "CognitoDomain": pool_domain.base_url(), "QueueUrl": queue.queue_url,
             "DlqUrl": dlq.queue_url, "BucketName": bucket.bucket_name,
