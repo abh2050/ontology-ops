@@ -1,0 +1,18 @@
+{
+  "reviewer": "Abhishek Shah",
+  "review_date": "2026-10-17",
+  "gold_hash": "be3636d9d075515664e33fd5c07901b321a60054c152fe8bfbd066352b230182",
+  "based_on_commit": "31598ebc1960bf17c3d5677244ba119bb82bb6fa",
+  "summary": {
+    "items": 60,
+    "by_category": {
+      "direct_object": 20,
+      "multi_object": 20,
+      "aggregate": 10,
+      "unanswerable": 10
+    },
+    "requires_scenario": 17,
+    "real_only_answerable": 38
+  },
+  "review_note": "Freeze authorized by the owner in the Claude Code session on 2026-10-17 ('ok do it'); an item-by-item review was not separately evidenced."
+}

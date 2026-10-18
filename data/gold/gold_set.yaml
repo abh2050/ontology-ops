@@ -1,8 +1,8 @@
 gold_set_version: gold-v1
-status: draft
+status: frozen
 drafted_by: agent (Claude Code session), not reviewed
 drafted_on: '2026-10-17'
-reviewer: null
+reviewer: Abhishek Shah
 ontology_version: operational-commerce-v1
 olist_batch: olist-full-v1-d689b1282dbe
 fixture_batch: fixtures-v1
@@ -2437,3 +2437,4 @@ items:
   - EVIDENCE_REFS_VALID
   id: G060
   scenario_id: base-v1
+review_date: '2026-10-17'
