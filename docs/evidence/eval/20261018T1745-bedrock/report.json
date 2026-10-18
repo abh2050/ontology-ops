@@ -1,0 +1,325 @@
+{
+  "eval_run_id": "cb1c48fe-ed87-4f61-9dc3-bf89f6763ba0",
+  "provider": "bedrock",
+  "started_utc": "2026-10-18T17:35:16.036829+00:00",
+  "wall_seconds": 613.2,
+  "gold_hash": "be3636d9d075515664e33fd5c07901b321a60054c152fe8bfbd066352b230182",
+  "gold_reviewer": "Abhishek Shah",
+  "ontology_version": "operational-commerce-v1",
+  "code_commit": "b77c7f5f4ad4fc8eb9eebb1b8d1ddd4f7c896aa6",
+  "prompt_hash": "9da4c116a2622614c38d90a6682d756430dbc0b9d003b3b057f4f3d10cc6d83d",
+  "planned_calls": 824,
+  "admitted_calls": 783,
+  "ceiling": 1500,
+  "limits": {
+    "admitted_calls_per_day": 100,
+    "calls_per_job": 2,
+    "queued_jobs_per_user": 20,
+    "max_concurrent_jobs": 2,
+    "workflow_deadline_seconds": 60,
+    "planner": {
+      "max_input_tokens": 2000,
+      "max_output_tokens": 512,
+      "max_tool_requests": 3
+    },
+    "analyst": {
+      "max_input_tokens": 4000,
+      "max_output_tokens": 768
+    }
+  },
+  "source_hashes": {
+    "customers": {
+      "file": "olist_customers_dataset.csv",
+      "rows": 99441,
+      "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2"
+    },
+    "order_items": {
+      "file": "olist_order_items_dataset.csv",
+      "rows": 112650,
+      "sha256": "0bc4d068c4fe38cbb01bd90e8746e3c613fe7b4baef75fab7b0e329701c3e279"
+    },
+    "orders": {
+      "file": "olist_orders_dataset.csv",
+      "rows": 99441,
+      "sha256": "8df58ef3d2d7e9944010f7beecd9b75367f5588ec6e3c91cec19ae3345ef9ecf"
+    },
+    "products": {
+      "file": "olist_products_dataset.csv",
+      "rows": 32951,
+      "sha256": "3e6569628a17fbc75fd206ee357b59e20364b9afa90f5b6cd5b4d624c58aa9cc"
+    },
+    "sellers": {
+      "file": "olist_sellers_dataset.csv",
+      "rows": 3095,
+      "sha256": "1f643d2b950373b85735e7794b20986f528d7a000432e7c6f9bcbb44d0846a0e"
+    }
+  },
+  "as_of_values": [
+    "2018-03-30 23:59:59",
+    "2018-03-24 23:59:59",
+    "2018-04-03 23:59:59",
+    "2018-03-15 23:59:59"
+  ],
+  "summary": {
+    "b0|none|real_only": {
+      "items": 43,
+      "investigation_task_success": 1.0,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": null,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": "not applicable",
+      "latency_p95_s": "not applicable",
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 1.0,
+        "multi_object": 1.0,
+        "unanswerable": 1.0
+      },
+      "model_id": "not applicable (deterministic)",
+      "inference": "not applicable"
+    },
+    "b0|none|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 1.0,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": null,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": "not applicable",
+      "latency_p95_s": "not applicable",
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 1.0,
+        "multi_object": 1.0,
+        "unanswerable": 1.0
+      },
+      "model_id": "not applicable (deterministic)",
+      "inference": "not applicable"
+    },
+    "b1|default|real_only": {
+      "items": 43,
+      "investigation_task_success": 0.2791,
+      "relationship_precision": 1.0,
+      "relationship_recall": 0.6068,
+      "aggregate_correctness": 0.7,
+      "evidence_coverage_mean": 0.6597,
+      "invented_id_items": 0,
+      "causal_rejections": 9,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 6,
+      "latency_p50_s": 3.3,
+      "latency_p95_s": 4.27,
+      "by_category_success": {
+        "aggregate": 0.7,
+        "direct_object": 0.25,
+        "multi_object": 0.0,
+        "unanswerable": 0.2
+      },
+      "model_id": "amazon.nova-lite-v1:0",
+      "inference": {
+        "input_tokens": 122099,
+        "output_tokens": 23621,
+        "inference_usd_list_price": 0.012995,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "b1|default|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 0.25,
+      "relationship_precision": 1.0,
+      "relationship_recall": 0.5284,
+      "aggregate_correctness": 0.6,
+      "evidence_coverage_mean": 0.652,
+      "invented_id_items": 0,
+      "causal_rejections": 12,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 10,
+      "latency_p50_s": 3.28,
+      "latency_p95_s": 4.44,
+      "by_category_success": {
+        "aggregate": 0.6,
+        "direct_object": 0.35,
+        "multi_object": 0.0,
+        "unanswerable": 0.2
+      },
+      "model_id": "amazon.nova-lite-v1:0",
+      "inference": {
+        "input_tokens": 163602,
+        "output_tokens": 33459,
+        "inference_usd_list_price": 0.017846,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "b1|second|real_only": {
+      "items": 43,
+      "investigation_task_success": 0.5581,
+      "relationship_precision": 1.0,
+      "relationship_recall": 0.1226,
+      "aggregate_correctness": 0.6,
+      "evidence_coverage_mean": 0.9882,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 8,
+      "latency_p50_s": 2.97,
+      "latency_p95_s": 3.99,
+      "by_category_success": {
+        "aggregate": 0.6,
+        "direct_object": 0.9375,
+        "multi_object": 0.1667,
+        "unanswerable": 0.2
+      },
+      "model_id": "global.amazon.nova-2-lite-v1:0",
+      "inference": {
+        "input_tokens": 86455,
+        "output_tokens": 18208,
+        "inference_usd_list_price": 0.071456,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "b1|second|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 0.4167,
+      "relationship_precision": 1.0,
+      "relationship_recall": 0.0898,
+      "aggregate_correctness": 0.4,
+      "evidence_coverage_mean": 0.9534,
+      "invented_id_items": 1,
+      "causal_rejections": 1,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 10,
+      "latency_p50_s": 2.99,
+      "latency_p95_s": 3.92,
+      "by_category_success": {
+        "aggregate": 0.4,
+        "direct_object": 0.85,
+        "multi_object": 0.1,
+        "unanswerable": 0.2
+      },
+      "model_id": "global.amazon.nova-2-lite-v1:0",
+      "inference": {
+        "input_tokens": 118977,
+        "output_tokens": 24873,
+        "inference_usd_list_price": 0.097876,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "candidate|default|real_only": {
+      "items": 43,
+      "investigation_task_success": 0.3256,
+      "relationship_precision": 1.0,
+      "relationship_recall": 0.5299,
+      "aggregate_correctness": 0.5,
+      "evidence_coverage_mean": 0.9697,
+      "invented_id_items": 0,
+      "causal_rejections": 12,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 9,
+      "latency_p50_s": 3.34,
+      "latency_p95_s": 4.07,
+      "by_category_success": {
+        "aggregate": 0.5,
+        "direct_object": 0.1875,
+        "multi_object": 0.25,
+        "unanswerable": 0.6
+      },
+      "model_id": "amazon.nova-lite-v1:0",
+      "inference": {
+        "input_tokens": 100296,
+        "output_tokens": 22355,
+        "inference_usd_list_price": 0.011383,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "candidate|default|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 0.4667,
+      "relationship_precision": 1.0,
+      "relationship_recall": 0.4914,
+      "aggregate_correctness": 0.9,
+      "evidence_coverage_mean": 0.984,
+      "invented_id_items": 0,
+      "causal_rejections": 10,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 6,
+      "latency_p50_s": 3.33,
+      "latency_p95_s": 4.23,
+      "by_category_success": {
+        "aggregate": 0.9,
+        "direct_object": 0.4,
+        "multi_object": 0.3,
+        "unanswerable": 0.5
+      },
+      "model_id": "amazon.nova-lite-v1:0",
+      "inference": {
+        "input_tokens": 159311,
+        "output_tokens": 36139,
+        "inference_usd_list_price": 0.018232,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "candidate|second|real_only": {
+      "items": 43,
+      "investigation_task_success": 0.5814,
+      "relationship_precision": 1.0,
+      "relationship_recall": 0.1143,
+      "aggregate_correctness": 0.6,
+      "evidence_coverage_mean": 0.9882,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 8,
+      "latency_p50_s": 2.85,
+      "latency_p95_s": 4.09,
+      "by_category_success": {
+        "aggregate": 0.6,
+        "direct_object": 0.9375,
+        "multi_object": 0.1667,
+        "unanswerable": 0.4
+      },
+      "model_id": "global.amazon.nova-2-lite-v1:0",
+      "inference": {
+        "input_tokens": 78202,
+        "output_tokens": 18918,
+        "inference_usd_list_price": 0.070756,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "candidate|second|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 0.4167,
+      "relationship_precision": 1.0,
+      "relationship_recall": 0.0663,
+      "aggregate_correctness": 0.5,
+      "evidence_coverage_mean": 0.9333,
+      "invented_id_items": 1,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 11,
+      "latency_p50_s": 3.1,
+      "latency_p95_s": 3.9,
+      "by_category_success": {
+        "aggregate": 0.5,
+        "direct_object": 0.85,
+        "multi_object": 0.05,
+        "unanswerable": 0.2
+      },
+      "model_id": "global.amazon.nova-2-lite-v1:0",
+      "inference": {
+        "input_tokens": 107422,
+        "output_tokens": 26769,
+        "inference_usd_list_price": 0.099149,
+        "calls_with_unknown_cost": 0
+      }
+    }
+  }
+}

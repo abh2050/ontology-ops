@@ -55,9 +55,14 @@ class Api:
         return self.c.post(BASE + path, json=body, headers={**self.h, **headers})
 
 
-def busiest_seller(api: Api) -> str:
+def busiest_seller(api: Api, skip_cased: bool = False) -> str:
     items = api.get("/api/queue", limit=50).json()["items"]
-    return Counter(s for i in items for s in i["seller_ids"]).most_common(1)[0][0]
+    ranked = [s for s, _ in Counter(s for i in items for s in i["seller_ids"]).most_common()]
+    if skip_cased:  # an equivalent case would (correctly) block a new proposal
+        cased = {c["payload"]["target"]["target_id"] for c in api.get("/api/cases").json()[
+            "items"]}
+        ranked = [s for s in ranked if s not in cased] or ranked
+    return ranked[0]
 
 
 def submit(api: Api, seller: str) -> str:
@@ -98,14 +103,31 @@ def record(name: str, lines: list[str], passed: bool) -> None:
 def drill_crash() -> bool:
     since = int(time.time() * 1000)
     op, rv = Api("operator_a"), Api("reviewer")
-    job = submit(op, busiest_seller(op))
+    job = submit(op, busiest_seller(op, skip_cased=True))
     j, secs = wait(op, job)
+    # The crash happens after ready is durable; wait for ECS to replace the task, SQS to
+    # redeliver after the 180 s visibility timeout, and the new worker to ack without work.
+    sqs = boto3.client("sqs", region_name=REGION)
+    t0 = time.time()
+    while time.time() - t0 < 600:
+        a = sqs.get_queue_attributes(QueueUrl=OUT["OutQueueUrl"], AttributeNames=[
+            "ApproximateNumberOfMessages", "ApproximateNumberOfMessagesNotVisible"])["Attributes"]
+        if a["ApproximateNumberOfMessages"] == a["ApproximateNumberOfMessagesNotVisible"] == "0":
+            break
+        time.sleep(15)
+    drained = time.time() - t0
+    time.sleep(20)  # CloudWatch ingestion delay
     crashed = worker_log('"FAULT INJECTION: exiting"', since)
+    after = op.get(f"/api/jobs/{job}").json()
     prop = op.post(f"/api/jobs/{job}/proposal")
     p = prop.json()
-    lines = [f"- Job reached `{j['state']}` in {secs:.0f} s (includes the crash, ECS task "
-             "replacement, and SQS redelivery after the 180 s visibility timeout).",
+    lines = [f"- Job reached `{j['state']}` in {secs:.0f} s; the worker then exited before "
+             "acknowledging SQS.",
              f"- Worker crash log lines: {len(crashed)}",
+             f"- Queue drained {drained:.0f} s after ready (ECS replaced the task; SQS "
+             "redelivered after the 180 s visibility timeout; the new worker acked the "
+             "already-ready job without work).",
+             f"- Job state after redelivery: `{after['state']}`, revision {after['revision']}",
              f"- Proposal: HTTP {prop.status_code}, state `{p.get('state')}`"]
     case_ok = False
     if prop.status_code in (200, 201) and p.get("state") == "pending":
@@ -119,7 +141,8 @@ def drill_crash() -> bool:
                   f"- Repeat approval: HTTP {again.status_code} {again.json().get('code')}",
                   f"- Cases for this proposal: {len(cases)}"]
         case_ok = d.status_code == 200 and len(cases) == 1
-    return_ok = j["state"] == "ready" and len(crashed) >= 1 and case_ok
+    return_ok = (j["state"] == "ready" and after["state"] == "ready" and len(crashed) >= 1
+                 and case_ok)
     record("crash", lines, return_ok)
     return return_ok
 
