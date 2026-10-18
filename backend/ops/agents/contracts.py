@@ -58,7 +58,8 @@ class ProposedAction(BaseModel):
     def _selection(self):
         if self.select_all_late_open and self.target_type != "Seller":
             raise ValueError("select_all_late_open applies to Seller targets only")
-        if not self.select_all_late_open and not self.selected_order_ids:
+        if (not self.select_all_late_open and not self.selected_order_ids
+                and self.target_type != "Order"):
             raise ValueError("selected_order_ids is required unless select_all_late_open")
         return self
 

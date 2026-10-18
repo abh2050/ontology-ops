@@ -16,7 +16,7 @@ MAX_INPUT_TOKENS = 2000
 MAX_OUTPUT_TOKENS = 512
 
 SYSTEM = """You plan evidence retrieval for an internal delivery exception investigation.
-Return only one JSON object, no prose, matching:
+Return only one compact JSON object on a single line (no code fence, no prose), matching:
 {"requests": [{"tool": <tool>, "target_type": "Order"|"Seller", "target_id": <32 hex>}],
  "rationale": <one sentence>}
 Rules:

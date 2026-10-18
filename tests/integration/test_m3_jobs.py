@@ -52,7 +52,8 @@ def clean_jobs(db):
         # isolate tests: older unsent outbox rows belong to other tests' jobs
         c.execute(text("UPDATE outbox SET sent_at = now() WHERE sent_at IS NULL"))
         c.execute(text("UPDATE jobs SET state = 'failed', lease_token = NULL, lease_until = NULL "
-                       "WHERE state IN ('queued', 'running', 'validating')"))
+                       "WHERE state IN ('queued', 'running', 'validating') "
+                       "AND NOT (input ? 'eval_run_id')"))  # never touch evaluation jobs
     yield
     with db("admin").begin() as c:
         c.execute(text("DELETE FROM model_calls WHERE admitted_day = :d"), {"d": TEST_DAY})

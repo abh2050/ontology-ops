@@ -1,4 +1,10 @@
-"""Worker entry point: outbox relay plus bounded consumer in one process."""
+"""Worker entry point: outbox relay plus bounded consumer in one process.
+
+OPS_FAULT_INJECT enables a labelled failure drill (M5 drills; off by default):
+  crash_before_ack       exit the process after a job reaches ready, before the SQS ack
+  bedrock_timeout        force a client read timeout on Bedrock calls (unknown outcome)
+  bedrock_invalid_model  call Bedrock with an invalid model id (real, non-billed rejection)
+"""
 
 from __future__ import annotations
 
@@ -37,7 +43,52 @@ def build(queue_kind: str, provider_kind: str) -> Worker:
         raise RuntimeError("--provider must be fixture or bedrock")
     deps = WorkerDeps(engine=engine("worker"), provider=provider, breaker=CircuitBreaker(),
                       models=models)
+    apply_fault_injection(deps, os.environ.get("OPS_FAULT_INJECT"))
     return Worker(queue, deps)
+
+
+FAULTS = {"crash_before_ack", "bedrock_timeout", "bedrock_invalid_model"}
+
+
+def apply_fault_injection(deps: WorkerDeps, fault: str | None) -> None:
+    if not fault:
+        return
+    if fault not in FAULTS:
+        raise RuntimeError(f"unknown OPS_FAULT_INJECT value {fault!r}")
+    log = logging.getLogger("ops.worker")
+    log.warning("FAULT INJECTION ACTIVE: %s (drill only)", fault)
+    if fault == "crash_before_ack":
+        def crash() -> None:
+            log.warning("FAULT INJECTION: exiting after ready, before the queue ack")
+            logging.shutdown()
+            os._exit(1)
+        deps.hooks["before_ack"] = crash  # fires only on the attempt that did the work
+        return
+    inner = deps.provider
+
+    class Faulty:
+        name = inner.name
+
+        def converse(self, *, model_id, system, user, max_tokens, timeout_seconds):
+            if fault == "bedrock_timeout":
+                from ops.providers import bedrock
+
+                client = bedrock.boto3.client(
+                    "bedrock-runtime", config=bedrock.Config(
+                        region_name=inner.region, read_timeout=0.001, connect_timeout=5,
+                        retries={"total_max_attempts": 1, "mode": "standard"}))
+                original = bedrock._client
+                bedrock._client = lambda region, read_timeout: client
+                try:
+                    return inner.converse(model_id=model_id, system=system, user=user,
+                                          max_tokens=max_tokens, timeout_seconds=timeout_seconds)
+                finally:
+                    bedrock._client = original
+            return inner.converse(model_id=f"{model_id}-fault-injected", system=system,
+                                  user=user, max_tokens=max_tokens,
+                                  timeout_seconds=timeout_seconds)
+
+    deps.provider = Faulty()
 
 
 def run(queue_kind: str, provider_kind: str) -> None:

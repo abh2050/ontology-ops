@@ -18,8 +18,9 @@ class InvalidModelOutput(Exception):
 
 
 def estimate_tokens(*texts: str) -> int:
-    # Conservative estimate (about 3.5 characters per token for JSON-heavy text).
-    return math.ceil(sum(len(t) for t in texts) / 3.5)
+    # Conservative estimate: 3.0 characters per token. 3.5 under-counted Nova's tokenizer
+    # on ID-heavy JSON (a 4,083-token input passed the 4,000 budget, 2026-10-18).
+    return math.ceil(sum(len(t) for t in texts) / 3.0)
 
 
 def request_hash(model_id: str, system: str, user: str, max_tokens: int) -> str:

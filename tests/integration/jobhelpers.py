@@ -99,4 +99,5 @@ def reset_actions(db):
         c.execute(text("UPDATE outbox SET sent_at = now() WHERE sent_at IS NULL"))
         # leftover active jobs from earlier tests would count against the 20-per-user limit
         c.execute(text("UPDATE jobs SET state = 'failed', lease_token = NULL, lease_until = NULL "
-                       "WHERE state IN ('queued', 'running', 'validating')"))
+                       "WHERE state IN ('queued', 'running', 'validating') "
+                       "AND NOT (input ? 'eval_run_id')"))  # never touch evaluation jobs

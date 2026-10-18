@@ -226,12 +226,17 @@ def run(cfg: EvalConfig, *, confirm_paid: bool = False) -> dict:
     def execute(cell: Cell) -> tuple[Cell, dict]:
         item = items[cell.item_id]
         t0 = time.perf_counter()
-        job_id, early = _submit(item, cell, run_id)
-        if job_id is None:
-            return cell, {**early, "latency_s": None}
-        while process_job(job_id, deps) == "retry":
-            time.sleep(0.5)
-        return cell, {**_job_outcome(job_id), "latency_s": time.perf_counter() - t0}
+        job_id = None
+        try:
+            job_id, early = _submit(item, cell, run_id)
+            if job_id is None:
+                return cell, {**early, "latency_s": None}
+            while process_job(job_id, deps) == "retry":
+                time.sleep(0.5)
+            return cell, {**_job_outcome(job_id), "latency_s": time.perf_counter() - t0}
+        except Exception as exc:  # noqa: BLE001 - record and continue; scored as a failure
+            return cell, {"job_id": job_id, "state": "runner_error",
+                          "error": type(exc).__name__, "latency_s": None}
 
     with ThreadPoolExecutor(max_workers=2) as pool:  # at most two concurrent jobs
         results = list(pool.map(execute, cells))

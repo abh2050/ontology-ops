@@ -45,7 +45,7 @@ def foundation_model_id(model_id: str) -> str:
 
 class OntologyOpsStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, *, cfg: dict, models: dict,
-                 image_tag: str, services_running: bool,
+                 image_tag: str, services_running: bool, fault_inject: str | None = None,
                  **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         project = cfg["project_tag"]
@@ -244,7 +244,8 @@ class OntologyOpsStack(Stack):
                                worker_role)
         worker_task.add_container(
             "worker", image=image,
-            environment={**common_env, **worker_env, "OPS_QUEUE_URL": queue.queue_url},
+            environment={**common_env, **worker_env, "OPS_QUEUE_URL": queue.queue_url,
+                         **({"OPS_FAULT_INJECT": fault_inject} if fault_inject else {})},
             secrets=worker_sec,
             logging=ecs.LogDriver.aws_logs(stream_prefix="worker",
                                            log_group=log_groups["worker"]),

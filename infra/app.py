@@ -25,6 +25,7 @@ stack = OntologyOpsStack(
     app, cfg["stack_name"], cfg=cfg, models=models,
     image_tag=app.node.try_get_context("image_tag") or "latest",
     services_running=str(app.node.try_get_context("services_running")).lower() == "true",
+    fault_inject=app.node.try_get_context("fault_inject") or None,  # drills only
     env=cdk.Environment(account=os.environ.get("CDK_DEFAULT_ACCOUNT"), region=cfg["region"]),
 )
 cdk.Tags.of(app).add("project", cfg["project_tag"])

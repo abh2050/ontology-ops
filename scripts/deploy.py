@@ -95,6 +95,8 @@ def main() -> None:
                                      "task", "release", "smoke"])
     ap.add_argument("kind", nargs="?", choices=["migrate", "import", "seed"])
     ap.add_argument("--tag", default="v1")
+    ap.add_argument("--fault", default=None,
+                    help="release only: worker OPS_FAULT_INJECT drill value (omit to clear)")
     args = ap.parse_args()
     os.environ.setdefault("AWS_PROFILE", CFG["aws_profile"])
     if args.step == "preflight":
@@ -123,7 +125,8 @@ def main() -> None:
             sys.exit("task needs migrate, import, or seed")
         run_task(args.kind, args.tag)
     elif args.step == "release":
-        cdk("deploy", "-c", f"image_tag={args.tag}", "-c", "services_running=true",
+        fault = ["-c", f"fault_inject={args.fault}"] if args.fault else []
+        cdk("deploy", "-c", f"image_tag={args.tag}", "-c", "services_running=true", *fault,
             "--require-approval", "never", "--outputs-file", str(OUTPUTS))
     elif args.step == "smoke":
         sh("uv", "run", "python", "scripts/smoke_https.py", "--outputs", str(OUTPUTS))

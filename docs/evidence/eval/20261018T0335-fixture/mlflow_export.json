@@ -1,0 +1,204 @@
+[
+  {
+    "mlflow_run_id": "b561238900574bbdac174bba37520794",
+    "name": "b0|none|real_only",
+    "metrics": {
+      "items": 43,
+      "investigation_task_success": 1.0,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0
+    }
+  },
+  {
+    "mlflow_run_id": "d096d3355cc64db9892e85e5c33efe1e",
+    "name": "b0|none|scenario_enabled",
+    "metrics": {
+      "items": 60,
+      "investigation_task_success": 1.0,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0
+    }
+  },
+  {
+    "mlflow_run_id": "a5018192492b4a30b4c755d784b56c92",
+    "name": "b1|default|real_only",
+    "metrics": {
+      "items": 43,
+      "investigation_task_success": 0.3488,
+      "relationship_recall": 0.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.03,
+      "latency_p95_s": 0.05,
+      "inference_input_tokens": 69238,
+      "inference_output_tokens": 4271,
+      "inference_inference_usd_list_price": 0.005179,
+      "inference_calls_with_unknown_cost": 0
+    }
+  },
+  {
+    "mlflow_run_id": "2cad3c170bd54696bbf021a211324f3d",
+    "name": "b1|default|scenario_enabled",
+    "metrics": {
+      "items": 60,
+      "investigation_task_success": 0.35,
+      "relationship_recall": 0.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.06,
+      "inference_input_tokens": 101824,
+      "inference_output_tokens": 6571,
+      "inference_inference_usd_list_price": 0.007686,
+      "inference_calls_with_unknown_cost": 0
+    }
+  },
+  {
+    "mlflow_run_id": "d76564e7275f4de2a30cc2d60317d0c8",
+    "name": "b1|second|real_only",
+    "metrics": {
+      "items": 43,
+      "investigation_task_success": 0.3488,
+      "relationship_recall": 0.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.03,
+      "latency_p95_s": 0.05,
+      "inference_input_tokens": 69238,
+      "inference_output_tokens": 4271,
+      "inference_inference_usd_list_price": 0.031449,
+      "inference_calls_with_unknown_cost": 0
+    }
+  },
+  {
+    "mlflow_run_id": "e4c4ab06686e475092366a4541aca42d",
+    "name": "b1|second|scenario_enabled",
+    "metrics": {
+      "items": 60,
+      "investigation_task_success": 0.35,
+      "relationship_recall": 0.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.06,
+      "inference_input_tokens": 101824,
+      "inference_output_tokens": 6571,
+      "inference_inference_usd_list_price": 0.046975,
+      "inference_calls_with_unknown_cost": 0
+    }
+  },
+  {
+    "mlflow_run_id": "2e9e672f9f7f43029cf6112a298175ce",
+    "name": "candidate|default|real_only",
+    "metrics": {
+      "items": 43,
+      "investigation_task_success": 0.9767,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.05,
+      "inference_input_tokens": 62748,
+      "inference_output_tokens": 8787,
+      "inference_inference_usd_list_price": 0.005874,
+      "inference_calls_with_unknown_cost": 0
+    }
+  },
+  {
+    "mlflow_run_id": "4e612575c2de49f49d731d7ccd6c75fc",
+    "name": "candidate|default|scenario_enabled",
+    "metrics": {
+      "items": 60,
+      "investigation_task_success": 0.9,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.06,
+      "inference_input_tokens": 91921,
+      "inference_output_tokens": 14815,
+      "inference_inference_usd_list_price": 0.009071,
+      "inference_calls_with_unknown_cost": 0
+    }
+  },
+  {
+    "mlflow_run_id": "5d24b3cc06634a709bf2002dc552c84f",
+    "name": "candidate|second|real_only",
+    "metrics": {
+      "items": 43,
+      "investigation_task_success": 0.9767,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.05,
+      "inference_input_tokens": 62748,
+      "inference_output_tokens": 8787,
+      "inference_inference_usd_list_price": 0.040792,
+      "inference_calls_with_unknown_cost": 0
+    }
+  },
+  {
+    "mlflow_run_id": "773d4359fd1d4f93b93f0fa842ba79fa",
+    "name": "candidate|second|scenario_enabled",
+    "metrics": {
+      "items": 60,
+      "investigation_task_success": 0.9,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.06,
+      "inference_input_tokens": 91921,
+      "inference_output_tokens": 14815,
+      "inference_inference_usd_list_price": 0.064614,
+      "inference_calls_with_unknown_cost": 0
+    }
+  }
+]

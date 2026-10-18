@@ -220,6 +220,10 @@ def _expand_selection(analysis: AnalystOutput, tool_results: list[dict]) -> Anal
     """Resolve select_all_late_open to the seller's authorized late open orders (code, not
     the model). The validator then checks the expanded selection like any other."""
     action = analysis.action
+    if action is not None and action.target_type == "Order" and not action.selected_order_ids:
+        # An Order investigation selects exactly that order.
+        return analysis.model_copy(update={"action": action.model_copy(
+            update={"selected_order_ids": [action.target_id]})})
     if action is None or not action.select_all_late_open:
         return analysis
     scope = next((r for r in tool_results if r.get("tool") == "get_seller_exception_scope"

@@ -13,7 +13,8 @@ MAX_INPUT_TOKENS = 4000
 MAX_OUTPUT_TOKENS = 768
 
 SYSTEM = """You analyse connected evidence for an internal delivery exception investigation.
-Return only one JSON object, no prose, matching:
+Return only one compact JSON object on a single line (no indentation, no code fence, no
+prose). Keep it short: at most 5 findings of one sentence each. It must match:
 {"findings": [{"kind": "observed_fact"|"synthetic_context"|"unknown", "text": <sentence>,
                "evidence_refs": [<ref copied exactly from evidence_refs>]}],
  "action": null | {"kind": "CreateInvestigation"|"DraftCustomerUpdate",

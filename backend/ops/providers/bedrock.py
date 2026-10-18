@@ -20,7 +20,10 @@ from botocore.exceptions import (
     ClientError,
     ConnectionClosedError,
     ConnectTimeoutError,
+    CredentialRetrievalError,
     EndpointConnectionError,
+    NoCredentialsError,
+    PartialCredentialsError,
     ReadTimeoutError,
 )
 
@@ -54,19 +57,28 @@ class BedrockProvider:
                 messages=[{"role": "user", "content": [{"text": user}]}],
                 inferenceConfig={"maxTokens": max_tokens, "temperature": 0},
             )
-        except (EndpointConnectionError, ConnectTimeoutError):
-            return Outcome("known_failure", error_code="CONNECT_FAILED", no_generation=True,
-                           retryable=True)
-        except (ReadTimeoutError, ConnectionClosedError):
-            return Outcome("unknown", error_code="READ_TIMEOUT")
-        except ClientError as exc:
-            code = exc.response.get("Error", {}).get("Code", "ClientError")
-            if code in RETRYABLE_NO_GENERATION:
-                return Outcome("known_failure", error_code=code, no_generation=True,
+        except (NoCredentialsError, PartialCredentialsError, CredentialRetrievalError) as exc:
+            # Credentials failed before the request was signed: nothing was sent.
+            return Outcome("known_failure", error_code=f"CREDENTIALS:{type(exc).__name__}",
+                           no_generation=True)
+        except Exception as exc:  # noqa: BLE001
+            if type(exc).__name__ == "LoginRefreshRequired":  # aws login session expired
+                return Outcome("known_failure", error_code="CREDENTIALS:LoginRefreshRequired",
+                               no_generation=True)
+            if isinstance(exc, EndpointConnectionError | ConnectTimeoutError):
+                return Outcome("known_failure", error_code="CONNECT_FAILED", no_generation=True,
                                retryable=True)
-            if code in FINAL_NO_GENERATION:
-                return Outcome("known_failure", error_code=code, no_generation=True)
-            return Outcome("unknown", error_code=code)
+            if isinstance(exc, ReadTimeoutError | ConnectionClosedError):
+                return Outcome("unknown", error_code="READ_TIMEOUT")
+            if isinstance(exc, ClientError):
+                code = exc.response.get("Error", {}).get("Code", "ClientError")
+                if code in RETRYABLE_NO_GENERATION:
+                    return Outcome("known_failure", error_code=code, no_generation=True,
+                                   retryable=True)
+                if code in FINAL_NO_GENERATION:
+                    return Outcome("known_failure", error_code=code, no_generation=True)
+                return Outcome("unknown", error_code=code)
+            return Outcome("unknown", error_code=type(exc).__name__)
         content = response.get("output", {}).get("message", {}).get("content", [])
         text = "".join(part.get("text", "") for part in content)
         usage = response.get("usage", {})

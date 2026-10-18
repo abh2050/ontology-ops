@@ -1,0 +1,50 @@
+{
+  "base_url": "https://<distribution>.cloudfront.net",
+  "readers": 20,
+  "requests_measured": 2000,
+  "warmup_requests": 200,
+  "non_200": 0,
+  "wall_seconds": 37.83,
+  "throughput_rps": 58.1,
+  "overall_ms": {
+    "p50": 270.7,
+    "p95": 591.1,
+    "p99": 889.0,
+    "max": 4530.7
+  },
+  "by_endpoint_ms": {
+    "context": {
+      "n": 204,
+      "p50": 297.3,
+      "p95": 548.4
+    },
+    "graph": {
+      "n": 398,
+      "p50": 417.3,
+      "p95": 625.1
+    },
+    "order": {
+      "n": 874,
+      "p50": 206.1,
+      "p95": 461.5
+    },
+    "queue": {
+      "n": 46,
+      "p50": 370.1,
+      "p95": 698.1
+    },
+    "queue_page2": {
+      "n": 43,
+      "p50": 393.5,
+      "p95": 802.8
+    },
+    "seller_scope": {
+      "n": 435,
+      "p50": 229.0,
+      "p95": 555.4
+    }
+  },
+  "target": "p95 < 750 ms at 20 concurrent readers",
+  "host": "deployed us-east-2: CloudFront -> ALB -> 1 Fargate API task (0.25 vCPU, 0.5 GiB, arm64) -> RDS db.t4g.micro; load generated from the owner's laptop over the internet",
+  "measured_utc": "2026-10-18"
+}
