@@ -58,7 +58,8 @@ def test_scenarios_reference_existing_tests(name):
             assert re.search(rf"def {re.escape(func)}\(", source), node
 
 
-def test_eval_refuses_draft_gold_set():
+def test_eval_refuses_draft_gold_set(monkeypatch, tmp_path):
+    monkeypatch.setattr(G, "FREEZE", tmp_path / "missing.json")
     result = CliRunner().invoke(app, ["eval", "--suite", "frozen"])
     assert result.exit_code == 1 and "refusing to evaluate" in result.output
 

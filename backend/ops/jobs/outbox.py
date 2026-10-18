@@ -14,7 +14,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator, model_validator
 from sqlalchemy import Connection, Engine, text
 
 from ops.ontology.registry import ONTOLOGY_VERSION
@@ -25,10 +25,18 @@ MAX_QUEUED_PER_USER = 20
 Hex32 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{32}$")]
 
 
-class JobRequest(BaseModel):
+class QuestionFilters(BaseModel):
+    """Bounded filters for question jobs (find_late_orders); the server applies them."""
     model_config = ConfigDict(extra="forbid", frozen=True)
-    target_type: Literal["Order", "Seller"]
-    target_id: Hex32
+    customer_state: Annotated[str, StringConstraints(pattern=r"^[A-Z]{2}$")] | None = None
+
+
+class JobRequest(BaseModel):
+    """A target job (Order or Seller) or, with no target, a question job over the queue."""
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    target_type: Literal["Order", "Seller"] | None = None
+    target_id: Hex32 | None = None
+    filters: QuestionFilters = QuestionFilters()
     as_of: datetime
     scenario_id: Annotated[str, StringConstraints(pattern=r"^[a-z0-9][a-z0-9-]{0,62}$")] | None
     model_key: Literal["default", "second"] = "default"
@@ -41,6 +49,14 @@ class JobRequest(BaseModel):
         if v.tzinfo is not None:
             raise ValueError("as_of is dataset local")
         return v
+
+    @model_validator(mode="after")
+    def _target_or_question(self):
+        if (self.target_type is None) != (self.target_id is None):
+            raise ValueError("target_type and target_id go together")
+        if self.target_type is None and not self.question:
+            raise ValueError("a job needs a target or a question")
+        return self
 
 
 class SubmitError(Exception):
@@ -65,7 +81,7 @@ RETURNING job_id
 
 
 def submit_job(conn: Connection, principal: Principal, req: JobRequest,
-               idempotency_key: str) -> tuple[str, bool]:
+               idempotency_key: str, *, eval_run_id: str | None = None) -> tuple[str, bool]:
     """Return (job_id, created). Caller owns the transaction."""
     if not principal.provisioned or principal.role != "operator":
         raise SubmitError(403, "only provisioned operators submit investigation jobs")
@@ -81,8 +97,9 @@ def submit_job(conn: Connection, principal: Principal, req: JobRequest,
         return str(existing.job_id), False
 
     # Validate identity and scope before anything is persisted.
-    target = T.Target(target_type=req.target_type, target_id=req.target_id)
-    T.target_snapshot(conn, principal, target, req.as_of)  # raises NotVisible
+    if req.target_type is not None:
+        target = T.Target(target_type=req.target_type, target_id=req.target_id)
+        T.target_snapshot(conn, principal, target, req.as_of)  # raises NotVisible
     if req.scenario_id is not None and conn.execute(
             T.SCENARIO_EXISTS_SQL, {"scenario_id": req.scenario_id}).first() is None:
         raise SubmitError(422, "unknown scenario")
@@ -92,9 +109,13 @@ def submit_job(conn: Connection, principal: Principal, req: JobRequest,
     if active >= MAX_QUEUED_PER_USER:
         raise SubmitError(429, "queued job limit reached (20 per user)")
 
-    payload = {"target": {"target_type": req.target_type, "target_id": req.target_id},
+    payload = {"target": ({"target_type": req.target_type, "target_id": req.target_id}
+                          if req.target_type else None),
+               "filters": req.filters.model_dump(),
                "model_key": req.model_key, "comparator": req.comparator,
                "question": req.question}
+    if eval_run_id is not None:
+        payload["eval_run_id"] = eval_run_id  # admission charged to the evaluation budget
     row = conn.execute(INSERT_JOB_SQL, {
         "subject": principal.subject, "key": idempotency_key, "hash": rhash,
         "batch_id": principal.batch_id, "scenario_id": req.scenario_id,

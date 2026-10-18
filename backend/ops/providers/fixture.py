@@ -58,6 +58,9 @@ class FixtureProvider:
     @staticmethod
     def _plan(payload: dict) -> dict:
         target = payload["job"]["target"]
+        if target is None:
+            return {"requests": [{"tool": "find_late_orders"}],
+                    "rationale": "Question job: query the bounded late order queue."}
         t, tid = target["target_type"], target["target_id"]
         scenario = payload["job"].get("scenario_enabled")
         if t == "Order":
@@ -73,7 +76,7 @@ class FixtureProvider:
 
     @staticmethod
     def _analyse(payload: dict, fault: str | None) -> dict:
-        target = payload["job"]["target"]
+        target = payload["job"]["target"] or {"target_type": "Question", "target_id": "queue"}
         evidence = payload["evidence"]
         findings: list[dict] = []
         action = None
@@ -82,6 +85,13 @@ class FixtureProvider:
         snapshots = [e for e in evidence if e.get("tool") == "get_order_snapshot"
                      and "error" not in e]
         contexts = [e for e in evidence if e.get("tool") == "get_disruption_context"]
+        queues = [e for e in evidence if e.get("tool") == "find_late_orders" and "error" not in e]
+        for q in queues:
+            findings.append({"kind": "observed_fact",
+                             "text": f"The visible queue has {q['aggregates']['late_open_orders']}"
+                                     " late open orders.",
+                             "evidence_refs": [r for r in q.get("evidence_refs", [])
+                                               if r.startswith("Aggregate:")][:1]})
 
         for snap in snapshots:
             o = snap["order"]
@@ -113,13 +123,12 @@ class FixtureProvider:
                          "evidence_refs": []})
 
         if best is not None and best["aggregates"]["late_open_orders"] >= 3:
-            orders = [o["order_id"] for o in best["orders"]]
             reasons = ["LATE_OPEN", "SELLER_GROUP", "CAUSE_UNKNOWN"]
             if any(o["multi_seller"] for o in best["orders"]):
                 reasons.append("MULTI_SELLER")
             action = {"kind": "CreateInvestigation", "target_type": "Seller",
-                      "target_id": best["seller"]["seller_id"], "selected_order_ids": orders,
-                      "reason_codes": reasons}
+                      "target_id": best["seller"]["seller_id"], "selected_order_ids": [],
+                      "select_all_late_open": True, "reason_codes": reasons}
         elif snapshots and snapshots[0]["order"]["late_open"]:
             oid = snapshots[0]["order"]["order_id"]
             action = {"kind": "CreateInvestigation", "target_type": "Order", "target_id": oid,

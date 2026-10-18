@@ -171,6 +171,7 @@ class _Run:
 
 def _run_tools(conn, principal, job: C.ClaimedJob, plan: ToolPlan) -> list[dict]:
     payload = {"target": job.input["target"]}
+    filters = job.input.get("filters") or {}
     as_of = job.as_of.strftime("%Y-%m-%dT%H:%M:%S")
     results: list[dict] = []
 
@@ -189,10 +190,13 @@ def _run_tools(conn, principal, job: C.ClaimedJob, plan: ToolPlan) -> list[dict]
         elif r.tool == "get_seller_exception_scope":
             results.append(run(r.tool, {"seller_id": r.target_id}))
         elif r.tool == "find_late_orders":
-            seller = payload["target"]["target_id"] if payload["target"]["target_type"] == \
-                "Seller" else None
-            results.append(run(r.tool, {"seller_id": seller, "limit": 25} if seller
-                               else {"limit": 25}))
+            target = payload["target"]
+            seller = target["target_id"] if target and target["target_type"] == "Seller" \
+                else None
+            args = {"limit": 25, **({"seller_id": seller} if seller else {}),
+                    **({"customer_state": filters["customer_state"]}
+                       if filters.get("customer_state") else {})}
+            results.append(run(r.tool, args))
         elif r.tool == "get_disruption_context":
             results.append(run(r.tool, {"target_type": r.target_type, "target_id": r.target_id,
                                         "scenario_id": job.scenario_id}))
@@ -212,10 +216,28 @@ def _run_tools(conn, principal, job: C.ClaimedJob, plan: ToolPlan) -> list[dict]
     return results
 
 
+def _expand_selection(analysis: AnalystOutput, tool_results: list[dict]) -> AnalystOutput:
+    """Resolve select_all_late_open to the seller's authorized late open orders (code, not
+    the model). The validator then checks the expanded selection like any other."""
+    action = analysis.action
+    if action is None or not action.select_all_late_open:
+        return analysis
+    scope = next((r for r in tool_results if r.get("tool") == "get_seller_exception_scope"
+                  and r.get("seller", {}).get("seller_id") == action.target_id), None)
+    ids = sorted({o["order_id"] for o in scope["orders"]}) if scope else []
+    if not ids:
+        return analysis  # validator reports the unsupported action target
+    new_action = action.model_copy(update={"selected_order_ids": ids,
+                                           "select_all_late_open": False})
+    return analysis.model_copy(update={"action": new_action})
+
+
 def deterministic_metrics(action: dict | None, tool_results: list[dict]) -> dict:
-    """Counts and money for the proposed action, computed by code from evidence."""
+    """Counts and money for the proposed action (or the question), computed by code."""
     if not action:
-        return {}
+        queue = next((r for r in tool_results if r.get("tool") == "find_late_orders"
+                      and "error" not in r), None)
+        return {"aggregates": queue["aggregates"], "filters": queue["filters"]} if queue else {}
     selected = set(action["selected_order_ids"])
     if action["target_type"] == "Seller":
         scope = next(r for r in tool_results if r.get("tool") == "get_seller_exception_scope"
@@ -248,7 +270,7 @@ def process_job(job_id: str, deps: WorkerDeps) -> str:
             run.fail("blocked", "SCOPE_CHANGED",
                      detail="seller grants changed after submission; regenerate the job")
         payload = {"target": job.input["target"], "question": job.input.get("question", ""),
-                   "scenario_id": job.scenario_id}
+                   "filters": job.input.get("filters") or {}, "scenario_id": job.scenario_id}
 
         try:
             system, user = planner.build_prompt(payload)
@@ -284,6 +306,7 @@ def process_job(job_id: str, deps: WorkerDeps) -> str:
                                               evidence=ev_hash), AnalystOutput)
         except InvalidModelOutput:
             run.fail("failed", "INVALID_MODEL_OUTPUT", stage="analyst")
+        analysis = _expand_selection(analysis, tool_results)
         C.set_state(deps.engine, job, "validating")
         with deps.engine.connect() as conn:
             report = validate(conn, principal, analysis, tool_results, job.as_of)
@@ -293,8 +316,8 @@ def process_job(job_id: str, deps: WorkerDeps) -> str:
             "tools_run": [r.get("tool") for r in tool_results],
             "analysis": analysis.model_dump(),
             "validation": report.model_dump(),
-            "metrics": deterministic_metrics(action, tool_results) if report.proposal_state
-            != "none" else {},
+            "metrics": deterministic_metrics(action, tool_results)
+            if (report.proposal_state != "none" or action is None) else {},
             "snapshot_hashes": {f"{r['tool']}": r.get("evidence_hash") for r in tool_results
                                 if r.get("evidence_hash")},
             "target_snapshot_hash": _target_hash(action, tool_results),

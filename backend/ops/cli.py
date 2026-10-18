@@ -143,9 +143,21 @@ def seed_users(mode: Annotated[str, typer.Option(help="local or aws")]) -> None:
 
 
 @app.command("eval")
-def eval_(suite: Annotated[str, typer.Option(help="Evaluation suite, e.g. frozen.")]) -> None:
+def eval_(
+    suite: Annotated[str, typer.Option(help="Evaluation suite, e.g. frozen.")],
+    provider: Annotated[str, typer.Option(help="fixture (free dry run) or bedrock")] = "fixture",
+    items: Annotated[str | None, typer.Option(help="Comma-separated gold item ids")] = None,
+    comparators: Annotated[str, typer.Option(help="Comma-separated: b1,candidate")] =
+        "b1,candidate",
+    models: Annotated[str, typer.Option(help="Comma-separated: default,second")] =
+        "default,second",
+    plan_only: Annotated[bool, typer.Option(help="Print the plan and exit.")] = False,
+    confirm_paid: Annotated[bool, typer.Option(help="Required for --provider bedrock.")] =
+        False,
+) -> None:
     """Run the frozen evaluation within the eval budget."""
     from ops.evals.gold import GoldNotFrozen, load_gold, verify_frozen
+    from ops.evals.runner import EvalConfig, plan, planned_calls, run
 
     if suite != "frozen":
         _fail("only --suite frozen is supported")
@@ -153,13 +165,26 @@ def eval_(suite: Annotated[str, typer.Option(help="Evaluation suite, e.g. frozen
         meta = verify_frozen()
     except GoldNotFrozen as exc:
         _fail(f"refusing to evaluate: {exc}")
-    plan = load_gold()["run_plan"]
+    if provider not in ("fixture", "bedrock"):
+        _fail("--provider must be fixture or bedrock")
+    cfg = EvalConfig(provider=provider, comparators=tuple(comparators.split(",")),
+                     model_keys=tuple(models.split(",")),
+                     item_ids=tuple(items.split(",")) if items else None)
+    cells = plan(load_gold(), cfg)
     typer.echo(f"gold set frozen by {meta['reviewer']} on {meta['review_date']}; "
-               f"planned model calls {plan['planned_model_calls']} "
-               f"(ceiling {plan['ceiling_calls']})")
-    if plan["planned_model_calls"] > plan["ceiling_calls"]:
-        _fail("planned calls exceed the evaluation ceiling")
-    _fail("evaluation runner not implemented until M5 (blocked by M4.5)")
+               f"planned model jobs {len(cells)}, planned model calls {planned_calls(cells)}")
+    if plan_only:
+        return
+    try:
+        report = run(cfg, confirm_paid=confirm_paid)
+    except RuntimeError as exc:
+        _fail(str(exc))
+    typer.echo(f"report: {report['out_dir']}/report.json "
+               f"(admitted calls {report['admitted_calls']})")
+    for key, entry in report["summary"].items():
+        typer.echo(f"  {key:32s} task_success={entry['investigation_task_success']} "
+                   f"P={entry['relationship_precision']} R={entry['relationship_recall']} "
+                   f"agg={entry['aggregate_correctness']} causal_rej={entry['causal_rejections']}")
 
 
 @app.command()

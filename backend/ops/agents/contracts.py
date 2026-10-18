@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 Hex32 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{32}$")]
 ToolName = Literal["get_order_snapshot", "find_late_orders", "get_seller_exception_scope",
@@ -45,11 +45,22 @@ class ProposedAction(BaseModel):
     kind: Literal["CreateInvestigation", "DraftCustomerUpdate"]
     target_type: Literal["Order", "Seller"]
     target_id: Hex32
-    selected_order_ids: list[Hex32] = Field(min_length=1, max_length=100)
+    selected_order_ids: list[Hex32] = Field(default_factory=list, max_length=100)
+    # Seller groups: let the server select every authorized late open order of the seller
+    # from deterministic evidence, so the model never has to enumerate IDs.
+    select_all_late_open: bool = False
     reason_codes: list[Literal["LATE_OPEN", "SELLER_GROUP", "MULTI_SELLER",
                                "SYNTHETIC_CONTEXT_CONSISTENT", "CAUSE_UNKNOWN"]] = Field(
         min_length=1, max_length=5)
     draft_text: Annotated[str, StringConstraints(max_length=600)] | None = None
+
+    @model_validator(mode="after")
+    def _selection(self):
+        if self.select_all_late_open and self.target_type != "Seller":
+            raise ValueError("select_all_late_open applies to Seller targets only")
+        if not self.select_all_late_open and not self.selected_order_ids:
+            raise ValueError("selected_order_ids is required unless select_all_late_open")
+        return self
 
 
 class AnalystOutput(BaseModel):

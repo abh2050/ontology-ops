@@ -1,0 +1,325 @@
+{
+  "eval_run_id": "e03b14c4-b396-402e-9676-dfce0ef618c1",
+  "provider": "fixture",
+  "started_utc": "2026-10-18T02:50:30.722403+00:00",
+  "wall_seconds": 8.9,
+  "gold_hash": "be3636d9d075515664e33fd5c07901b321a60054c152fe8bfbd066352b230182",
+  "gold_reviewer": "Abhishek Shah",
+  "ontology_version": "operational-commerce-v1",
+  "code_commit": "deeb9e0fa6988fbcbcc43723d8d0825394bd9611",
+  "prompt_hash": "ff79be696fdf04b62242f9c236e2ed73e0daf8f54c722eb3461731d022bfe112",
+  "planned_calls": 824,
+  "admitted_calls": 808,
+  "ceiling": 1500,
+  "limits": {
+    "admitted_calls_per_day": 100,
+    "calls_per_job": 2,
+    "queued_jobs_per_user": 20,
+    "max_concurrent_jobs": 2,
+    "workflow_deadline_seconds": 60,
+    "planner": {
+      "max_input_tokens": 2000,
+      "max_output_tokens": 512,
+      "max_tool_requests": 3
+    },
+    "analyst": {
+      "max_input_tokens": 4000,
+      "max_output_tokens": 768
+    }
+  },
+  "source_hashes": {
+    "customers": {
+      "file": "olist_customers_dataset.csv",
+      "rows": 99441,
+      "sha256": "983a422239e1712ded753b3bf9ecf47dc73f144d306029dcfa99e70a226883d2"
+    },
+    "order_items": {
+      "file": "olist_order_items_dataset.csv",
+      "rows": 112650,
+      "sha256": "0bc4d068c4fe38cbb01bd90e8746e3c613fe7b4baef75fab7b0e329701c3e279"
+    },
+    "orders": {
+      "file": "olist_orders_dataset.csv",
+      "rows": 99441,
+      "sha256": "8df58ef3d2d7e9944010f7beecd9b75367f5588ec6e3c91cec19ae3345ef9ecf"
+    },
+    "products": {
+      "file": "olist_products_dataset.csv",
+      "rows": 32951,
+      "sha256": "3e6569628a17fbc75fd206ee357b59e20364b9afa90f5b6cd5b4d624c58aa9cc"
+    },
+    "sellers": {
+      "file": "olist_sellers_dataset.csv",
+      "rows": 3095,
+      "sha256": "1f643d2b950373b85735e7794b20986f528d7a000432e7c6f9bcbb44d0846a0e"
+    }
+  },
+  "as_of_values": [
+    "2018-03-30 23:59:59",
+    "2018-03-24 23:59:59",
+    "2018-04-03 23:59:59",
+    "2018-03-15 23:59:59"
+  ],
+  "summary": {
+    "b0|none|real_only": {
+      "items": 43,
+      "investigation_task_success": 1.0,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": null,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": "not applicable",
+      "latency_p95_s": "not applicable",
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 1.0,
+        "multi_object": 1.0,
+        "unanswerable": 1.0
+      },
+      "model_id": "not applicable (deterministic)",
+      "inference": "not applicable"
+    },
+    "b0|none|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 1.0,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": null,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": "not applicable",
+      "latency_p95_s": "not applicable",
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 1.0,
+        "multi_object": 1.0,
+        "unanswerable": 1.0
+      },
+      "model_id": "not applicable (deterministic)",
+      "inference": "not applicable"
+    },
+    "b1|default|real_only": {
+      "items": 43,
+      "investigation_task_success": 0.3488,
+      "relationship_precision": null,
+      "relationship_recall": 0.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.05,
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 0.0,
+        "multi_object": 0.0,
+        "unanswerable": 1.0
+      },
+      "model_id": "amazon.nova-lite-v1:0",
+      "inference": {
+        "input_tokens": 67574,
+        "output_tokens": 4271,
+        "inference_usd_list_price": 0.005079,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "b1|default|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 0.35,
+      "relationship_precision": null,
+      "relationship_recall": 0.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.05,
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 0.05,
+        "multi_object": 0.0,
+        "unanswerable": 1.0
+      },
+      "model_id": "amazon.nova-lite-v1:0",
+      "inference": {
+        "input_tokens": 99477,
+        "output_tokens": 6571,
+        "inference_usd_list_price": 0.007546,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "b1|second|real_only": {
+      "items": 43,
+      "investigation_task_success": 0.3488,
+      "relationship_precision": null,
+      "relationship_recall": 0.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.03,
+      "latency_p95_s": 0.05,
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 0.0,
+        "multi_object": 0.0,
+        "unanswerable": 1.0
+      },
+      "model_id": "global.amazon.nova-2-lite-v1:0",
+      "inference": {
+        "input_tokens": 67574,
+        "output_tokens": 4271,
+        "inference_usd_list_price": 0.03095,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "b1|second|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 0.35,
+      "relationship_precision": null,
+      "relationship_recall": 0.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.05,
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 0.05,
+        "multi_object": 0.0,
+        "unanswerable": 1.0
+      },
+      "model_id": "global.amazon.nova-2-lite-v1:0",
+      "inference": {
+        "input_tokens": 99477,
+        "output_tokens": 6571,
+        "inference_usd_list_price": 0.046271,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "candidate|default|real_only": {
+      "items": 43,
+      "investigation_task_success": 0.9767,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.05,
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 1.0,
+        "multi_object": 1.0,
+        "unanswerable": 0.8
+      },
+      "model_id": "amazon.nova-lite-v1:0",
+      "inference": {
+        "input_tokens": 61090,
+        "output_tokens": 8787,
+        "inference_usd_list_price": 0.005774,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "candidate|default|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 0.9,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.06,
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 1.0,
+        "multi_object": 1.0,
+        "unanswerable": 0.4
+      },
+      "model_id": "amazon.nova-lite-v1:0",
+      "inference": {
+        "input_tokens": 89583,
+        "output_tokens": 14815,
+        "inference_usd_list_price": 0.008931,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "candidate|second|real_only": {
+      "items": 43,
+      "investigation_task_success": 0.9767,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.05,
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 1.0,
+        "multi_object": 1.0,
+        "unanswerable": 0.8
+      },
+      "model_id": "global.amazon.nova-2-lite-v1:0",
+      "inference": {
+        "input_tokens": 61090,
+        "output_tokens": 8787,
+        "inference_usd_list_price": 0.040294,
+        "calls_with_unknown_cost": 0
+      }
+    },
+    "candidate|second|scenario_enabled": {
+      "items": 60,
+      "investigation_task_success": 0.9,
+      "relationship_precision": 1.0,
+      "relationship_recall": 1.0,
+      "aggregate_correctness": 1.0,
+      "evidence_coverage_mean": 1.0,
+      "invented_id_items": 0,
+      "causal_rejections": 0,
+      "unsupported_causal_claims_accepted": 0,
+      "failed_or_unknown_jobs": 0,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.06,
+      "by_category_success": {
+        "aggregate": 1.0,
+        "direct_object": 1.0,
+        "multi_object": 1.0,
+        "unanswerable": 0.4
+      },
+      "model_id": "global.amazon.nova-2-lite-v1:0",
+      "inference": {
+        "input_tokens": 89583,
+        "output_tokens": 14815,
+        "inference_usd_list_price": 0.063912,
+        "calls_with_unknown_cost": 0
+      }
+    }
+  }
+}

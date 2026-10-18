@@ -63,6 +63,7 @@ def test_no_arns_or_account_numbers():
         text = path.read_text(errors="ignore")
         # Concrete ARNs carry an account number; templates built from variables do not.
         concrete_arn = re.search(r"arn:aws[a-z-]*:[a-z0-9-]*:[a-z0-9-]*:\d{12}:", text)
-        if concrete_arn or re.search(r"(?<![\w.])\d{12}(?![\w.])", text):
+        # Bare 12-digit runs, excluding digits inside UUIDs (hyphen-delimited segments).
+        if concrete_arn or re.search(r"(?<![\w.-])\d{12}(?![\w.-])", text):
             offenders.append(str(path.relative_to(REPO)))
     assert offenders == [], offenders
