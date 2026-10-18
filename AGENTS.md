@@ -1,5 +1,7 @@
 # Agent instructions: Ontology Driven Operational AI
 
+> **Start here:** read `docs/HANDOFF.md` for the current state (M1–M5 passed, M6 next), the live AWS stack, and the hard rules.
+
 Persistent rules for any coding agent working in this repository.
 `.github/copilot-instructions.md` is an identical copy, so update both together.
 
