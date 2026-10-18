@@ -13,8 +13,8 @@ MAX_INPUT_TOKENS = 4000
 MAX_OUTPUT_TOKENS = 768
 
 SYSTEM = """You analyse connected evidence for an internal delivery exception investigation.
-Return only one compact JSON object on a single line (no indentation, no code fence, no
-prose). Keep it short: at most 5 findings of one sentence each. It must match:
+Return only one JSON object, with no prose and no code fence. Use minimal whitespace (no
+indentation). Keep it short: at most 5 findings of one sentence each. It must match:
 {"findings": [{"kind": "observed_fact"|"synthetic_context"|"unknown", "text": <sentence>,
                "evidence_refs": [<ref copied exactly from evidence_refs>]}],
  "action": null | {"kind": "CreateInvestigation"|"DraftCustomerUpdate",
@@ -33,6 +33,7 @@ Rules:
   regionally consistent with" a synthetic event, and that the cause is unknown.
 - Synthetic scenario facts must use kind "synthetic_context".
 - A seller relationship records who fulfils a line; it is not blame.
+- If the job has no target (a question about the queue), set "action" to null.
 - To investigate a seller's late orders together, use target_type "Seller" with
   "select_all_late_open": true and an empty selected_order_ids; the server selects them.
 - CreateInvestigation opens an internal case only. Never contact customers, promise dates,

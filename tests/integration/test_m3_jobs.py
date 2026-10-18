@@ -478,3 +478,20 @@ def test_analyst_input_respects_token_budget(db):
     system, user = analyst.build_prompt({"target": {"target_type": "Seller",
                                                     "target_id": big}}, results)
     assert estimate_tokens(system, user) <= analyst.MAX_INPUT_TOKENS
+
+
+def test_seller_select_all_without_scope_is_rejected_not_crashed(db):
+    """Regression: an empty server-side selection made the validator raise and left the
+    job stuck in validating (paid eval, 2026-10-18)."""
+    from ops.agents.contracts import AnalystOutput
+    from ops.agents.validator import validate
+    from ops.queries.scope import load_principal
+
+    out = AnalystOutput.model_validate({
+        "findings": [{"kind": "unknown", "text": "Cause unknown.", "evidence_refs": []}],
+        "action": {"kind": "CreateInvestigation", "target_type": "Seller",
+                   "target_id": LABELS["seller_a01"], "select_all_late_open": True,
+                   "reason_codes": ["SELLER_GROUP"]}})
+    with db("worker").connect() as c:
+        report = validate(c, load_principal(c, "operator_a", BATCH), out, [], AS_OF)
+    assert not report.ok and "INVALID_ACTION_TARGET" in {r.code for r in report.rejections}

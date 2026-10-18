@@ -54,3 +54,11 @@ def test_order_action_may_omit_selection_and_seller_must_not():
     with pytest.raises(ValidationError):
         ProposedAction(kind="CreateInvestigation", target_type="Seller", target_id="a" * 32,
                        reason_codes=["SELLER_GROUP"])
+
+
+def test_select_all_on_order_target_is_accepted_by_contract():
+    from ops.agents.contracts import ProposedAction
+
+    a = ProposedAction(kind="CreateInvestigation", target_type="Order", target_id="a" * 32,
+                       select_all_late_open=True, reason_codes=["LATE_OPEN"])
+    assert a.select_all_late_open

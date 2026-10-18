@@ -127,6 +127,9 @@ def validate(conn: Connection, principal: Principal, out: AnalystOutput,
             reject("INVALID_ACTION_TARGET", "a draft targets one order and carries draft text")
         if f"{action.target_type}:{action.target_id}" not in refs:
             reject("UNRESOLVABLE_EVIDENCE", "action target has no supporting tool evidence")
+        if not action.selected_order_ids:
+            reject("INVALID_ACTION_TARGET", "the action selects no orders the evidence supports")
+            return _report(rejections, out, coverage, causal)
         supporting = next((r for r in tool_results if _is_snapshot_of(r, action)), None)
         target = T.Target(target_type=action.target_type, target_id=action.target_id)
         snapshot_hash = supporting["evidence_hash"] if supporting else "0" * 64
@@ -147,6 +150,11 @@ def validate(conn: Connection, principal: Principal, out: AnalystOutput,
                 continue  # already reported as unresolvable evidence
             reject(mapping[reason], reason)
 
+    return _report(rejections, out, coverage, causal)
+
+
+def _report(rejections, out: AnalystOutput, coverage: float, causal: list) -> ValidationReport:
+    action = out.action
     codes = {r.code for r in rejections}
     if action is None:
         state = "none"

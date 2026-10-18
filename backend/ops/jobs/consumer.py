@@ -220,10 +220,11 @@ def _expand_selection(analysis: AnalystOutput, tool_results: list[dict]) -> Anal
     """Resolve select_all_late_open to the seller's authorized late open orders (code, not
     the model). The validator then checks the expanded selection like any other."""
     action = analysis.action
-    if action is not None and action.target_type == "Order" and not action.selected_order_ids:
+    if action is not None and action.target_type == "Order" and (
+            not action.selected_order_ids or action.select_all_late_open):
         # An Order investigation selects exactly that order.
         return analysis.model_copy(update={"action": action.model_copy(
-            update={"selected_order_ids": [action.target_id]})})
+            update={"selected_order_ids": [action.target_id], "select_all_late_open": False})})
     if action is None or not action.select_all_late_open:
         return analysis
     scope = next((r for r in tool_results if r.get("tool") == "get_seller_exception_scope"
@@ -312,8 +313,12 @@ def process_job(job_id: str, deps: WorkerDeps) -> str:
             run.fail("failed", "INVALID_MODEL_OUTPUT", stage="analyst")
         analysis = _expand_selection(analysis, tool_results)
         C.set_state(deps.engine, job, "validating")
-        with deps.engine.connect() as conn:
-            report = validate(conn, principal, analysis, tool_results, job.as_of)
+        try:
+            with deps.engine.connect() as conn:
+                report = validate(conn, principal, analysis, tool_results, job.as_of)
+        except Exception as exc:  # noqa: BLE001 - never leave a job active after paid stages
+            log.exception("validator error")
+            run.fail("failed", "VALIDATOR_ERROR", detail=type(exc).__name__)
         action = analysis.action.model_dump() if analysis.action else None
         result = {
             "plan": plan.model_dump(),

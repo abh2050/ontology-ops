@@ -215,6 +215,15 @@ def run(cfg: EvalConfig, *, confirm_paid: bool = False) -> dict:
         raise RuntimeError("paid run: re-run with --confirm-paid after reviewing the plan")
 
     seed_users("local")
+    subjects = sorted({items[c.item_id]["subject"] for c in cells})
+    with engine("admin").connect() as conn:
+        active = conn.execute(text(
+            "SELECT count(*) FROM jobs WHERE subject = ANY(:s) AND state IN "
+            "('queued','running','validating')"), {"s": subjects}).scalar_one()
+    if active:
+        raise RuntimeError(f"{active} active jobs exist for {subjects}; they would count "
+                           "against the 20-per-user limit and block submissions. Resolve "
+                           "them (ops recover-job) before evaluating.")
     run_id = str(uuid.uuid4())
     with engine("worker").begin() as conn:
         conn.execute(text("INSERT INTO eval_runs (eval_run_id, planned_calls, ceiling) "

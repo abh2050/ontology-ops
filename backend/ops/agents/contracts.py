@@ -37,7 +37,7 @@ class Finding(BaseModel):
     kind: Literal["observed_fact", "synthetic_context", "unknown"]
     text: Text
     evidence_refs: list[Annotated[str, StringConstraints(max_length=120)]] = Field(
-        default_factory=list, max_length=12)
+        default_factory=list, max_length=20)
 
 
 class ProposedAction(BaseModel):
@@ -56,8 +56,7 @@ class ProposedAction(BaseModel):
 
     @model_validator(mode="after")
     def _selection(self):
-        if self.select_all_late_open and self.target_type != "Seller":
-            raise ValueError("select_all_late_open applies to Seller targets only")
+        # For an Order target the selection is always that order; the server fills it.
         if (not self.select_all_late_open and not self.selected_order_ids
                 and self.target_type != "Order"):
             raise ValueError("selected_order_ids is required unless select_all_late_open")

@@ -1,6 +1,6 @@
 [
   {
-    "mlflow_run_id": "b561238900574bbdac174bba37520794",
+    "mlflow_run_id": "0b19b99d40894a68893888cc697f36e3",
     "name": "b0|none|real_only",
     "metrics": {
       "items": 43,
@@ -15,7 +15,7 @@
     }
   },
   {
-    "mlflow_run_id": "d096d3355cc64db9892e85e5c33efe1e",
+    "mlflow_run_id": "b9237ed4616c4817aee502b762b69ce9",
     "name": "b0|none|scenario_enabled",
     "metrics": {
       "items": 60,
@@ -30,7 +30,7 @@
     }
   },
   {
-    "mlflow_run_id": "a5018192492b4a30b4c755d784b56c92",
+    "mlflow_run_id": "2e75757f5c8e4c579837cf5bfe265dbb",
     "name": "b1|default|real_only",
     "metrics": {
       "items": 43,
@@ -42,16 +42,16 @@
       "causal_rejections": 0,
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
-      "latency_p50_s": 0.03,
-      "latency_p95_s": 0.05,
-      "inference_input_tokens": 69238,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.06,
+      "inference_input_tokens": 70182,
       "inference_output_tokens": 4271,
-      "inference_inference_usd_list_price": 0.005179,
+      "inference_inference_usd_list_price": 0.005236,
       "inference_calls_with_unknown_cost": 0
     }
   },
   {
-    "mlflow_run_id": "2cad3c170bd54696bbf021a211324f3d",
+    "mlflow_run_id": "672b6d59915e42a0b523129bc8c1815d",
     "name": "b1|default|scenario_enabled",
     "metrics": {
       "items": 60,
@@ -65,14 +65,14 @@
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
       "latency_p95_s": 0.06,
-      "inference_input_tokens": 101824,
+      "inference_input_tokens": 103148,
       "inference_output_tokens": 6571,
-      "inference_inference_usd_list_price": 0.007686,
+      "inference_inference_usd_list_price": 0.007766,
       "inference_calls_with_unknown_cost": 0
     }
   },
   {
-    "mlflow_run_id": "d76564e7275f4de2a30cc2d60317d0c8",
+    "mlflow_run_id": "0269e37ba29f495cb144461e090cb903",
     "name": "b1|second|real_only",
     "metrics": {
       "items": 43,
@@ -84,16 +84,16 @@
       "causal_rejections": 0,
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
-      "latency_p50_s": 0.03,
-      "latency_p95_s": 0.05,
-      "inference_input_tokens": 69238,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.06,
+      "inference_input_tokens": 70182,
       "inference_output_tokens": 4271,
-      "inference_inference_usd_list_price": 0.031449,
+      "inference_inference_usd_list_price": 0.031732,
       "inference_calls_with_unknown_cost": 0
     }
   },
   {
-    "mlflow_run_id": "e4c4ab06686e475092366a4541aca42d",
+    "mlflow_run_id": "24c55e01889747dbabf3b1b4c9520361",
     "name": "b1|second|scenario_enabled",
     "metrics": {
       "items": 60,
@@ -107,14 +107,14 @@
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
       "latency_p95_s": 0.06,
-      "inference_input_tokens": 101824,
+      "inference_input_tokens": 103148,
       "inference_output_tokens": 6571,
-      "inference_inference_usd_list_price": 0.046975,
+      "inference_inference_usd_list_price": 0.047372,
       "inference_calls_with_unknown_cost": 0
     }
   },
   {
-    "mlflow_run_id": "2e9e672f9f7f43029cf6112a298175ce",
+    "mlflow_run_id": "b2c124c07b684c6dbcfe6e9d661b164e",
     "name": "candidate|default|real_only",
     "metrics": {
       "items": 43,
@@ -128,15 +128,15 @@
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
-      "latency_p95_s": 0.05,
-      "inference_input_tokens": 62748,
+      "latency_p95_s": 0.06,
+      "inference_input_tokens": 63698,
       "inference_output_tokens": 8787,
-      "inference_inference_usd_list_price": 0.005874,
+      "inference_inference_usd_list_price": 0.005931,
       "inference_calls_with_unknown_cost": 0
     }
   },
   {
-    "mlflow_run_id": "4e612575c2de49f49d731d7ccd6c75fc",
+    "mlflow_run_id": "726d2dce42094ac092ca97051551e03e",
     "name": "candidate|default|scenario_enabled",
     "metrics": {
       "items": 60,
@@ -149,16 +149,16 @@
       "causal_rejections": 0,
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
-      "latency_p50_s": 0.04,
-      "latency_p95_s": 0.06,
-      "inference_input_tokens": 91921,
+      "latency_p50_s": 0.05,
+      "latency_p95_s": 0.08,
+      "inference_input_tokens": 93254,
       "inference_output_tokens": 14815,
-      "inference_inference_usd_list_price": 0.009071,
+      "inference_inference_usd_list_price": 0.009151,
       "inference_calls_with_unknown_cost": 0
     }
   },
   {
-    "mlflow_run_id": "5d24b3cc06634a709bf2002dc552c84f",
+    "mlflow_run_id": "a06f2d73d748426792cb8affe0dcd618",
     "name": "candidate|second|real_only",
     "metrics": {
       "items": 43,
@@ -172,15 +172,15 @@
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
-      "latency_p95_s": 0.05,
-      "inference_input_tokens": 62748,
+      "latency_p95_s": 0.06,
+      "inference_input_tokens": 63698,
       "inference_output_tokens": 8787,
-      "inference_inference_usd_list_price": 0.040792,
+      "inference_inference_usd_list_price": 0.041077,
       "inference_calls_with_unknown_cost": 0
     }
   },
   {
-    "mlflow_run_id": "773d4359fd1d4f93b93f0fa842ba79fa",
+    "mlflow_run_id": "4e96d22b5c39421bad2fa65d3f531fa5",
     "name": "candidate|second|scenario_enabled",
     "metrics": {
       "items": 60,
@@ -194,10 +194,10 @@
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
-      "latency_p95_s": 0.06,
-      "inference_input_tokens": 91921,
+      "latency_p95_s": 0.08,
+      "inference_input_tokens": 93254,
       "inference_output_tokens": 14815,
-      "inference_inference_usd_list_price": 0.064614,
+      "inference_inference_usd_list_price": 0.065014,
       "inference_calls_with_unknown_cost": 0
     }
   }

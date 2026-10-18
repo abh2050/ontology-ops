@@ -1,13 +1,13 @@
 {
-  "eval_run_id": "e03b14c4-b396-402e-9676-dfce0ef618c1",
+  "eval_run_id": "d951fdc1-07f0-4d29-8d91-1bec0843c808",
   "provider": "fixture",
-  "started_utc": "2026-10-18T02:50:30.722403+00:00",
-  "wall_seconds": 8.9,
+  "started_utc": "2026-10-18T17:34:25.223325+00:00",
+  "wall_seconds": 10.2,
   "gold_hash": "be3636d9d075515664e33fd5c07901b321a60054c152fe8bfbd066352b230182",
   "gold_reviewer": "Abhishek Shah",
   "ontology_version": "operational-commerce-v1",
-  "code_commit": "deeb9e0fa6988fbcbcc43723d8d0825394bd9611",
-  "prompt_hash": "ff79be696fdf04b62242f9c236e2ed73e0daf8f54c722eb3461731d022bfe112",
+  "code_commit": "8ca3fd3f5fd90d3d4b03aafa6841b8f8550dcf0b",
+  "prompt_hash": "9da4c116a2622614c38d90a6682d756430dbc0b9d003b3b057f4f3d10cc6d83d",
   "planned_calls": 824,
   "admitted_calls": 808,
   "ceiling": 1500,
@@ -117,7 +117,7 @@
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
-      "latency_p95_s": 0.05,
+      "latency_p95_s": 0.06,
       "by_category_success": {
         "aggregate": 1.0,
         "direct_object": 0.0,
@@ -126,9 +126,9 @@
       },
       "model_id": "amazon.nova-lite-v1:0",
       "inference": {
-        "input_tokens": 67574,
+        "input_tokens": 70182,
         "output_tokens": 4271,
-        "inference_usd_list_price": 0.005079,
+        "inference_usd_list_price": 0.005236,
         "calls_with_unknown_cost": 0
       }
     },
@@ -144,7 +144,7 @@
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
-      "latency_p95_s": 0.05,
+      "latency_p95_s": 0.06,
       "by_category_success": {
         "aggregate": 1.0,
         "direct_object": 0.05,
@@ -153,9 +153,9 @@
       },
       "model_id": "amazon.nova-lite-v1:0",
       "inference": {
-        "input_tokens": 99477,
+        "input_tokens": 103148,
         "output_tokens": 6571,
-        "inference_usd_list_price": 0.007546,
+        "inference_usd_list_price": 0.007766,
         "calls_with_unknown_cost": 0
       }
     },
@@ -170,8 +170,8 @@
       "causal_rejections": 0,
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
-      "latency_p50_s": 0.03,
-      "latency_p95_s": 0.05,
+      "latency_p50_s": 0.04,
+      "latency_p95_s": 0.06,
       "by_category_success": {
         "aggregate": 1.0,
         "direct_object": 0.0,
@@ -180,9 +180,9 @@
       },
       "model_id": "global.amazon.nova-2-lite-v1:0",
       "inference": {
-        "input_tokens": 67574,
+        "input_tokens": 70182,
         "output_tokens": 4271,
-        "inference_usd_list_price": 0.03095,
+        "inference_usd_list_price": 0.031732,
         "calls_with_unknown_cost": 0
       }
     },
@@ -198,7 +198,7 @@
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
-      "latency_p95_s": 0.05,
+      "latency_p95_s": 0.06,
       "by_category_success": {
         "aggregate": 1.0,
         "direct_object": 0.05,
@@ -207,9 +207,9 @@
       },
       "model_id": "global.amazon.nova-2-lite-v1:0",
       "inference": {
-        "input_tokens": 99477,
+        "input_tokens": 103148,
         "output_tokens": 6571,
-        "inference_usd_list_price": 0.046271,
+        "inference_usd_list_price": 0.047372,
         "calls_with_unknown_cost": 0
       }
     },
@@ -225,7 +225,7 @@
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
-      "latency_p95_s": 0.05,
+      "latency_p95_s": 0.06,
       "by_category_success": {
         "aggregate": 1.0,
         "direct_object": 1.0,
@@ -234,9 +234,9 @@
       },
       "model_id": "amazon.nova-lite-v1:0",
       "inference": {
-        "input_tokens": 61090,
+        "input_tokens": 63698,
         "output_tokens": 8787,
-        "inference_usd_list_price": 0.005774,
+        "inference_usd_list_price": 0.005931,
         "calls_with_unknown_cost": 0
       }
     },
@@ -251,8 +251,8 @@
       "causal_rejections": 0,
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
-      "latency_p50_s": 0.04,
-      "latency_p95_s": 0.06,
+      "latency_p50_s": 0.05,
+      "latency_p95_s": 0.08,
       "by_category_success": {
         "aggregate": 1.0,
         "direct_object": 1.0,
@@ -261,9 +261,9 @@
       },
       "model_id": "amazon.nova-lite-v1:0",
       "inference": {
-        "input_tokens": 89583,
+        "input_tokens": 93254,
         "output_tokens": 14815,
-        "inference_usd_list_price": 0.008931,
+        "inference_usd_list_price": 0.009151,
         "calls_with_unknown_cost": 0
       }
     },
@@ -279,7 +279,7 @@
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
-      "latency_p95_s": 0.05,
+      "latency_p95_s": 0.06,
       "by_category_success": {
         "aggregate": 1.0,
         "direct_object": 1.0,
@@ -288,9 +288,9 @@
       },
       "model_id": "global.amazon.nova-2-lite-v1:0",
       "inference": {
-        "input_tokens": 61090,
+        "input_tokens": 63698,
         "output_tokens": 8787,
-        "inference_usd_list_price": 0.040294,
+        "inference_usd_list_price": 0.041077,
         "calls_with_unknown_cost": 0
       }
     },
@@ -306,7 +306,7 @@
       "unsupported_causal_claims_accepted": 0,
       "failed_or_unknown_jobs": 0,
       "latency_p50_s": 0.04,
-      "latency_p95_s": 0.06,
+      "latency_p95_s": 0.08,
       "by_category_success": {
         "aggregate": 1.0,
         "direct_object": 1.0,
@@ -315,9 +315,9 @@
       },
       "model_id": "global.amazon.nova-2-lite-v1:0",
       "inference": {
-        "input_tokens": 89583,
+        "input_tokens": 93254,
         "output_tokens": 14815,
-        "inference_usd_list_price": 0.063912,
+        "inference_usd_list_price": 0.065014,
         "calls_with_unknown_cost": 0
       }
     }
