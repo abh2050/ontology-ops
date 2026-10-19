@@ -1,13 +1,88 @@
 # Ontology Ops on AWS
 
-**An AI-assisted investigation workflow for late deliveries, built end to end on AWS, then measured honestly against a non-AI baseline.**
+**Turn late deliveries into focused investigations.**
+
+An operations workspace that helps marketplace teams connect orders, sellers and products, find related delivery exceptions, and prepare an evidence-backed case for review. Built end to end, from the data pipeline and user interface to AI evaluation and AWS deployment.
 
 [![CI](https://github.com/abh2050/ontology-ops/actions/workflows/ci.yml/badge.svg)](https://github.com/abh2050/ontology-ops/actions/workflows/ci.yml)
 &nbsp;**[Live site](https://abh2050.github.io/ontology-ops/)** · **[Try the sandbox app](https://abh2050.github.io/ontology-ops/sandbox/)** · **[System design](docs/system-design.md)** · **[Measured results](docs/results.md)**
 
-![AWS deployment architecture](docs/diagrams/aws-deployment.svg)
+## The business problem
+
+An overdue-order report tells an operations analyst where to start. Preparing an investigation takes more work: look up the sellers and products, find other related late orders, calculate the affected value, and collect evidence for a team lead to review.
+
+In the customer environment modeled by this project, that research spans separate exports, spreadsheets and review handoffs. Several late orders may share a seller, so the useful unit of work can be a **group of related orders**, rather than a separate investigation for every alert.
+
+The business question is:
+
+> **Which late orders should we investigate together, what evidence connects them, and who can approve the case?**
+
+| Who uses it | What they need to accomplish |
+|---|---|
+| **Operations analyst** | Understand a delivery exception, find related orders and assemble a supported investigation proposal. |
+| **Operations lead / reviewer** | Inspect the evidence, check the proposed scope and decide whether to open the internal case. |
+
+This is a modeled operations workflow, not a claim about Olist's internal processes or an existing customer deployment.
+
+## What the product does
+
+| Step | In the workspace | The business purpose |
+|---|---|---|
+| **1. Find the exceptions** | Browse the authorized queue of late, undelivered orders at a selected historical date. | Give the analyst a consistent starting point for investigation. |
+| **2. Connect the evidence** | Explore the order's sellers, products and related late orders; inspect exact counts and seller-level line values. | Bring related issues into one view while keeping quantities and monetary exposure accurate. |
+| **3. Review the case** | Prepare an evidence-linked proposal and route it to a different, authorized reviewer. | Turn the research into a traceable internal investigation decision. |
+
+**The value hypothesis:** less repeated evidence assembly, fewer overlapping investigations and clearer review handoffs. The build implements and tests the workflow; analyst time savings, observed case reduction and financial return still require a customer study. See the [business case](docs/business_case.md) for measured inputs and explicit assumptions.
+
+## Product tour
+
+### Connect an order to the wider investigation
+
+The graph shows the business relationships around a selected order. The detail panel explains those relationships and reports the seller's exact exposure. Counts and totals are calculated separately from the graph's display limit.
+
+[![Connected investigation workspace with an order-and-seller graph, relationship details and exact scoped totals](docs/assets/case-study/graph.webp)](https://abh2050.github.io/ontology-ops/sandbox/)
+
+*Actual application capture using authored fixtures. Public-demo actions are simulations; this is not live model output. [Explore the sandbox →](https://abh2050.github.io/ontology-ops/sandbox/)*
+
+<details>
+<summary><b>See the exception queue and action-review screens</b></summary>
+
+<table>
+  <tr>
+    <th>1. Find delivery exceptions</th>
+    <th>3. Review the internal case</th>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/case-study/queue.webp" width="480" alt="Actual authored-fixture exception queue with overdue orders and investigate controls"></td>
+    <td><img src="docs/assets/case-study/review.webp" width="480" alt="Actual static review workspace after a simulated approval of an authored internal investigation"></td>
+  </tr>
+  <tr>
+    <td>Select the data context and open an order for investigation. Queue sorting is a heuristic.</td>
+    <td>Inspect the proposal and its review state. The backend enforces independent approval; the static demo simulates the action.</td>
+  </tr>
+</table>
+
+All three screenshots show the implemented UI with authored data. They illustrate the product experience, not measured improvements in analyst performance.
+
+</details>
+
+### Where the ontology and AI fit
+
+An **ontology** is the shared business vocabulary: a customer places an order, an order contains lines, and each line belongs to a seller and a product. The application uses these typed relationships consistently across the graph, evidence tools and recommendations.
+
+The AI-assisted path adds two bounded stages: a planner selects evidence tools, then an analyst drafts cited findings and a proposed internal action. Deterministic software owns permissions, exact calculations, evidence checks and execution. A separate reviewer makes the approval decision.
+
+The project evaluates whether that assistance adds value over a deterministic workspace using the same facts. The [recorded comparison and recommendation](#measured-results) appear after the architecture and system-design walkthrough.
+
+**The user decides only one thing:** whether to open an evidence-supported **internal** investigation. The system never contacts customers, issues refunds, edits commerce records, or claims to know the cause of a delay. A seller relationship records who fulfilled a line, not who is at fault.
 
 ---
+
+## From product to implementation
+
+The sections below cover what was built, how the AWS services work together, the engineering decisions, and the measured results.
+
+![AWS deployment architecture](docs/diagrams/aws-deployment.svg)
 
 ## At a glance
 
@@ -32,19 +107,6 @@
 | **Data engineering** | Full Olist dataset (99,441 orders) with strict validation, a quarantine with reason codes, money as integer centavos, historical as-of masking, reproducible manifests |
 | **Evaluation and judgement** | A frozen 60-question benchmark, B0/B1/candidate comparators across 2 models and 2 modes, independent SQL oracles, a pre-registered success margin → [results](docs/results.md) |
 | **Frontend** | React 19, TypeScript, TanStack Query, Cytoscape.js graph, three adapters (live, evidence replay, sandbox), Playwright tests |
-
-## The problem
-
-A dashboard can flag an overdue order. An analyst still has to:
-- find the sellers involved and the related late orders
-- count them without double counting multi-seller orders
-- attribute money to the right seller's order lines
-- separate facts from guesses
-- get approval from someone else
-
-This project asks whether typed relationships plus bounded AI make that investigation better than a well-built SQL workspace.
-
-**The user decides only one thing:** whether to open an evidence-supported **internal** investigation. The system never contacts customers, issues refunds, edits commerce records, or claims to know the cause of a delay. A seller relationship records who fulfilled a line, not who is at fault.
 
 ---
 
