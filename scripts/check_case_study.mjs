@@ -73,6 +73,8 @@ try{
   for(const id of ['workflow-detail','policy-detail','comparison-detail'])await page.locator('#'+id+' > summary').click();
   for(const width of [1440,1024,768,390,320]){
     await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));
+    const film=await page.locator('.demo-film').boundingBox();
+    if(!film||film.width>900.5||Math.abs(film.x+film.width/2-width/2)>1)throw Error('Demo player must be centered and capped at 900px at viewport '+width);
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);if(overflow){const elements=await page.locator('body *').evaluateAll(elements=>elements.filter(element=>element.getBoundingClientRect().right>innerWidth+.01||element.scrollWidth>element.clientWidth+1).slice(0,20).map(element=>({tag:element.tagName,class:element.className,right:element.getBoundingClientRect().right,scrollWidth:element.scrollWidth,clientWidth:element.clientWidth})));await page.screenshot({path:`${folder}/${width}-overflow.png`});throw Error('Horizontal overflow at '+width+'px: '+JSON.stringify(elements));}
     if(width===390){await page.getByRole('button',{name:'Menu +',exact:true}).click();await expect(page.locator('.menu')).toHaveAttribute('aria-expanded','true');await page.keyboard.press('Escape');await expect(page.locator('.menu')).toHaveAttribute('aria-expanded','false')}
     if(width===1440||width===390){await page.screenshot({path:`${folder}/${width}-hero.png`});for(const id of ['demo','problem','architecture','evaluation','product']){await page.locator('#'+id).evaluate(element=>element.scrollIntoView({block:'start',behavior:'instant'}));await page.screenshot({path:`${folder}/${width}-${id}.png`})}}
