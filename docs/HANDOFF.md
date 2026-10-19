@@ -1,10 +1,12 @@
+> **Final status (2026-10-19):** M1 to M6 complete. The AWS stack and CDKToolkit are **torn down** (`docs/evidence/teardown-20261019.md`). The site is published from `/docs` on GitHub Pages. The demo video was removed at the owner's request; a new one is pending. Everything below is the earlier handoff, kept for history.
+
 # Handoff for the next agent (written 2026-10-18)
 
 Read `AGENTS.md` first. It holds the persistent rules and owner decisions. The full spec is `claude.md` (repository copy `docs/prd.md`). Owner decisions that override the spec are in `docs/decisions.md` (D-001 to D-024).
 
 ## Where things stand
 - **M1 to M5 passed.** Reports are in `docs/progress/M1.md` … `M5.md`, and the measured results in `docs/results.md`.
-- **M6 has not started.** That is your job, in this order:
+- **M6 is in progress.** Read `docs/progress/M6.md`: the React UI is deployed as `m6-demo-20261018`; real Cognito browser PKCE and 18/18 HTTPS smoke checks passed. Genuine video footage is captured with disclosed computer-generated narration; see `docs/demo.md`. The native-AWS diagrams and authored static builds are verified locally. Publication and teardown remain unrun. Continue in this order:
   1. React UI
   2. static builds
   3. architecture diagrams
@@ -12,7 +14,8 @@ Read `AGENTS.md` first. It holds the persistent rules and owner decisions. The f
   5. demo support
   6. teardown
 - **The AWS stack is live and billing** (about $2.45/day, estimate) in **us-east-2** (D-023, account SCP) behind **CloudFront's default domain** (D-024, no custom domain). The app URL is the `OutAppUrl` stack output in `cdk.out/outputs.json`, which is gitignored and contains the account number.
-- Tests: `uv run pytest -q` gives **274 passed**. Lint: `uv run ruff check .` is clean.
+- Current tests: `uv run pytest -q` gives **287 passed**. Frontend Playwright: **5 passed**. Ruff is clean. Current live smoke: `docs/evidence/smoke/smoke-20261018T2303.txt`. CloudFormation is `UPDATE_COMPLETE`; running API/worker use the corrected image with fault injection disabled.
+- Recording uncovered a synthetic-citation validation gap; the original internal demo case and failed footage are retained. A narrow guard and five tests were added. See `docs/evidence/demo-validation-gap.md`. M5 evaluation scores predate the fix and are not remeasured results for it. The final live job returned validated findings with no action for an already-cased order; save was refused with 409. The video shows an earlier independently checked case separately, not as approval of that no-action attempt.
 
 ## Hard rules (do not break)
 - **Region and domain.** Everything runs in us-east-2: infrastructure and Bedrock. There is no custom domain, ACM certificate, or Route 53. Do not move anything to us-east-1; the organization SCP denies the needed services there.
@@ -45,7 +48,7 @@ uv run python scripts/teardown.py                              # DRY RUN: tagged
 Local test tokens: `python -c "from ops.auth import issue_local_token; print(issue_local_token('operator_a'))"`. Users: `operator_a`, `operator_b`, `reviewer`, `viewer`.
 
 ## M6 checklist (spec sections 16, 17, 19, and owner additions)
-1. **Frontend** (`frontend/`, not created yet): React 19, TS 5, Vite, Tailwind 4, TanStack Query, Cytoscape.js. Commit `frontend/package-lock.json`.
+1. **Frontend** (`frontend/`, implemented locally): React 19, TS 5, Vite, Tailwind 4, TanStack Query, Cytoscape.js. Keep `frontend/package-lock.json`.
    - **Four views** sharing one set of components:
      - **Exception queue:** sort by days overdue, then line value, then order_id. Label the sort a heuristic.
      - **Connected investigation:** Cytoscape graph plus detail drawer plus evidence table. Clicking an edge shows its business meaning; the graph cap (50 nodes) is labelled separately from exact totals.

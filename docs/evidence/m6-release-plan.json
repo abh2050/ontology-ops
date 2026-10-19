@@ -1,0 +1,34 @@
+{
+  "operation": "Read-only release diff; no change set or deployment",
+  "image_tag": "m6-ui-20261018",
+  "services_running": true,
+  "exit_code": 0,
+  "resource_changes": [
+    {
+      "change": "~",
+      "type": "AWS::ECS::TaskDefinition",
+      "logical_id": "ApiTask"
+    },
+    {
+      "change": "~",
+      "type": "AWS::ECS::TaskDefinition",
+      "logical_id": "WorkerTask"
+    },
+    {
+      "change": "~",
+      "type": "AWS::ECS::TaskDefinition",
+      "logical_id": "MigrationTask"
+    },
+    {
+      "change": "~",
+      "type": "AWS::ECS::TaskDefinition",
+      "logical_id": "ImportTask"
+    },
+    {
+      "change": "~",
+      "type": "AWS::ECS::TaskDefinition",
+      "logical_id": "SeedTask"
+    }
+  ],
+  "status": "diff completed; no resources changed"
+}

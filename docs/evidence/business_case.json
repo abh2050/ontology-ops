@@ -1,0 +1,65 @@
+{
+  "method": "Disjoint single-seller groups of at least two late open orders; multi-seller orders remain individual. Operators measured separately. Potential grouping only, not observed case reduction.",
+  "cohorts": [
+    {
+      "batch_id": "fixtures-v1",
+      "actor": "operator_a",
+      "as_of": "2018-03-15 23:59:59",
+      "late_open_orders": 31,
+      "groupable_orders": 21,
+      "groups": 5,
+      "potential_cases": 15,
+      "multi_seller_orders": 9
+    },
+    {
+      "batch_id": "fixtures-v1",
+      "actor": "operator_b",
+      "as_of": "2018-03-15 23:59:59",
+      "late_open_orders": 20,
+      "groupable_orders": 10,
+      "groups": 2,
+      "potential_cases": 12,
+      "multi_seller_orders": 7
+    },
+    {
+      "batch_id": "fixtures-v1",
+      "actor": "reviewer",
+      "as_of": "2018-03-15 23:59:59",
+      "late_open_orders": 60,
+      "groupable_orders": 31,
+      "groups": 7,
+      "potential_cases": 36,
+      "multi_seller_orders": 25
+    },
+    {
+      "batch_id": "olist-full-v1-d689b1282dbe",
+      "actor": "operator_a",
+      "as_of": "2018-03-30 23:59:59",
+      "late_open_orders": 645,
+      "groupable_orders": 603,
+      "groups": 139,
+      "potential_cases": 181,
+      "multi_seller_orders": 0
+    },
+    {
+      "batch_id": "olist-full-v1-d689b1282dbe",
+      "actor": "operator_b",
+      "as_of": "2018-03-30 23:59:59",
+      "late_open_orders": 180,
+      "groupable_orders": 0,
+      "groups": 0,
+      "potential_cases": 180,
+      "multi_seller_orders": 0
+    },
+    {
+      "batch_id": "olist-full-v1-d689b1282dbe",
+      "actor": "reviewer",
+      "as_of": "2018-03-30 23:59:59",
+      "late_open_orders": 825,
+      "groupable_orders": 603,
+      "groups": 139,
+      "potential_cases": 361,
+      "multi_seller_orders": 0
+    }
+  ]
+}

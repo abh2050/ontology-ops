@@ -129,6 +129,21 @@ def test_meta_etag(client):
     assert again.status_code == 304
 
 
+def test_public_ui_config_and_unknown_api_route(client):
+    config = client.get("/ui-config.json")
+    assert config.status_code == 200
+    assert set(config.json()) == {"auth_mode", "domain", "client_id", "issuer"}
+    assert config.json()["auth_mode"] == "local"
+    unknown = client.get("/api/does-not-exist")
+    assert unknown.status_code == 404
+    assert "<!doctype html" not in unknown.text.lower()
+    if (REPO_ROOT / "frontend/dist/index.html").is_file():
+        callback = client.get("/auth/callback")
+        assert callback.status_code == 200
+        assert "text/html" in callback.headers["content-type"]
+        assert callback.headers["cache-control"] == "no-store"
+
+
 def test_api_refuses_local_auth_outside_local():
     env = {**os.environ, "DEPLOY_ENV": "aws", "AUTH_MODE": "local"}
     r = subprocess.run([sys.executable, "-c", "import ops.api"], env=env, cwd=REPO_ROOT,

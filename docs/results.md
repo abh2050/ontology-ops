@@ -91,6 +91,7 @@ All four pass.
 - **Cost Explorer** had not reported charges at the time of the snapshot (billing lag); see `docs/progress/M4.5.md`. Unknown charges are not zero.
 
 ## Limitations
+- **Later validation finding.** The M6 live recording exposed acceptance of a synthetic-context finding without synthetic evidence. A citation guard and five regression tests were added after this evaluation. These scores do not measure that correction; see [the retained failure evidence](evidence/demo-validation-gap.md).
 - **Benchmark design.** B0 is perfect by construction on gold-v1, so the benchmark can show only whether AI matches deterministic tooling, not whether it helps a human.
 - **Evaluation location.** The evaluation ran from the owner's laptop against a local copy of the same data, not on the deployed stack.
 - **One run per cell.** Model outputs at temperature 0 still vary between runs (observed: the same seller target produced a valid and an invalid proposal in different runs).

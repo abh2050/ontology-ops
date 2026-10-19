@@ -1,0 +1,20 @@
+HTTPS smoke tests (2026-10-18 23:03 UTC) against https://d2lgtpubrvhlii.cloudfront.net
+[PASS] HTTP redirects to HTTPS: 301
+[PASS] health over HTTPS
+[PASS] no token is rejected
+[PASS] invalid token is rejected
+[PASS] operator_a: provisioned as operator: granted_sellers=181
+[PASS] operator_a: queue readable: late_open_orders=645
+[PASS] operator_b: provisioned as operator: granted_sellers=2914
+[PASS] operator_b: queue readable: late_open_orders=180
+[PASS] reviewer: provisioned as reviewer: granted_sellers=3095
+[PASS] reviewer: queue readable: late_open_orders=825
+[PASS] viewer: provisioned as viewer: granted_sellers=0
+[PASS] viewer: queue readable: late_open_orders=0
+[PASS] viewer sees nothing
+[PASS] operators see their scope
+[PASS] reviewer sees at least each operator
+[PASS] split order invisible to both operators: 404/404
+[PASS] split order visible to reviewer: 200
+[PASS] entity responses are private, no-store
+SMOKE PASSED

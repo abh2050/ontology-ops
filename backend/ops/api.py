@@ -14,11 +14,13 @@ import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 from functools import cache
+from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import Connection, text
 
 from ops.auth import AuthError, Identity, verify_access_token
@@ -48,6 +50,16 @@ async def _lifespan(_: FastAPI):
 
 app = FastAPI(title="Ontology driven operational AI", version="0.1.0",
               docs_url=None, redoc_url=None, openapi_url=None, lifespan=_lifespan)
+
+
+@app.get("/ui-config.json")
+def ui_config() -> dict:
+    """Public OAuth identifiers only; no credentials or source data."""
+    return {"auth_mode": SETTINGS.auth_mode, "domain": SETTINGS.cognito_domain,
+            "client_id": SETTINGS.cognito_client_id,
+            "issuer": (f"https://cognito-idp.{SETTINGS.aws_region}.amazonaws.com/"
+                       f"{SETTINGS.cognito_user_pool_id}") if SETTINGS.cognito_user_pool_id
+            else None}
 
 
 @app.middleware("http")
@@ -433,3 +445,15 @@ def list_cases(c: Context) -> dict:
                         "proposal_id": str(r.proposal_id), "payload": r.case_payload,
                         "created_at": r.created_at.isoformat()})
     return {"items": out[:50]}
+
+
+# Keep the browser application on the API origin. Mount this last so no UI
+# fallback can shadow an authenticated /api route. The directory is absent in
+# source-only test environments and present in the production image.
+UI_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+if UI_DIST.is_dir():
+    @app.get("/auth/callback", include_in_schema=False)
+    def auth_callback() -> FileResponse:
+        return FileResponse(UI_DIST / "index.html", headers={"Cache-Control": "no-store"})
+
+    app.mount("/", StaticFiles(directory=UI_DIST, html=True), name="frontend")

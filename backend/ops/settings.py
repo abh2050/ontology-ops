@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     aws_region: str = "us-east-2"
     cognito_user_pool_id: str | None = None
     cognito_client_id: str | None = None
+    cognito_domain: str | None = None
     local_issuer: str = "https://local.ops.invalid/local-user-pool"
     local_client_id: str = "local-client"
 

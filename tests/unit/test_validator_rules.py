@@ -62,3 +62,39 @@ def test_select_all_on_order_target_is_accepted_by_contract():
     a = ProposedAction(kind="CreateInvestigation", target_type="Order", target_id="a" * 32,
                        select_all_late_open=True, reason_codes=["LATE_OPEN"])
     assert a.select_all_late_open
+
+
+@pytest.mark.parametrize("synthetic,citations,ok", [
+    (False, ["Order:" + "a" * 32], False),
+    (True, ["Order:" + "a" * 32], False),
+    (True, ["DisruptionEvent:demo"], True),
+    (False, ["DisruptionEvent:demo"], False),
+    (True, [], False),
+])
+def test_synthetic_finding_requires_its_own_actual_synthetic_citation(
+        synthetic, citations, ok, monkeypatch):
+    from datetime import datetime
+    from types import SimpleNamespace
+
+    from ops.agents.contracts import AnalystOutput, Finding, ProposedAction
+    from ops.agents.validator import validate
+
+    monkeypatch.setattr("ops.agents.validator.T.check_case_eligibility",
+                        lambda *args: SimpleNamespace(reasons=[]))
+
+    output = AnalystOutput(findings=[Finding(
+        kind="synthetic_context", text="Synthetic regional context; cause remains unknown.",
+        evidence_refs=citations)], action=ProposedAction(
+            kind="CreateInvestigation", target_type="Order", target_id="a" * 32,
+            selected_order_ids=["a" * 32], reason_codes=["LATE_OPEN"]))
+    evidence = [{"tool": "get_order_snapshot", "order": {"order_id": "a" * 32},
+                 "evidence_hash": "0" * 64, "evidence": [
+        {"ref": "Order:" + "a" * 32, "is_synthetic": False},
+        {"ref": "DisruptionEvent:demo", "is_synthetic": synthetic},
+    ]}]
+    report = validate(None, None, output, evidence, datetime(2018, 3, 15, 23, 59, 59))
+    assert report.ok is ok
+    assert report.proposal_state == ("pending" if ok else "none")
+    assert report.evidence_coverage == (1.0 if ok else 0.0)
+    if not ok:
+        assert {r.code for r in report.rejections} == {"UNRESOLVABLE_EVIDENCE"}

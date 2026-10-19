@@ -195,6 +195,7 @@ class OntologyOpsStack(Stack):
             "OPS_DB_HOST": db.db_instance_endpoint_address, "OPS_DB_NAME": "ops",
             "COGNITO_USER_POOL_ID": pool.user_pool_id,
             "COGNITO_CLIENT_ID": client.user_pool_client_id,
+            "COGNITO_DOMAIN": pool_domain.base_url(),
         }
 
         def creds(role: str, secret: sm.ISecret) -> tuple[dict, dict]:

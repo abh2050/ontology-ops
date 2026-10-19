@@ -1,0 +1,21 @@
+{
+  "operation": "Tagged inventory dry run only; no resource changes",
+  "exit_code": 0,
+  "services": {
+    "cloudformation": 2,
+    "cloudwatch": 2,
+    "cognito-idp": 1,
+    "ec2": 15,
+    "ecr": 2,
+    "ecs": 12,
+    "elasticloadbalancing": 3,
+    "lambda": 1,
+    "logs": 3,
+    "rds": 5,
+    "s3": 2,
+    "secretsmanager": 5,
+    "sqs": 2,
+    "ssm": 1
+  },
+  "status": "inventory read successfully; teardown not executed"
+}

@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ontology Ops on AWS</title>
+<meta name="description" content="Ontology-driven operational AI for delivery-exception investigation, built and measured on AWS: architecture diagrams, static sandbox, and honest evaluation results.">
+<style>
+  :root {
+    --bg: #f7f6f3; --surface: #ffffff; --ink: #1d2733; --muted: #5b6673; --line: #e2e0da;
+    --accent: #c4561f; --accent-ink: #ffffff; --navy: #142338; --ok: #2f7d4f; --warn: #b4441c;
+    --chip: #eef1f5; --code: #f1efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #11161d; --surface: #18202a; --ink: #e8ecf1; --muted: #a3adb9; --line: #2a3441;
+      --accent: #f08a4b; --accent-ink: #11161d; --navy: #0b121b; --ok: #6cc08f; --warn: #f0905f;
+      --chip: #222c38; --code: #1f2833;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #11161d; --surface: #18202a; --ink: #e8ecf1; --muted: #a3adb9; --line: #2a3441;
+    --accent: #f08a4b; --accent-ink: #11161d; --navy: #0b121b; --ok: #6cc08f; --warn: #f0905f;
+    --chip: #222c38; --code: #1f2833;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  header.hero { background: var(--navy); color: #f3f5f8; padding: 56px 0 44px; }
+  header.hero .eyebrow { letter-spacing: .12em; text-transform: uppercase; font-size: 12px; color: #f4b48c; }
+  header.hero h1 { font-size: clamp(30px, 4.5vw, 46px); line-height: 1.12; margin: 10px 0 14px; max-width: 880px; }
+  header.hero p.lede { font-size: 18px; color: #c9d2dd; max-width: 800px; margin: 0 0 24px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn { display: inline-block; padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); }
+  .btn.ghost { border: 1px solid #3c4d63; color: #e8ecf1; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 22px; }
+  .chips span { background: #22344b; color: #d7e0ea; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; }
+  section { padding: 48px 0 8px; }
+  h2 { font-size: 26px; margin: 0 0 6px; }
+  h3 { font-size: 18px; margin: 18px 0 6px; }
+  .sub { color: var(--muted); margin: 0 0 22px; max-width: 820px; }
+  .grid { display: grid; gap: 16px; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .g3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .card p { margin: 6px 0 0; color: var(--muted); }
+  .kpi { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .kpi.ok { color: var(--ok); } .kpi.warn { color: var(--warn); }
+  .label { font-size: 13px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--chip); font-weight: 600; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tablewrap { overflow-x: auto; }
+  figure.diagram { margin: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  figure.diagram a.img { display: block; background: #fff; }
+  figure.diagram img { display: block; width: 100%; height: auto; }
+  figure.diagram figcaption { padding: 12px 16px; background: var(--surface); border-top: 1px solid var(--line); font-size: 14.5px; color: var(--ink); }
+  figure.diagram figcaption small { color: var(--muted); display: block; margin-top: 2px; }
+  .note { border-left: 4px solid var(--accent); background: var(--surface); padding: 12px 16px; border-radius: 0 10px 10px 0; color: var(--ink); }
+  ul.tight { margin: 6px 0 0; padding-left: 20px; } ul.tight li { margin: 3px 0; }
+  code { background: var(--code); padding: 1px 6px; border-radius: 5px; font-size: 13.5px; }
+  footer { padding: 40px 0 60px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); margin-top: 48px; }
+  .toggle { position: fixed; right: 14px; top: 14px; z-index: 5; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 13px; cursor: pointer; }
+</style>
+</head>
+<body>
+<button class="toggle" id="theme" type="button" aria-label="Toggle colour theme">Theme</button>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Portfolio project · AWS · applied AI · measured, not claimed</div>
+    <h1>Ontology-driven operational AI for delivery-exception investigation</h1>
+    <p class="lede">Typed business relationships, authorized evidence, two bounded AI stages, a deterministic validator, and independent human approval: built on AWS with CDK, deployed end to end, load tested, failure drilled, evaluated against non-AI baselines, and torn down.</p>
+    <div class="cta">
+      <a class="btn primary" href="sandbox/">Open the sandbox app</a>
+      <a class="btn ghost" href="evidence/">Open the evidence replay</a>
+      <a class="btn ghost" href="#architecture">AWS architecture</a>
+      <a class="btn ghost" href="https://github.com/abh2050/ontology-ops">Source on GitHub</a>
+    </div>
+    <div class="chips">
+      <span>CloudFront</span><span>ALB</span><span>ECS Fargate (ARM64)</span><span>RDS PostgreSQL 16</span>
+      <span>SQS + DLQ</span><span>Amazon Bedrock</span><span>Cognito (PKCE)</span><span>Secrets Manager</span>
+      <span>S3</span><span>ECR</span><span>CloudWatch</span><span>IAM</span><span>AWS CDK v2 (Python)</span>
+      <span>FastAPI</span><span>React 19</span><span>Cytoscape.js</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="problem">
+  <h2>The operational decision</h2>
+  <p class="sub">A dashboard shows an overdue order. An analyst still has to find the sellers involved, find related late orders, count them without double counting multi-seller orders, attribute money to the right seller's lines, separate facts from guesses, and get an independent reviewer to approve opening an internal investigation.</p>
+  <div class="grid g3">
+    <div class="card"><strong>What the user decides</strong><p>Whether to open an evidence-supported <em>internal</em> investigation. Never refunds, blame, customer contact, or edits to commerce records.</p></div>
+    <div class="card"><strong>What the system guarantees</strong><p>Authorization before every join, exact counts and centavo totals by code, no model arithmetic, no causal claims, and a reviewer who is not the proposer.</p></div>
+    <div class="card"><strong>Data</strong><p>Full Olist Brazilian e-commerce dataset (99,441 orders, CC BY-NC-SA 4.0) plus a clearly labelled synthetic carrier and disruption scenario.</p></div>
+  </div>
+</section>
+
+<section id="results">
+  <h2>Measured results</h2>
+  <p class="sub">Every number comes from a recorded run. The frozen 60-question benchmark compares a deterministic SQL workspace (B0), a flat-evidence AI assistant (B1), and the ontology-assisted candidate, across two Amazon Nova models and two modes.</p>
+  <div class="grid g3">
+    <div class="card"><div class="kpi ok">591 ms</div><div class="label">p95 authenticated read at 20 concurrent readers through CloudFront, 0 errors (target 750 ms)</div></div>
+    <div class="card"><div class="kpi ok">18 / 18</div><div class="label">HTTPS smoke checks for operator, operator, reviewer, and an ungranted viewer</div></div>
+    <div class="card"><div class="kpi ok">4 / 4</div><div class="label">Failure drills passed: crash before ack, Bedrock timeout, circuit breaker, poison message to DLQ</div></div>
+    <div class="card"><div class="kpi ok">0</div><div class="label">Unsupported causal claims, authorization failures, or approval-integrity failures accepted</div></div>
+    <div class="card"><div class="kpi warn">0.581</div><div class="label">Best AI task success vs <strong>1.000</strong> for the deterministic baseline</div></div>
+    <div class="card"><div class="kpi">$0.0004–$0.0021</div><div class="label">Inference per completed AI job (Nova Lite, Nova 2 Lite), list price from returned usage</div></div>
+  </div>
+
+  <h3>Benchmark of record (gold-v1, frozen) · selected cells</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Comparator</th><th>Model</th><th>Mode</th><th>Task success</th><th>Precision</th><th>Recall</th><th>Causal rejections</th></tr></thead>
+    <tbody>
+      <tr><td>B0 deterministic</td><td>none</td><td>both</td><td class="num"><strong>1.000</strong></td><td class="num">1.000</td><td class="num">1.000</td><td class="num">0</td></tr>
+      <tr><td>Candidate (typed ontology)</td><td>Nova 2 Lite</td><td>real only</td><td class="num">0.581</td><td class="num">1.000</td><td class="num">0.114</td><td class="num">0</td></tr>
+      <tr><td>Candidate (typed ontology)</td><td>Nova Lite</td><td>scenario</td><td class="num">0.467</td><td class="num">1.000</td><td class="num">0.491</td><td class="num">10</td></tr>
+      <tr><td>B1 flat evidence</td><td>Nova 2 Lite</td><td>real only</td><td class="num">0.558</td><td class="num">1.000</td><td class="num">0.123</td><td class="num">0</td></tr>
+      <tr><td>B1 flat evidence</td><td>Nova Lite</td><td>scenario</td><td class="num">0.250</td><td class="num">1.000</td><td class="num">0.528</td><td class="num">12</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub" style="margin-top:12px">Full table, per-category results, costs, and limitations: <a href="https://github.com/abh2050/ontology-ops/blob/main/docs/results.md">results.md</a>. Raw run: <a href="evidence/eval/20261018T1745-bedrock/report.json">report.json</a>.</p>
+
+  <div class="note"><strong>Recommendation: ship the deterministic workspace.</strong> The AI candidate did not beat the deterministic baseline by the pre-registered meaningful margin. Typed ontology evidence beat flat evidence with the same facts (+4.7 to +21.7 points on Nova Lite), and every safety control held, but on this benchmark the baseline already answers correctly. Human timing remains untested. See <a href="https://github.com/abh2050/ontology-ops/blob/main/docs/pilot.md">pilot.md</a> and <a href="https://github.com/abh2050/ontology-ops/blob/main/docs/business_case.md">business_case.md</a>.</div>
+</section>
+
+<section id="architecture">
+  <h2>AWS architecture</h2>
+  <p class="sub">Seven diagrams drawn from the deployed CDK stack (one stack, 84 resources, all tagged). Click any diagram for the full-resolution SVG; each has an editable draw.io source using the official AWS icon set.</p>
+  <div class="grid g2">
+    <figure class="diagram">
+      <a class="img" href="diagrams/aws-deployment.svg"><img loading="lazy" src="diagrams/aws-deployment.svg" alt="AWS deployment: CloudFront, ALB across two AZs, Fargate API and worker in public subnets, RDS in private isolated subnets, SQS, Bedrock, Cognito and supporting services in us-east-2."></a>
+      <figcaption><strong>Deployment architecture</strong><small>Region, VPC, two AZs, public and private-isolated subnets, no NAT. <a href="diagrams/aws-deployment.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/network-security.svg"><img loading="lazy" src="diagrams/network-security.svg" alt="Security group chain from CloudFront prefix list to ALB, API, and RDS; worker and one-off tasks have no inbound rules."></a>
+      <figcaption><strong>Network and security boundaries</strong><small>Security-group chain, routes, encryption in transit and at rest, accepted residual risk. <a href="diagrams/network-security.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/request-flow.svg"><img loading="lazy" src="diagrams/request-flow.svg" alt="Sequence diagram of Cognito PKCE sign-in and an authorized, scoped API read."></a>
+      <figcaption><strong>Authenticated read path</strong><small>Cognito code + PKCE, JWT verification, scope reloaded per request. <a href="diagrams/request-flow.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/job-flow.svg"><img loading="lazy" src="diagrams/job-flow.svg" alt="Sequence diagram of the transactional outbox, SQS, worker lease, Bedrock planner and analyst, validator, and reviewer approval."></a>
+      <figcaption><strong>Async AI job and independent approval</strong><small>Outbox → SQS → leases → two Bedrock stages → validator → one-transaction approval, with failure paths. <a href="diagrams/job-flow.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/iam-and-db-roles.svg"><img loading="lazy" src="diagrams/iam-and-db-roles.svg" alt="IAM task roles per duty and PostgreSQL role grants."></a>
+      <figcaption><strong>IAM task roles and database roles</strong><small>Least privilege at the AWS API layer and at the row and column layer. <a href="diagrams/iam-and-db-roles.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/deployment-pipeline.svg"><img loading="lazy" src="diagrams/deployment-pipeline.svg" alt="Thirteen-step pipeline from preflight through CDK deploy, one-off ECS tasks, release, verification, and teardown."></a>
+      <figcaption><strong>Build, deploy, verify, tear down</strong><small>Preflight gates, CDK, immutable image, one-off data tasks, smoke tests, drills, teardown. <a href="diagrams/deployment-pipeline.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/ontology.svg"><img loading="lazy" src="diagrams/ontology.svg" alt="Ontology object types and typed relationships, with synthetic types marked."></a>
+      <figcaption><strong>Ontology operational-commerce-v1</strong><small>Typed objects, relationships, cardinality, derived functions, display projection. <a href="diagrams/ontology.drawio">draw.io source</a></small></figcaption>
+    </figure>
+  </div>
+
+  <h3>AWS design decisions worth noting</h3>
+  <ul class="tight">
+    <li><strong>No NAT gateway.</strong> Fargate tasks use public IPs for egress, with inbound locked by security groups, cutting the largest fixed network cost for a single-task service.</li>
+    <li><strong>CloudFront in front of the ALB</strong> provides HTTPS on an AWS-managed domain without a custom domain or certificate; the ALB admits only CloudFront's origin-facing prefix list.</li>
+    <li><strong>Transactional outbox plus SQS</strong> gives at-least-once delivery without dual writes; consumers are idempotent through leases and checkpoints, proven by a live crash-and-redelivery drill.</li>
+    <li><strong>Paid-call admission is durable:</strong> each model call is reserved in PostgreSQL before it is sent, SDK retries are disabled, and an unknown outcome is held rather than retried.</li>
+    <li><strong>Separate IAM role and database role per duty.</strong> The worker can call Bedrock but cannot approve; the API can approve but cannot call Bedrock.</li>
+    <li><strong>Region us-east-2</strong> because the account's organization SCP permits these services only there; this was diagnosed with read-only probes and recorded as a decision.</li>
+    <li><strong>Estimated run rate about $74/month</strong> from AWS Price List API rates; the stack was torn down after the demo.</li>
+  </ul>
+</section>
+
+<section id="apps">
+  <h2>Try it (no backend, no credentials)</h2>
+  <p class="sub">Both apps run entirely in your browser on authored fixture data. All actions are simulations and the apps make zero API requests, verified by Playwright tests.</p>
+  <div class="grid g2">
+    <div class="card"><strong><a href="sandbox/">Sandbox app →</a></strong><p>Explore the queue, the relationship graph, a simulated job and proposal, and a simulated independent approval.</p></div>
+    <div class="card"><strong><a href="evidence/">Evidence replay →</a></strong><p>The same interface replaying measured, authored evidence, with synthetic-scenario and authored labels shown.</p></div>
+  </div>
+</section>
+
+<section id="docs">
+  <h2>Documentation</h2>
+  <div class="grid g3">
+    <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/prd.md">Specification</a><p>The full build specification.</p></div>
+    <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/decisions.md">Decisions</a><p>Owner decisions and deviations, D-001 to D-024.</p></div>
+    <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/ontology.md">Ontology</a><p>Types, relationships, and derived functions.</p></div>
+    <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/results.md">Results</a><p>Measured evaluation, latency, cost, and limitations.</p></div>
+    <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/business_case.md">Business case</a><p>Assumptions versus measured inputs, and the decision.</p></div>
+    <div class="card"><a href="https://github.com/abh2050/ontology-ops/tree/main/docs/progress">Milestone reports</a><p>M1 to M6 checks, commands, incidents, and hours.</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Data attribution.</strong> Brazilian E-Commerce Public Dataset by Olist, licensed CC BY-NC-SA 4.0. The public apps use authored fixtures only. Carriers and disruption events are synthetic and labelled as such wherever they appear.</p>
+    <p><strong>Cloud status.</strong> The AWS stack was deployed in us-east-2 from 2026-10-17 to 2026-10-19 and then torn down. This page is static and makes no calls to it.</p>
+    <p>Built by Abhishek Shah · <a href="https://github.com/abh2050/ontology-ops">github.com/abh2050/ontology-ops</a></p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement, key = "ontology-ops-theme";
+    try { var saved = localStorage.getItem(key); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+    document.getElementById("theme").addEventListener("click", function () {
+      var dark = root.getAttribute("data-theme") === "dark" ||
+        (!root.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = dark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem(key, next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>

@@ -6,6 +6,10 @@
 data/raw
 **/node_modules
 frontend/dist
+frontend/pages
+frontend/test-results
+frontend/playwright-report
+frontend/**/*.tsbuildinfo
 cdk.out
 mlruns
 docs

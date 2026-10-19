@@ -3,6 +3,23 @@ on:
   push:
   pull_request:
 jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm --prefix frontend ci
+      - run: cd frontend && npx playwright install --with-deps chromium
+      - run: npm --prefix frontend test
+      - run: npm --prefix frontend run package:pages
+      - uses: actions/upload-artifact@v4
+        with:
+          name: authored-static-pages
+          path: frontend/pages
   backend:
     runs-on: ubuntu-latest
     services:

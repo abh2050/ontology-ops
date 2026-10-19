@@ -1,0 +1,73 @@
+.workspace-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 12px;
+  padding: 14px;
+  background: #f8f6f0;
+  border: 1px solid #d9d4ca;
+  border-radius: 10px;
+}
+.workspace-controls label,
+.panel form label {
+  display: grid;
+  gap: 6px;
+  font-size: 11px;
+  color: #526974;
+}
+input,
+select {
+  border: 1px solid #b4b8b7;
+  border-radius: 5px;
+  background: #fff;
+  padding: 8px;
+  color: #163448;
+  max-width: 100%;
+}
+.workspace-controls button,
+.primary,
+.auth-button,
+.panel form button {
+  border: 0;
+  border-radius: 5px;
+  background: #21485d;
+  color: white;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.actor-status {
+  font-size: 11px;
+  color: #5c707c;
+  margin: 10px 0 24px;
+}
+.job-panel {
+  margin: 18px 0;
+}
+.job-panel p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.auth-error {
+  min-height: 80px;
+  margin-bottom: 18px;
+}
+.auth-button {
+  border: 1px solid #6c8797;
+  font-size: 11px;
+  margin-top: 12px;
+}
+.graph-panel {
+  min-width: 0;
+}
+.evidence-table {
+  overflow-x: auto;
+}
+:focus-visible {
+  outline: 3px solid #c56c37;
+  outline-offset: 3px;
+}

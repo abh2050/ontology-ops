@@ -1,0 +1,33 @@
+{
+  "name": "ontology-ops-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "build:evidence": "tsc -b && VITE_APP_MODE=evidence VITE_BASE_PATH=/evidence/ vite build --outDir dist/evidence",
+    "build:sandbox": "tsc -b && VITE_APP_MODE=sandbox VITE_BASE_PATH=/sandbox/ vite build --outDir dist/sandbox",
+    "build:static": "tsc -b && node scripts/build-static.mjs",
+    "package:pages": "npm run build:static && node scripts/package-pages.mjs",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.2",
+    "cytoscape": "^3.33.1",
+    "jose": "^6.2.12",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/cytoscape": "^3.21.9",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.1.14",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9"
+  }
+}

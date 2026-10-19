@@ -82,6 +82,9 @@ def _texts(out: AnalystOutput) -> list[str]:
 def validate(conn: Connection, principal: Principal, out: AnalystOutput,
              tool_results: list[dict], as_of) -> ValidationReport:
     refs, ids, numbers = evidence_index(tool_results)
+    synthetic_refs = {ref["ref"] for result in tool_results
+                      for ref in result.get("evidence", [])
+                      if ref.get("is_synthetic") is True}
     rejections: list[Rejection] = []
 
     def reject(code: str, detail: str) -> None:
@@ -100,7 +103,12 @@ def validate(conn: Connection, principal: Principal, out: AnalystOutput,
         bad = [r for r in f.evidence_refs if r not in refs]
         if bad:
             reject("UNRESOLVABLE_EVIDENCE", f"{len(bad)} evidence reference(s) do not resolve")
-        if f.kind != "unknown" and f.evidence_refs and not bad:
+        unsupported_synthetic = (f.kind == "synthetic_context"
+                                 and not synthetic_refs.intersection(f.evidence_refs))
+        if unsupported_synthetic:
+            reject("UNRESOLVABLE_EVIDENCE", "synthetic context must cite synthetic evidence "
+                   "returned by an authorized tool")
+        if f.kind != "unknown" and f.evidence_refs and not bad and not unsupported_synthetic:
             covered += 1
     coverage = covered / len(factual) if factual else 1.0
 
