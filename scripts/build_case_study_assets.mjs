@@ -21,9 +21,12 @@ try{
     });
   });
   for(const {name,svg}of icons){const path=`${destination}/${name}.svg`;if(existsSync(path))execFileSync('apply_patch',[],{input:`*** Begin Patch\n*** Delete File: ${path}\n*** End Patch\n`});execFileSync('apply_patch',[],{input:`*** Begin Patch\n*** Add File: ${path}\n+${svg.trim()}\n*** End Patch\n`});}
-  for(const name of ['graph','review']){
+  for(const name of ['queue','graph','review']){
     const source=`brag-output-2026-10-19-134102/composition/assets/${name}.png`;
-    if(!existsSync(source))throw Error('Original authored UI capture not found: '+source);
+    if(!existsSync(source)){
+      if(existsSync(`${destination}/${name}.webp`)){console.log('Kept committed capture: '+name);continue;}
+      throw Error('Original authored UI capture not found: '+source);
+    }
     const encoded=await page.evaluate(async source=>{
       const image=new Image();image.src=source;await image.decode();
       const canvas=document.createElementNS('http://www.w3.org/1999/xhtml','canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;

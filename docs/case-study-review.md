@@ -1,5 +1,17 @@
 # Portfolio case-study revision — 2026-10-19
 
+## Revision 2 — business-first, white/navy/cobalt
+
+Revised after owner feedback and approved for push. Git history records the revision; GitHub Pages publication requires separate verification. The opening now names the user, the work and the product: an operations workspace that connects related late orders and prepares an evidence-backed investigation for review. Scattered record research, grouping and reviewer handoff precede implementation details. Positive capability-led headings replace constraint-led headlines; benchmark results and limitations remain accurate and available in the results section.
+
+The main imagery is the real application. Three keyboard-accessible tabs show authored queue, investigation and review captures. A fresh Higgsfield generation supplied a private layout/color reference, not a published mock product or an implementation claim. No generated root-cause assertions, example records or scaling claims were adopted. The previous amber artwork remains unused. Asset provenance is recorded alongside the images.
+
+Styles and interactions are separated into `case-study.css` and `case-study.js`. The revised `scripts/check_case_study.mjs` passed at 1440, 1024, 768, 390 and 320 pixels, including three product views, six workflow tabs, six architecture components, five policy examples, four model/mode cells, keyboard navigation, mobile-menu Escape behavior, working local and source links, images, and default content without JavaScript. It reported zero page errors, failed requests or API requests. `node --check docs/case-study.js` and authored-source whitespace checks passed.
+
+The revised hero, business opportunity, product, architecture and results captures were visually inspected at desktop and mobile widths. QA artifacts are local under `.local/case-study/revision-2/`. No backend code, product behavior, frozen benchmark, cloud resources, video workspace or model evaluation was changed. The guard-suite limitation described below remains from the prior review; the full backend suite was not rerun for this static revision.
+
+## Revision 1 — earlier review record
+
 `docs/index.html` is the buildless GitHub Pages portfolio, separate from the React sandbox and the pending video composition. Git history records this revision; a successful push is not, by itself, verification of the GitHub Pages deployment.
 
 ## Narrative and evidence

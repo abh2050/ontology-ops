@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-<rect width="1200" height="630" fill="#111311"/><path d="M64 100h1072M64 545h1072" stroke="#373c33"/>
-<g fill="#e9b768" font-family="Arial,sans-serif"><text x="65" y="72" font-size="18" letter-spacing="3">ONTOLOGY / OPS</text><text x="65" y="412" font-size="94" letter-spacing="-5">before action.</text></g>
-<g fill="#f1eee5" font-family="Arial,sans-serif"><text x="65" y="309" font-size="100" letter-spacing="-5">Evidence</text><text x="65" y="480" font-size="23">A governed operational AI system. An evidence-supported product decision.</text></g>
-<g fill="#adb1a6" font-family="monospace" font-size="14"><text x="65" y="148">BUILD → EVALUATE → DECIDE</text><text x="65" y="584">ABHISHEK SHAH / PRODUCT CASE STUDY / OCTOBER 2026</text></g>
-<g transform="translate(1010 285)" stroke="#e9b768" fill="none" stroke-width="2"><path d="m0-65 65 65L0 65-65 0Z"/><path d="m0-23 23 23L0 23-23 0Z" fill="#e9b768"/></g>
+<rect width="1200" height="630" fill="#fff"/><path d="M64 105h1072M64 538h1072" stroke="#dce4f0"/>
+<g fill="#245be5"><rect x="65" y="51" width="12" height="12" rx="1"/><rect x="81" y="51" width="12" height="12" rx="1" opacity=".45"/><rect x="65" y="67" width="12" height="12" rx="1" opacity=".7"/><rect x="81" y="67" width="12" height="12" rx="1"/></g>
+<g fill="#102443" font-family="Arial,sans-serif"><text x="109" y="74" font-size="24" font-weight="600">Ontology Ops</text><text x="65" y="237" font-size="67" font-weight="600" letter-spacing="-3">Turn late deliveries</text><text x="65" y="318" font-size="67" font-weight="600" letter-spacing="-3">into focused</text></g>
+<text x="65" y="400" fill="#245be5" font-family="Arial,sans-serif" font-size="76" font-weight="600" letter-spacing="-3">investigations.</text>
+<g fill="#53627a" font-family="Arial,sans-serif"><text x="65" y="467" font-size="23">Connect orders, sellers and evidence. Prepare one case for review.</text><text x="65" y="582" font-size="16">ABHISHEK SHAH / PRODUCT · ENGINEERING · APPLIED AI · AWS</text></g>
 </svg>
