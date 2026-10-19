@@ -28,7 +28,7 @@ Recommend **B0, the deterministic workspace**. Do not fund the assisted candidat
 
 ![AWS deployment architecture](docs/diagrams/aws-deployment.svg)
 
-Seven diagrams drawn from the deployed CDK stack. Each has an editable draw.io source with official AWS icons and an SVG export; regenerate them with `uv run python scripts/build_diagrams.py`.
+Thirteen diagrams drawn from the deployed CDK stack and the implementation: seven architecture views below, plus six system-design views in [System design](#system-design). Each has an editable draw.io source with official AWS icons and an SVG export; regenerate them with `uv run python scripts/build_diagrams.py`.
 
 | Diagram | Shows |
 |---|---|
@@ -39,6 +39,23 @@ Seven diagrams drawn from the deployed CDK stack. Each has an editable draw.io s
 | [IAM and database roles](docs/diagrams/iam-and-db-roles.svg) | One IAM task role per duty; PostgreSQL role grants |
 | [Deployment pipeline](docs/diagrams/deployment-pipeline.svg) | Preflight → CDK → image → one-off data tasks → release → verify → teardown |
 | [Ontology](docs/diagrams/ontology.svg) | Typed objects, relationships, derived functions |
+
+## System design
+
+The spec's six workload scenarios each map to a built mechanism, measured evidence, and a recorded scale trigger for what was deliberately not built. Full write-up with diagrams: **[docs/system-design.md](docs/system-design.md)**.
+
+![System design overview](docs/diagrams/system-design.svg)
+
+| Scenario | Built | Measured | Deferred, with trigger |
+|---|---|---|---|
+| Too many reads | Indexes, index-range predicate, keyset pagination, ETags, metadata cache, `private, no-store` | p95 **591 ms** at 20 readers (deployed) | Read replica if p95 > 750 ms; scoped result cache |
+| Too many writes | COPY in 1,000-row batches in one transaction, quarantine, append-only audit, background ECS import | Full import **9.3 s**; reimport no-op | Partitioning and incremental upserts; no sharding |
+| Timely updates | 2 s polling with ETag/304 and exponential idle backoff (15 s cap) | Browser tests | SSE/WebSockets for many sub-second watchers |
+| Slow jobs | 202 + job ID, outbox → SQS, worker capped at 2 jobs, leases, checkpoints | Deployed job 10–16 s | Autoscale workers on SQS depth |
+| Failures | Idempotency, paid-call reservation, no SDK retries, DLQ, circuit breaker | **4/4 live drills** | Fleet-wide breaker beyond 1 worker |
+| Read/write contention | Logical CQRS, revision → 409, row and advisory locks, unique keys | 4 concurrent approvals → 1 case | Separate read store or event sourcing |
+
+Diagrams: [read scaling](docs/diagrams/read-scaling.svg) · [write path](docs/diagrams/write-path.svg) · [polling and backoff](docs/diagrams/polling-backoff.svg) · [job and paid-call state machines](docs/diagrams/state-machines.svg) · [CQRS and contention](docs/diagrams/cqrs-contention.svg).
 
 ## Stack
 

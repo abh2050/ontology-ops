@@ -79,6 +79,7 @@
       <a class="btn primary" href="sandbox/">Open the sandbox app</a>
       <a class="btn ghost" href="evidence/">Open the evidence replay</a>
       <a class="btn ghost" href="#architecture">AWS architecture</a>
+      <a class="btn ghost" href="#system-design">System design</a>
       <a class="btn ghost" href="https://github.com/abh2050/ontology-ops">Source on GitHub</a>
     </div>
     <div class="chips">
@@ -132,7 +133,7 @@
 
 <section id="architecture">
   <h2>AWS architecture</h2>
-  <p class="sub">Seven diagrams drawn from the deployed CDK stack (one stack, 84 resources, all tagged). Click any diagram for the full-resolution SVG; each has an editable draw.io source using the official AWS icon set.</p>
+  <p class="sub">Seven architecture diagrams drawn from the deployed CDK stack (one stack, 84 resources, all tagged), plus six system-design diagrams below. Click any diagram for the full-resolution SVG; each has an editable draw.io source using the official AWS icon set.</p>
   <div class="grid g2">
     <figure class="diagram">
       <a class="img" href="diagrams/aws-deployment.svg"><img loading="lazy" src="diagrams/aws-deployment.svg" alt="AWS deployment: CloudFront, ALB across two AZs, Fargate API and worker in public subnets, RDS in private isolated subnets, SQS, Bedrock, Cognito and supporting services in us-east-2."></a>
@@ -176,6 +177,37 @@
   </ul>
 </section>
 
+<section id="system-design">
+  <h2>System design: six workload scenarios</h2>
+  <p class="sub">Each workload from the specification maps to a built mechanism, measured evidence, and a recorded scale trigger for the service deliberately not built yet. Full write-up: <a href="https://github.com/abh2050/ontology-ops/blob/main/docs/system-design.md">system-design.md</a>.</p>
+  <figure class="diagram" style="margin-bottom:16px">
+    <a class="img" href="diagrams/system-design.svg"><img loading="lazy" src="diagrams/system-design.svg" alt="Matrix of six scenarios: too many reads, too many writes, timely updates, slow jobs, failures, read/write contention; each with mechanism, measured evidence, and scale trigger."></a>
+    <figcaption><strong>Overview</strong><small>Reads · writes · timely updates · slow jobs · failures · contention. <a href="diagrams/system-design.drawio">draw.io source</a></small></figcaption>
+  </figure>
+  <div class="grid g2">
+    <figure class="diagram">
+      <a class="img" href="diagrams/read-scaling.svg"><img loading="lazy" src="diagrams/read-scaling.svg" alt="Read path with caching and indexing layers and deferred replica and cache."></a>
+      <figcaption><strong>1. Too many reads</strong><small>Indexes, keyset pagination, ETags, what is never cached; read replica and scoped cache as deferred options. p95 591 ms deployed. <a href="diagrams/read-scaling.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/write-path.svg"><img loading="lazy" src="diagrams/write-path.svg" alt="Import pipeline from CSV through validation, quarantine, COPY and manifest, plus application write transactions."></a>
+      <figcaption><strong>2. Too many writes</strong><small>Validated bulk import with COPY batches in one transaction; transactional application writes; append-only audit. <a href="diagrams/write-path.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/polling-backoff.svg"><img loading="lazy" src="diagrams/polling-backoff.svg" alt="Timeline of job polls with 200 and 304 responses and growing intervals."></a>
+      <figcaption><strong>3. Timely updates</strong><small>ETag/304 polling with exponential idle backoff; why not push yet. <a href="diagrams/polling-backoff.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/state-machines.svg"><img loading="lazy" src="diagrams/state-machines.svg" alt="State machines for jobs and paid model calls including failure states."></a>
+      <figcaption><strong>4–5. Slow jobs and failures</strong><small>Job and paid-call state machines; ack only from durable states; breaker and reuse rules. <a href="diagrams/state-machines.drawio">draw.io source</a></small></figcaption>
+    </figure>
+    <figure class="diagram">
+      <a class="img" href="diagrams/cqrs-contention.svg"><img loading="lazy" src="diagrams/cqrs-contention.svg" alt="Query side and command side over one database with approval guards."></a>
+      <figcaption><strong>6. Read/write contention</strong><small>Logical CQRS on one PostgreSQL; revisions, row and advisory locks, unique keys. <a href="diagrams/cqrs-contention.drawio">draw.io source</a></small></figcaption>
+    </figure>
+  </div>
+</section>
+
 <section id="apps">
   <h2>Try it (no backend, no credentials)</h2>
   <p class="sub">Both apps run entirely in your browser on authored fixture data. All actions are simulations and the apps make zero API requests, verified by Playwright tests.</p>
@@ -191,6 +223,7 @@
     <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/prd.md">Specification</a><p>The full build specification.</p></div>
     <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/decisions.md">Decisions</a><p>Owner decisions and deviations, D-001 to D-024.</p></div>
     <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/ontology.md">Ontology</a><p>Types, relationships, and derived functions.</p></div>
+    <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/system-design.md">System design</a><p>Six workload scenarios: mechanism, evidence, scale trigger.</p></div>
     <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/results.md">Results</a><p>Measured evaluation, latency, cost, and limitations.</p></div>
     <div class="card"><a href="https://github.com/abh2050/ontology-ops/blob/main/docs/business_case.md">Business case</a><p>Assumptions versus measured inputs, and the decision.</p></div>
     <div class="card"><a href="https://github.com/abh2050/ontology-ops/tree/main/docs/progress">Milestone reports</a><p>M1 to M6 checks, commands, incidents, and hours.</p></div>

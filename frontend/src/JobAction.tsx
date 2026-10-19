@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { data, selection } from "./adapters";
+import { ACTIVE_STATES, IdleTracker, nextPollDelay } from "./polling";
 import { useActor } from "./Workspace";
 
 export function JobAction({ orderId }: { orderId: string }) {
@@ -8,6 +9,7 @@ export function JobAction({ orderId }: { orderId: string }) {
     qc = useQueryClient();
   const key = useRef(crypto.randomUUID());
   const [jobId, setJobId] = useState("");
+  const idle = useRef(new IdleTracker());
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [proposed, setProposed] = useState(false);
@@ -15,17 +17,19 @@ export function JobAction({ orderId }: { orderId: string }) {
     queryKey: ["job", jobId],
     queryFn: () => data.job(jobId),
     enabled: Boolean(jobId),
-    refetchInterval: (q) =>
-      ["queued", "running", "validating"].includes(
-        q.state.data?.state || "queued",
-      )
-        ? 2000
-        : false,
+    refetchInterval: (q) => {
+      const current = q.state.data;
+      if (!ACTIVE_STATES.includes(current?.state || "queued")) return false;
+      return nextPollDelay(
+        idle.current.observe(current?.revision, q.state.dataUpdatedAt),
+      );
+    },
   });
   const run = async () => {
     setBusy(true);
     setError("");
     try {
+      idle.current = new IdleTracker();
       setJobId((await data.submit(orderId, key.current)).job_id);
     } catch (e) {
       setError((e as Error).message);

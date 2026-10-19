@@ -185,3 +185,10 @@ The owner does not want a domain for this demo. Public HTTPS therefore comes fro
 - CloudFront is a service the spec does not list.
 
 **Residual risk, accepted for a demo.** The prefix list admits any CloudFront distribution, so someone could point their own distribution at the ALB. Every API request still requires a verified Cognito access token and a provisioned user, so this exposes no data.
+
+## D-025 Write path: snapshot inserts and per-action audit (2026-10-19)
+Spec §13.2 lists "transactional upserts" and "append-only audit batches".
+
+- **Imports.** Imports are full, immutable snapshots identified by their file hashes. A new batch is inserted with COPY in one transaction, and an identical batch is detected and skipped. Upserts become necessary only when imports turn incremental; that is the recorded trigger.
+- **Audit rows.** Each audit row is written in the same transaction as the action it records (job submission, proposal, case, reconciliation). This keeps every action and its audit atomic. Batching audit writes separately would allow an action without its audit row. The table is append-only through database grants.
+- **Timely updates.** Exponential idle backoff for job polling was added on 2026-10-19: 2 → 4 → 8 → 15 s cap, reset on change, stop at terminal (`frontend/src/polling.ts`). Before that, the UI polled at a flat 2 s interval.

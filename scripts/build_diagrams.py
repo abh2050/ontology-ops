@@ -583,6 +583,315 @@ def ontology() -> Diagram:
     return d
 
 
+# ---------------------------------------------------------------------------------------
+# 8. System design overview (spec section 13: six workload scenarios)
+# ---------------------------------------------------------------------------------------
+def system_design() -> Diagram:
+    d = Diagram("system-design", "System design: six workload scenarios", 1700, 820)
+    d.header("Each workload has a mechanism, measured evidence, and a recorded scale trigger "
+             "for the service deliberately not built yet (spec section 13)")
+    cols = [("Scenario", 30, 230), ("Mechanism (built)", 270, 560),
+            ("Measured evidence", 840, 400), ("Scale trigger (deferred, not built)", 1250, 420)]
+    for name, x, w in cols:
+        d.box(f"<b>{name}</b>", x, 80, w, 36, stroke=INK, fill="#EEF1F5", align="center",
+              valign="middle", size=12)
+    rows = [
+        ("rds", DATABASE, "1. Too many reads",
+         "6 targeted indexes · index-range late-order predicate · keyset pagination · ETags on "
+         "job + metadata · in-process ontology metadata cache · scope never cached · "
+         "Cache-Control: private, no-store",
+         "p95 591 ms @ 20 readers (deployed, CloudFront) · 189 ms local · 17 EXPLAIN ANALYZE "
+         "plans, all runtime queries < 20 ms",
+         "Read replica if p95 > 750 ms after indexing · scoped result cache keyed on scope "
+         "hash, ontology version, batch, as_of, scenario, filters"),
+        ("s3", STORAGE, "2. Too many writes",
+         "COPY in 1,000-row batches inside one transaction · strict validation + quarantine · "
+         "append-only audit (no UPDATE/DELETE grants) · import as a background ECS task",
+         "Full Olist import 99,252 orders + 112,413 lines in 9.3 s · identical reimport is a "
+         "no-op (same manifest hash)",
+         "No sharding · partition audit_events / model_calls by month when write volume "
+         "grows · staging tables for incremental loads"),
+        ("cloudwatch_2", MGMT, "3. Timely updates",
+         "UI polls job status every 2 s with If-None-Match → 304 · exponential idle backoff "
+         "(2 → 4 → 8 → 15 s cap) · stops at terminal state · no WebSockets/SSE",
+         "Browser tests: ETag 304 path, ≥ 1.8 s first interval, backoff sequence, stop on "
+         "terminal",
+         "Server push (SSE or WebSocket via API Gateway) only if users need sub-second "
+         "visibility at scale"),
+        ("sqs", APPINT, "4. Slow jobs",
+         "API returns 202 + job_id · transactional outbox → SQS · bounded worker (≤ 2 "
+         "concurrent, 60 s deadline) · leases + checkpoints",
+         "Deployed job submit→ready 10–16 s · eval p95 ≤ 4.4 s per job · 404 eval jobs at "
+         "2-way concurrency",
+         "Scale worker tasks on SQS depth (ApproximateNumberOfMessages) · then a fleet-wide "
+         "breaker in DynamoDB/Redis"),
+        ("cloudwatch_2", SECURITY, "5. Failures",
+         "Idempotency keys · 120 s leases · checkpoints · paid-call reservation before send · "
+         "SDK retries off · 1 jittered retry only on confirmed no-generation · DLQ after 5 · "
+         "circuit breaker",
+         "4/4 live drills: crash before ack → 1 case · Bedrock timeout → unknown hold · "
+         "breaker opens after 5 · poison → DLQ + alarm; 15 reliability tests",
+         "Fleet-wide breaker once > 1 worker · automated reconciliation runbook for unknown "
+         "holds"),
+        ("aurora", DATABASE, "6. Read/write contention",
+         "Logical CQRS: commands/ handlers vs queries/ services on one PostgreSQL · optimistic "
+         "revision → 409 · row lock + advisory lock per target · UNIQUE(proposal_id), "
+         "UNIQUE(case_key)",
+         "4 concurrent approvals → 1 case · 2 competing proposals → 1 case + 1 stale · "
+         "stale revision → 409",
+         "Separate read store / event sourcing only if command–query contention shows in "
+         "measured latency"),
+    ]
+    y = 128
+    for res, color, name, mech, ev, trig in rows:
+        d.icon(res, color, "", 40, y + 28, size=44)
+        d.box(f"<b>{name}</b>", 95, y, 165, 100, stroke=color, align="left", valign="middle",
+              size=13)
+        d.box(mech, 270, y, 560, 100, stroke=color, valign="middle", size=12)
+        d.box(ev, 840, y, 400, 100, stroke="#2F7D4F", fill="#F1F8F3", valign="middle",
+              size=12)
+        d.box(trig, 1250, y, 420, 100, stroke="#879196", fill="#F7F8F8", valign="middle",
+              size=12, dashed=1)
+        y += 112
+    return d
+
+
+# ---------------------------------------------------------------------------------------
+# 9. Read path scaling
+# ---------------------------------------------------------------------------------------
+def read_scaling() -> Diagram:
+    d = Diagram("read-scaling", "Scenario 1: scaling reads", 1640, 760)
+    d.header("Where each read optimisation sits, what is deliberately not cached, and the "
+             "deferred services with their triggers (dashed)")
+    ui = d.box(br("<b>Browser · TanStack Query</b>", "query cache per view",
+                  "ETag / If-None-Match on jobs + meta"), 30, 120, 230, 100, stroke=INK,
+               valign="middle", align="center")
+    cdn = d.icon("cloudfront", NETWORK, br("<b>CloudFront</b>", "API: TTL 0, forwards",
+                                           "Authorization (no shared cache)"), 330, 140)
+    alb = d.icon("elastic_load_balancing", NETWORK, br("<b>ALB</b>"), 540, 140)
+    api = d.box(br("<b>API (FastAPI)</b>",
+                   "✔ in-process cache: ontology metadata (immutable)",
+                   "✔ JWKS cached; token verify ~0.08 ms",
+                   "✘ never cached: roles, grants, approvals",
+                   "✔ Cache-Control: private, no-store"), 680, 105, 330, 130, stroke=COMPUTE,
+                valign="middle")
+    db = d.box(br("<b>PostgreSQL 16</b>",
+                  "✔ 6 indexes incl. orders(batch_id, estimated_at, order_id)",
+                  "✔ late-open predicate rewritten to an index range",
+                  "✔ keyset pagination (days, value, order_id)",
+                  "✔ authorization predicate in the first CTE",
+                  "EXPLAIN: queue page 12.4 ms · snapshot 0.2 ms"), 1080, 95, 400, 150,
+               stroke=DATABASE, valign="middle")
+    d.edge(ui, cdn, "HTTPS")
+    d.edge(cdn, alb, "")
+    d.edge(alb, api, "")
+    d.edge(api, db, "scoped SQL")
+    cache = d.box(br("<b>Scoped result cache</b> (deferred)",
+                     "key = principal scope hash · ontology version",
+                     "· batch · as_of · scenario · filters",
+                     "trigger: repeated identical scoped reads dominate"), 680, 330, 330, 110,
+                  stroke="#879196", fill="#F7F8F8", dashed=1, valign="middle")
+    replica = d.box(br("<b>RDS read replica</b> (deferred)",
+                       "trigger: p95 > 750 ms at 20 readers",
+                       "after indexing and keyset pagination"), 1080, 330, 400, 110,
+                    stroke="#879196", fill="#F7F8F8", dashed=1, valign="middle")
+    d.edge(api, cache, "", dashed=1, color="#879196")
+    d.edge(db, replica, "", dashed=1, color="#879196")
+    d.box(br("<b>Measured</b>",
+             "• Deployed: p50 271 ms · <b>p95 591 ms</b> · p99 889 ms · 58 req/s · 0 errors · "
+             "20 readers through CloudFront, 1 API task (0.25 vCPU).",
+             "• Local: p95 189 ms at 20 readers after caching the parsed JWT key "
+             "(first run 947 ms: key re-parsed per request, 27 ms CPU each).",
+             "• Lesson recorded: the bottleneck was CPU in auth, not SQL; profiling "
+             "before adding caches avoided an unnecessary replica."),
+          30, 500, 1450, 110, size=11, fill="#F1F8F3", stroke="#2F7D4F")
+    return d
+
+
+# ---------------------------------------------------------------------------------------
+# 10. Write path
+# ---------------------------------------------------------------------------------------
+def write_path() -> Diagram:
+    d = Diagram("write-path", "Scenario 2: the write path", 1680, 760)
+    d.header("Bulk import and application writes · strict validation, batched COPY, one "
+             "transaction, append-only audit, lease-guarded worker writes")
+    d.text("<b>Bulk import (ECS one-off task, import role)</b>", 30, 80, 700, 24, size=14)
+    steps = [
+        ("5 Olist CSVs", "S3 imports/ · exact headers"),
+        ("Validate", "types · IDs · money as Decimal → centavos"),
+        ("Quarantine", "reason codes · raw row kept · order cascade"),
+        ("Dedupe", "identical kept once · conflict fails import"),
+        ("COPY", "1,000-row batches"),
+        ("One transaction", "commit or nothing"),
+        ("Manifest", "SHA-256 per file · same files ⇒ same hash"),
+    ]
+    prev = None
+    for i, (title, sub) in enumerate(steps):
+        cid = d.box(f"<b>{title}</b><br>{sub}", 30 + i * 230, 120, 200, 90, stroke=STORAGE,
+                    valign="middle", align="center", size=11)
+        if prev:
+            d.edge(prev, cid, "")
+        prev = cid
+    d.box(br("<b>Measured:</b> 99,441 orders read → 99,252 loaded, 189 quarantined "
+             "(166 carrier-before-purchase, 23 delivered-before-carrier) cascading 237 lines · "
+             "<b>9.3 s</b>, 424 MB peak · reimport = no-op."),
+          30, 230, 1590, 50, size=11, fill="#F1F8F3", stroke="#2F7D4F", valign="middle")
+
+    d.text("<b>Application writes (API and worker roles)</b>", 30, 320, 700, 24, size=14)
+    w = [("Submit job", "1 tx: job + outbox row + audit", COMPUTE),
+         ("Relay", "outbox → SQS, then mark sent", APPINT),
+         ("Worker", "lease-guarded checkpoint / result writes", COMPUTE),
+         ("Paid call", "reserve model_call + admission before send", ML),
+         ("Approve", "1 tx: case + proposal state + audit", SECURITY)]
+    for i, (title, sub, color) in enumerate(w):
+        d.box(f"<b>{title}</b><br>{sub}", 30 + i * 322, 360, 300, 80, stroke=color,
+              valign="middle", align="center", size=11)
+    d.box(br("<b>Append-only audit</b>: no runtime role holds UPDATE, DELETE, or TRUNCATE on "
+             "audit_events (verified against PostgreSQL). Audit rows are written in the same "
+             "transaction as the action they record, so an action and its audit commit "
+             "together; they are not batched separately (deliberate, D-025)."),
+          30, 470, 1590, 60, size=11, valign="middle")
+    d.box(br("<b>Deferred (not built)</b>: no sharding. Trigger to revisit: partition "
+             "audit_events and model_calls by month, and use staging tables for incremental "
+             "upserts, once the import becomes incremental rather than a full snapshot."),
+          30, 550, 1590, 60, size=11, stroke="#879196", fill="#F7F8F8", dashed=1,
+          valign="middle")
+    return d
+
+
+# ---------------------------------------------------------------------------------------
+# 11. Polling timeline (timely updates)
+# ---------------------------------------------------------------------------------------
+def polling() -> Diagram:
+    d = Diagram("polling-backoff", "Scenario 3: timely job updates", 1600, 560)
+    d.header("Near real-time job visibility with conditional requests and exponential idle "
+             "backoff · no WebSockets or SSE (not live commerce streaming)")
+    y = 240
+    d.box("", 60, y, 1480, 4, stroke=INK, fill=INK, rounded=0)
+    ticks = [(0, "t = 0 s", "200 · rev 1 · running", "#2F7D4F"),
+             (2, "+2 s", "304 Not Modified", "#879196"),
+             (6, "+4 s", "304 (idle ×2)", "#879196"),
+             (14, "+8 s", "304 (idle ×3)", "#879196"),
+             (29, "+15 s (cap)", "200 · rev 2 · validating", "#2F7D4F"),
+             (31, "+2 s (reset)", "200 · rev 3 · ready → stop", "#C4561F")]
+    for i, (_t, when, what, color) in enumerate(ticks):
+        x = 90 + i * 280
+        d.box("", x - 6, y - 6, 16, 16, stroke=color, fill=color, rounded=1)
+        d.text(f"<b>{when}</b>", x - 40, y - 52, 120, 20, size=11, align="center")
+        d.text(what, x - 70, y + 22, 160, 40, size=10, align="center", color=color)
+    d.box(br("<b>How it works</b>",
+             "• The browser sends If-None-Match with the last ETag; the API returns 304 "
+             "when the job revision and the caller's scope are unchanged.",
+             "• Each unchanged poll doubles the interval (2 → 4 → 8 → 15 s cap); any change "
+             "resets to 2 s; terminal states (ready, failed, blocked, unknown) stop polling.",
+             "• Saved results are re-authorized on every read; a scope change withholds them."),
+          60, 330, 900, 110, size=11)
+    d.box(br("<b>Why not push?</b> Jobs finish in seconds and users watch one job at a "
+             "time; polling with 304s is cheap, works through CloudFront and the ALB "
+             "unchanged, and has no connection state. <b>Trigger for SSE/WebSockets</b>: "
+             "many concurrent watchers needing sub-second updates."),
+          990, 330, 550, 110, size=11, stroke="#879196", fill="#F7F8F8", dashed=1)
+    return d
+
+
+# ---------------------------------------------------------------------------------------
+# 12. CQRS and contention
+# ---------------------------------------------------------------------------------------
+def cqrs() -> Diagram:
+    d = Diagram("cqrs-contention", "Scenario 6: read/write contention (logical CQRS)", 1600,
+                700)
+    d.header("Separate command handlers and query services over one PostgreSQL database · "
+             "optimistic revisions plus targeted locks · no separate read store")
+    q = d.box(br("<b>Query side</b> · backend/ops/queries",
+                 "tools.py · graph.py · scope.py",
+                 "plain SELECTs · no locks · authorization predicate first",
+                 "read committed snapshots"), 60, 120, 420, 130, stroke="#147EBA",
+              valign="middle")
+    c = d.box(br("<b>Command side</b> · backend/ops/commands",
+                 "proposals.py: create_proposal · decide",
+                 "one transaction per command"), 60, 330, 420, 110, stroke=SECURITY,
+              valign="middle")
+    db = d.icon("rds", DATABASE, br("<b>One PostgreSQL 16</b>", "jobs · proposals · cases ·",
+                                    "audit · source tables"), 760, 250, size=64)
+    d.edge(q, db, "reads", color="#147EBA")
+    d.edge(c, db, "writes", color=SECURITY)
+    guards = d.box(br("<b>Guards on every approval</b>",
+                      "1. SELECT … FOR UPDATE on the proposal row",
+                      "2. expected_revision ≠ current → <b>409</b> (reload)",
+                      "3. pg_advisory_xact_lock(batch | target) serializes competitors",
+                      "4. re-check scope, evidence hash, ontology version, eligibility",
+                      "5. UNIQUE(proposal_id) and UNIQUE(case_key) as the last line"),
+                   1000, 230, 560, 150, stroke=SECURITY, valign="middle")
+    d.edge(db, guards, "", dashed=1, color=SECURITY)
+    d.box(br("<b>Measured (tests against PostgreSQL)</b>: 4 concurrent approvals → exactly 1 "
+             "case · 2 competing proposals for one target → 1 case + 1 stale (409) · stale "
+             "revision → 409 · duplicate approval → 409."),
+          60, 480, 1500, 50, size=11, fill="#F1F8F3", stroke="#2F7D4F", valign="middle")
+    d.box(br("<b>Deferred</b>: separate read store or event sourcing; trigger: command and "
+             "query contention visible in measured latency. API job reads use ETags, so "
+             "polling does not hold locks."),
+          60, 550, 1500, 50, size=11, stroke="#879196", fill="#F7F8F8", dashed=1,
+          valign="middle")
+    return d
+
+
+# ---------------------------------------------------------------------------------------
+# 13. Job and paid-call state machines (slow jobs + failures)
+# ---------------------------------------------------------------------------------------
+def state_machines() -> Diagram:
+    d = Diagram("state-machines", "Scenarios 4 and 5: job and paid-call state machines", 1640,
+                800)
+    d.header("Every transition is a durable database write; the SQS message is acknowledged "
+             "only from a terminal or held state")
+    st = dict(valign="middle", align="center", size=12)
+    queued = d.box("<b>queued</b>", 40, 140, 140, 56, stroke=INK, **st)
+    running = d.box("<b>running</b><br>lease 120 s", 280, 140, 150, 56, stroke=COMPUTE, **st)
+    validating = d.box("<b>validating</b>", 560, 140, 150, 56, stroke=COMPUTE, **st)
+    ready = d.box("<b>ready</b>", 820, 140, 140, 56, stroke="#2F7D4F", fill="#F1F8F3", **st)
+    blocked = d.box("<b>blocked</b>", 40, 340, 140, 56, stroke="#B4441C", fill="#FDF3F4", **st)
+    failed = d.box("<b>failed</b>", 280, 340, 150, 56, stroke=SECURITY, fill="#FDF3F4", **st)
+    unknown = d.box("<b>unknown</b><br>held", 820, 340, 140, 56, stroke="#B4441C",
+                    fill="#FDF3F4", **st)
+    d.edge(queued, running, "claim")
+    d.edge(running, validating, "analyst done")
+    d.edge(validating, ready, "report saved")
+    d.edge(running, failed, "invalid JSON · rejected · deadline · cap",
+           exit_="exitX=0.5;exitY=1;", entry="entryX=0.5;entryY=0;")
+    d.edge(running, blocked, "scope changed", exit_="exitX=0.15;exitY=1;",
+           entry="entryX=0.5;entryY=0;", points=[(302, 290), (110, 290)])
+    d.edge(running, unknown, "timeout · sent stage on reclaim", exit_="exitX=0.85;exitY=1;",
+           entry="entryX=0.5;entryY=0;", points=[(407, 250), (890, 250)])
+    d.edge(validating, failed, "validator error", exit_="exitX=0.3;exitY=1;",
+           entry="entryX=1;entryY=0.5;", points=[(605, 368)])
+    d.box(br("<b>Ack SQS</b> only from ready · failed · blocked · unknown.",
+             "A crash before ack → redelivery → claim sees terminal → ack without work.",
+             "Unknown is resolved only by <i>ops recover-job</i> (never auto-retried)."),
+          1000, 130, 600, 80, size=11, fill="#F7F8F8", valign="middle")
+
+    d.text("<b>Paid model call (one row per job and stage)</b>", 40, 450, 600, 24, size=14)
+    reserved = d.box("<b>reserved</b><br>admitted against cap", 40, 500, 180, 60,
+                     stroke=ML, **st)
+    sent = d.box("<b>sent</b><br>persisted before call", 300, 500, 180, 60, stroke=ML, **st)
+    complete = d.box("<b>complete</b><br>+ checkpoint in 1 tx", 620, 500, 200, 60,
+                     stroke="#2F7D4F", fill="#F1F8F3", **st)
+    known = d.box("<b>known_failure</b><br>no generation", 300, 660, 180, 60,
+                  stroke=SECURITY, fill="#FDF3F4", **st)
+    unk = d.box("<b>unknown</b><br>may have generated", 620, 660, 200, 60, stroke="#B4441C",
+                fill="#FDF3F4", **st)
+    d.edge(reserved, sent, "")
+    d.edge(sent, complete, "response")
+    d.edge(sent, known, "throttle / reject (1 retry if retryable)",
+           exit_="exitX=0.5;exitY=1;", entry="entryX=0.5;entryY=0;")
+    d.edge(sent, unk, "timeout · dropped connection", exit_="exitX=0.9;exitY=1;",
+           entry="entryX=0.5;entryY=0;", points=[(462, 610), (720, 610)])
+    d.box(br("<b>Circuit breaker</b> (process-local): 5 consecutive known failures → open "
+             "60 s → one half-open probe. Blocks admission, so no paid call is reserved.",
+             "<b>Reuse</b>: a completed stage is reused after a crash only if request, scope, "
+             "and evidence hashes still match.",
+             "<b>Reserved but never sent</b> resumes safely."),
+          880, 500, 720, 120, size=11, valign="middle")
+    return d
+
 def export(diagram: Diagram) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     src = OUT / f"{diagram.name}.drawio"
@@ -597,7 +906,8 @@ def export(diagram: Diagram) -> None:
 
 
 def main() -> None:
-    for build in (deployment, network, request_flow, job_flow, roles, pipeline, ontology):
+    for build in (deployment, network, request_flow, job_flow, roles, pipeline, ontology,
+                  system_design, read_scaling, write_path, polling, cqrs, state_machines):
         export(build())
 
 
