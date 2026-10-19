@@ -84,3 +84,45 @@ function updateProgress() {
 }
 addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(updateProgress);}},{passive:true});
 addEventListener('resize',updateProgress);document.querySelectorAll('details').forEach(detail=>detail.addEventListener('toggle',updateProgress));updateProgress();
+
+// Generated art is local presentation media, separate from the real product.
+// Default to a still for reduced-motion or data-saving preferences. No source
+// is attached until playback is appropriate, and user pause intent persists.
+const heroMotion=document.getElementById('hero-motion');
+const motionToggle=document.getElementById('motion-toggle');
+const conceptStage=document.getElementById('concept-stage');
+if(heroMotion&&motionToggle&&conceptStage) {
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+  const connection=navigator.connection;
+  let inViewport=false,userWantsMotion=null,failed=false,playAttempt=0;
+  heroMotion.muted=true;
+  motionToggle.hidden=false;
+  const wantsMotion=()=>userWantsMotion??(!reducedMotion.matches&&!connection?.saveData);
+  function reflectPlayback() {
+    const playing=!heroMotion.paused&&!heroMotion.ended;
+    motionToggle.setAttribute('aria-pressed',String(playing));
+    motionToggle.querySelector('.motion-icon').textContent=playing?'Ⅱ':'▶';
+    setText('motion-label',failed?'Still image':playing?'Pause animation':'Play animation');
+  }
+  async function syncMotion() {
+    const attempt=++playAttempt;
+    if(failed||!inViewport||document.hidden||!wantsMotion()) { heroMotion.pause();reflectPlayback();return; }
+    if(!heroMotion.getAttribute('src')) { heroMotion.src=heroMotion.dataset.src;heroMotion.load(); }
+    try {
+      await heroMotion.play();
+      if(attempt!==playAttempt) { if(!inViewport||document.hidden||!wantsMotion())heroMotion.pause();return; }
+      conceptStage.classList.add('motion-ready');reflectPlayback();
+    } catch { reflectPlayback(); }
+  }
+  motionToggle.addEventListener('click',()=>{userWantsMotion=heroMotion.paused;syncMotion();});
+  heroMotion.addEventListener('play',reflectPlayback);
+  heroMotion.addEventListener('pause',reflectPlayback);
+  heroMotion.addEventListener('error',()=>{failed=true;heroMotion.pause();conceptStage.classList.remove('motion-ready');motionToggle.disabled=true;reflectPlayback();});
+  reducedMotion.addEventListener('change',()=>{userWantsMotion=null;if(reducedMotion.matches)conceptStage.classList.remove('motion-ready');syncMotion();});
+  connection?.addEventListener('change',syncMotion);
+  document.addEventListener('visibilitychange',syncMotion);
+  if('IntersectionObserver'in window) {
+    const observer=new IntersectionObserver(entries=>{inViewport=entries[0].isIntersecting;syncMotion();},{threshold:.15});
+    observer.observe(conceptStage);
+  } else { inViewport=true;syncMotion(); }
+}

@@ -2,18 +2,21 @@
 import {chromium,expect} from '../frontend/node_modules/@playwright/test/index.mjs';
 import {mkdirSync,existsSync} from 'node:fs';
 const base=process.env.CASE_STUDY_BASE||'http://127.0.0.1:4176/ontology-ops/';
-const folder='.local/case-study/revision-2/review';mkdirSync(folder,{recursive:true});
+const folder='.local/case-study/hero-media/review';mkdirSync(folder,{recursive:true});
 const browser=await chromium.launch({headless:true});
-let apiRequests=0;const errors=[],failed=[];
+let apiRequests=0;const errors=[],failed=[],reducedMotionVideoRequests=[];
 try{
   const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
   page.on('pageerror',error=>errors.push(error.message));
-  page.on('request',request=>{if(new URL(request.url()).pathname.includes('/api/'))apiRequests++});
+  page.on('request',request=>{if(new URL(request.url()).pathname.includes('/api/'))apiRequests++;if(request.url().endsWith('connected-operations.mp4'))reducedMotionVideoRequests.push(request.url());});
   page.on('response',response=>{if(response.status()>=400)failed.push(`${response.status()} ${response.url()}`)});
   await page.goto(base,{waitUntil:'networkidle'});
   await expect(page).toHaveTitle('Ontology Ops — Delivery investigations, connected');
   await expect(page.locator('h1')).toHaveCount(1);
   await expect(page.locator('h1')).toHaveText('Turn late deliveries into focused investigations.');
+  await expect(page.locator('#hero-motion')).toHaveJSProperty('paused',true);
+  await expect(page.locator('#hero-motion')).not.toHaveAttribute('src');
+  await expect(page.locator('#motion-toggle')).toHaveAttribute('aria-pressed','false');
   for(const view of ['queue','graph','review']){
     await page.locator(`[data-view="${view}"]`).click();
     await expect(page.locator('#product-panel')).toHaveAttribute('aria-labelledby','product-tab-'+view);
@@ -55,7 +58,37 @@ try{
     if(width===1440||width===390){await page.screenshot({path:`${folder}/${width}-hero.png`});for(const id of ['problem','architecture','evaluation','product']){await page.locator('#'+id).evaluate(element=>element.scrollIntoView({block:'start',behavior:'instant'}));await page.screenshot({path:`${folder}/${width}-${id}.png`})}}
   }
   await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`${folder}/desktop-full.png`,fullPage:true});
-  if(apiRequests||errors.length||failed.length)throw Error(JSON.stringify({apiRequests,errors,failed}));
-  const noJS=await browser.newPage({javaScriptEnabled:false,viewport:{width:390,height:844}});await noJS.goto(base);await expect(noJS.locator('noscript')).toBeVisible();await expect(noJS.locator('h1')).toBeVisible();await noJS.close();
-  console.log(JSON.stringify({result:'PASS',responsive_widths:[1440,1024,768,390,320],product_views:3,product_and_workflow_keyboard_tabs:'pass',mobile_menu:'pass',architecture_components:6,policy_paths:5,comparison_cells:4,local_and_source_links:'pass',images:'pass',javascript_errors:errors,failed_requests:failed,api_requests:apiRequests,reduced_motion:'tested',no_javascript:'default content available',screenshots:folder},null,2));
+  if(apiRequests||errors.length||failed.length||reducedMotionVideoRequests.length)throw Error(JSON.stringify({apiRequests,errors,failed,reducedMotionVideoRequests}));
+  const motionPage=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});
+  motionPage.on('pageerror',error=>errors.push(error.message));
+  await motionPage.goto(base,{waitUntil:'networkidle'});
+  await expect(motionPage.locator('#hero-motion')).toHaveJSProperty('paused',false,{timeout:15000});
+  await expect(motionPage.locator('#hero-motion')).toHaveJSProperty('muted',true);
+  await motionPage.locator('#product').evaluate(element=>element.scrollIntoView({behavior:'instant'}));
+  await expect(motionPage.locator('#hero-motion')).toHaveJSProperty('paused',true);
+  await motionPage.evaluate(()=>scrollTo(0,0));
+  await expect(motionPage.locator('#hero-motion')).toHaveJSProperty('paused',false);
+  await motionPage.getByRole('button',{name:'Pause animation',exact:true}).click();
+  await expect(motionPage.locator('#hero-motion')).toHaveJSProperty('paused',true);
+  await motionPage.locator('#product').evaluate(element=>element.scrollIntoView({behavior:'instant'}));
+  await motionPage.evaluate(()=>scrollTo(0,0));
+  await expect(motionPage.locator('#hero-motion')).toHaveJSProperty('paused',true);
+  await motionPage.getByRole('button',{name:'Play animation',exact:true}).click();
+  await expect(motionPage.locator('#hero-motion')).toHaveJSProperty('paused',false);
+  await motionPage.emulateMedia({reducedMotion:'reduce'});
+  await expect(motionPage.locator('#hero-motion')).toHaveJSProperty('paused',true);
+  await expect(motionPage.locator('#concept-stage')).not.toHaveClass(/motion-ready/);
+  await motionPage.evaluate(()=>document.getElementById('hero-motion').dispatchEvent(new Event('error')));
+  await expect(motionPage.locator('#motion-toggle')).toBeDisabled();
+  await expect(motionPage.locator('.concept-poster')).toBeVisible();
+  await motionPage.close();
+  const savingPage=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});
+  await savingPage.addInitScript(()=>{const connection=new EventTarget();connection.saveData=true;Object.defineProperty(navigator,'connection',{value:connection});});
+  await savingPage.goto(base,{waitUntil:'networkidle'});
+  await expect(savingPage.locator('#hero-motion')).not.toHaveAttribute('src');
+  await expect(savingPage.locator('#hero-motion')).toHaveJSProperty('paused',true);
+  await savingPage.close();
+  const noJS=await browser.newPage({javaScriptEnabled:false,viewport:{width:390,height:844}});await noJS.goto(base);await expect(noJS.locator('noscript')).toBeVisible();await expect(noJS.locator('h1')).toBeVisible();await expect(noJS.locator('.concept-poster')).toBeVisible();await expect(noJS.locator('#hero-motion')).not.toHaveAttribute('src');await noJS.close();
+  if(errors.length)throw Error(JSON.stringify(errors));
+  console.log(JSON.stringify({result:'PASS',responsive_widths:[1440,1024,768,390,320],product_views:3,product_and_workflow_keyboard_tabs:'pass',mobile_menu:'pass',architecture_components:6,policy_paths:5,comparison_cells:4,local_and_source_links:'pass',images:'pass',javascript_errors:errors,failed_requests:failed,api_requests:apiRequests,reduced_motion:'still poster; zero video requests',motion:'muted autoplay, explicit pause/play, preference changes and error fallback passed',save_data:'still poster; video source not attached',no_javascript:'poster and default content available',screenshots:folder},null,2));
 }finally{await browser.close()}

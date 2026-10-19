@@ -43,8 +43,26 @@ try{
     },'data:image/png;base64,'+readFileSync(artSource).toString('base64'));
     writeFileSync(destination+'/higgsfield-illustration.webp',Buffer.from(encoded,'base64'));
   }
+  const heroSource='.local/case-study/hero-media/source.png';
+  if(existsSync(heroSource)){
+    const encoded=await page.evaluate(async source=>{
+      const image=new Image();image.src=source;await image.decode();
+      const canvas=document.createElementNS('http://www.w3.org/1999/xhtml','canvas');canvas.width=1440;canvas.height=960;
+      const scale=Math.max(canvas.width/image.naturalWidth,canvas.height/image.naturalHeight);
+      const width=image.naturalWidth*scale,height=image.naturalHeight*scale;
+      canvas.getContext('2d').drawImage(image,(canvas.width-width)/2,(canvas.height-height)/2,width,height);
+      return canvas.toDataURL('image/webp',.87).split(',')[1];
+    },'data:image/png;base64,'+readFileSync(heroSource).toString('base64'));
+    writeFileSync(destination+'/connected-operations.webp',Buffer.from(encoded,'base64'));
+  }
+  const motionSource='.local/case-study/hero-media/source.mp4';
+  if(existsSync(motionSource)){
+    execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-y','-i',motionSource,
+      '-vf','scale=min(1080\\,iw):-2','-r','24','-c:v','libx264','-preset','slow','-crf','26',
+      '-pix_fmt','yuv420p','-an','-movflags','+faststart',destination+'/connected-operations.mp4']);
+  }
   await page.setViewportSize({width:1200,height:630});
   await page.goto(base+'assets/case-study/social.svg');
   await page.screenshot({path:destination+'/social.png'});
-  console.log('Built five native AWS icons, optimized real UI captures and available illustration, and a 1200×630 social image.');
+  console.log('Built native AWS icons, optimized available UI captures and concept media, and a 1200×630 social image. No paid calls.');
 }finally{await browser.close()}

@@ -1,5 +1,13 @@
 # Portfolio case-study revision — 2026-10-19
 
+## Hero-media addition — approved for push
+
+Git history records this revision. GitHub Pages publication requires separate verification.
+
+The hero now contains a Higgsfield-generated conceptual supply-chain illustration and five-second animation in the established white/navy/cobalt identity. Real application screenshots remain in the product tour. Business copy, benchmark values, architecture and README are unchanged. The new media is explicitly labelled as conceptual artwork and links to the real product section.
+
+The optimized local MP4 is 133,946 bytes and has no audio; the poster is 58,228 bytes. Autoplay is limited to an in-view, visible page with motion allowed. Reduced-motion and data-saving preferences use the still, and a pause/play button provides explicit control. All three product views, six workflow tabs, six architecture components, five policy paths, four model/mode cells, responsive widths, motion controls and fallback checks passed in `scripts/check_case_study.mjs`. Page errors, failed main-page requests and API requests were zero. Desktop/mobile captures and early/middle/late motion frames were inspected. Full research, provenance and verification notes are in [visual-media-notes.md](visual-media-notes.md).
+
 ## Revision 2 — business-first, white/navy/cobalt
 
 Revised after owner feedback and approved for push. Git history records the revision; GitHub Pages publication requires separate verification. The opening now names the user, the work and the product: an operations workspace that connects related late orders and prepares an evidence-backed investigation for review. Scattered record research, grouping and reviewer handoff precede implementation details. Positive capability-led headings replace constraint-led headlines; benchmark results and limitations remain accurate and available in the results section.
