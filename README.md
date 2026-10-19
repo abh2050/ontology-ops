@@ -1,67 +1,160 @@
-# Ontology Driven Operational AI
+# Ontology Ops on AWS
 
-## Business problem
+**An AI-assisted investigation workflow for late deliveries, built end to end on AWS, then measured honestly against a non-AI baseline.**
 
-Delivery-exception investigation requires connected order, seller, customer, and product evidence. This build tests whether typed ontology evidence plus model assistance improves that decision over a deterministic workspace. Analyst effort and economic benefits remain untested; [the business case](docs/business_case.md) separates measured inputs from assumptions.
-
-## User decision
-
-Whether to open an evidence-supported **internal investigation** for a delivery exception. A seller relationship records fulfilment, not fault. All reads enforce explicit seller grants before joins and totals; a split-operator order is invisible to both operators. A proposal requires an independent reviewer with scope over every target. No customer message is sent, commerce record changed, or refund issued.
-
-## Measured findings
-
-The candidate **does not beat B0** by the predefined meaningful margin. On frozen gold-v1, B0 task success is **1.000** and the candidate's best cell is **0.581**. Candidate relationship precision is 1.000, but recall is at most 0.530. Accepted unsupported causal claims, authorization failures, and approval integrity failures were zero in the measured suites. Deployed warm read p95 was **591 ms** with 20 readers.
-
-The evaluation ran from the owner's laptop against a local copy of the same data, with Bedrock in us-east-2. It was a within-family Nova generation comparison. The record run admitted 783 paid calls, costing **$0.3997 at list price from returned usage**. Human timing is untested. See [results and limitations](docs/results.md).
-
-## Pilot recommendation
-
-Recommend **B0, the deterministic workspace**. Do not fund the assisted candidate pilot on this evidence. Run a B0 timing/usability study before claiming productivity or ROI. Gold-v1 is perfect for B0 by construction and cannot demonstrate an AI advantage; any future assistance benchmark needs a separately reviewed design. See [pilot decision](docs/pilot.md).
-
-## Evidence
-
-- **Project site (GitHub Pages):** https://abh2050.github.io/ontology-ops/. It has a landing page, the [sandbox app](https://abh2050.github.io/ontology-ops/sandbox/), the [evidence replay](https://abh2050.github.io/ontology-ops/evidence/), and the architecture diagrams. The static apps use authored fixtures only, all actions are simulated, and browser tests verify zero `/api` requests.
-- **Measured runs:** [M5 evaluation report](docs/evidence/eval/20261018T1745-bedrock/report.json), [deployed latency](docs/evidence/latency/deployed-m5.json), [fault-injection drills](docs/evidence/drills/), [HTTPS smoke](docs/evidence/smoke/), [teardown verification](docs/evidence/teardown-20261019.md).
-- **Grouping:** [grouping measurement](docs/evidence/business_case.json) shows potential grouping from authorized queues, not measured intervention impact.
-
-## Architecture
+[![CI](https://github.com/abh2050/ontology-ops/actions/workflows/ci.yml/badge.svg)](https://github.com/abh2050/ontology-ops/actions/workflows/ci.yml)
+&nbsp;**[Live site](https://abh2050.github.io/ontology-ops/)** · **[Try the sandbox app](https://abh2050.github.io/ontology-ops/sandbox/)** · **[System design](docs/system-design.md)** · **[Measured results](docs/results.md)**
 
 ![AWS deployment architecture](docs/diagrams/aws-deployment.svg)
 
-Thirteen diagrams drawn from the deployed CDK stack and the implementation: seven architecture views below, plus six system-design views in [System design](#system-design). Each has an editable draw.io source with official AWS icons and an SVG export; regenerate them with `uv run python scripts/build_diagrams.py`.
+---
 
-| Diagram | Shows |
+## At a glance
+
+| | |
 |---|---|
-| [Deployment architecture](docs/diagrams/aws-deployment.svg) | Region, VPC, 2 AZs, public and private-isolated subnets, CloudFront → ALB → Fargate API/worker → RDS, SQS + DLQ, Bedrock, Cognito, ECR, Secrets Manager, S3, CloudWatch, IAM |
-| [Network and security](docs/diagrams/network-security.svg) | Security-group chain, routes, TLS and encryption at rest, accepted residual risk |
-| [Authenticated read path](docs/diagrams/request-flow.svg) | Cognito code + PKCE, JWT verification, per-request scope |
-| [Async AI job and approval](docs/diagrams/job-flow.svg) | Transactional outbox, SQS, leases, two Bedrock stages, validator, one-transaction approval, failure paths |
-| [IAM and database roles](docs/diagrams/iam-and-db-roles.svg) | One IAM task role per duty; PostgreSQL role grants |
-| [Deployment pipeline](docs/diagrams/deployment-pipeline.svg) | Preflight → CDK → image → one-off data tasks → release → verify → teardown |
-| [Ontology](docs/diagrams/ontology.svg) | Typed objects, relationships, derived functions |
+| **What it is** | An operations tool that connects orders, sellers, products, and customers through a typed **ontology**, lets two bounded **Amazon Bedrock** stages draft an investigation proposal, checks every answer with deterministic code, and requires an **independent human reviewer** before any case is opened. |
+| **What I built** | The full stack: data import of 99k+ real orders, ontology and authorization layer, FastAPI backend, async job pipeline, AI agents and validator, React UI, and AWS infrastructure in **CDK (Python)**. It was deployed, load-tested, failure-drilled, evaluated, and torn down. |
+| **AWS services** | CloudFront · ALB · ECS Fargate (ARM64) · RDS PostgreSQL 16 · SQS + DLQ · Amazon Bedrock · Cognito · Secrets Manager · S3 · ECR · CloudWatch · IAM · CloudFormation/CDK |
+| **Headline numbers** | **591 ms** p95 read latency at 20 concurrent users (target 750) · **18/18** HTTPS security checks · **4/4** live failure drills passed · **0** unauthorized reads or approvals accepted · **$0.0004–$0.002** AI cost per job · full dataset import in **9.3 s** |
+| **Honest outcome** | The AI workflow did **not** beat the deterministic baseline (task success 0.581 vs 1.000), so the recommendation is to ship the simpler non-AI workspace. Knowing when *not* to ship AI is part of the result. |
+
+## What this project demonstrates
+
+| Skill | Evidence in this repo |
+|---|---|
+| **AWS architecture** | One CDK stack: VPC across 2 AZs, public and private-isolated subnets, no NAT, CloudFront in front of an ALB locked to CloudFront's prefix list, private RDS → [diagrams](#aws-architecture) |
+| **Infrastructure as code and delivery** | AWS CDK v2 (Python), a 13-step deploy pipeline with a preflight gate, one-off ECS tasks for migrations and data, tagged teardown → [pipeline](docs/diagrams/deployment-pipeline.svg) |
+| **Distributed systems** | Transactional outbox → SQS, leases, checkpoints, idempotency keys, DLQ, circuit breaker, logical CQRS with optimistic concurrency → [system design](#system-design) |
+| **Reliability engineering** | Live fault injection on the deployed stack: worker crash before acknowledgement, Bedrock timeout, provider rejections, poison message → [drills](docs/evidence/drills/) |
+| **Security** | Cognito auth-code + PKCE, JWT verification, seller-level authorization inside every SQL query, one IAM role and one database role per duty, secrets never in code or logs → [network and security](docs/diagrams/network-security.svg) |
+| **Applied AI with guardrails** | Two bounded Bedrock stages with strict JSON contracts; a deterministic validator rejects invented IDs, model-made arithmetic, and causal claims; the paid-call budget is enforced in the database → [job flow](docs/diagrams/job-flow.svg) |
+| **Data engineering** | Full Olist dataset (99,441 orders) with strict validation, a quarantine with reason codes, money as integer centavos, historical as-of masking, reproducible manifests |
+| **Evaluation and judgement** | A frozen 60-question benchmark, B0/B1/candidate comparators across 2 models and 2 modes, independent SQL oracles, a pre-registered success margin → [results](docs/results.md) |
+| **Frontend** | React 19, TypeScript, TanStack Query, Cytoscape.js graph, three adapters (live, evidence replay, sandbox), Playwright tests |
+
+## The problem
+
+A dashboard can flag an overdue order. An analyst still has to:
+- find the sellers involved and the related late orders
+- count them without double counting multi-seller orders
+- attribute money to the right seller's order lines
+- separate facts from guesses
+- get approval from someone else
+
+This project asks whether typed relationships plus bounded AI make that investigation better than a well-built SQL workspace.
+
+**The user decides only one thing:** whether to open an evidence-supported **internal** investigation. The system never contacts customers, issues refunds, edits commerce records, or claims to know the cause of a delay. A seller relationship records who fulfilled a line, not who is at fault.
+
+---
+
+## AWS architecture
+
+Thirteen diagrams, drawn from the deployed CDK stack and the code. Each one has an editable [draw.io source](docs/diagrams/) using the official AWS icon set. Regenerate them with `uv run python scripts/build_diagrams.py`.
+
+### Deployment
+Region, VPC, two Availability Zones, public subnets for the ALB and Fargate tasks, private-isolated subnets for RDS, and the regional managed services. *(Shown at the top of this page.)* [Full size](docs/diagrams/aws-deployment.svg)
+
+### Network and security boundaries
+The security-group chain (CloudFront prefix list → ALB → API → RDS), the route tables, encryption in transit and at rest, and the one accepted residual risk.
+
+![Network and security boundaries](docs/diagrams/network-security.svg)
+
+### Authenticated read path
+Cognito sign-in with authorization code + PKCE, access-token verification, and a permission check reloaded from PostgreSQL on every request.
+
+![Authenticated read path](docs/diagrams/request-flow.svg)
+
+### Async AI job and independent approval
+Transactional outbox → SQS → leased worker → Bedrock planner and analyst → deterministic validator → reviewer approval in one database transaction, with every failure path.
+
+![Async AI job and independent approval](docs/diagrams/job-flow.svg)
+
+### IAM task roles and database roles
+Least privilege at two layers: which AWS APIs each task may call, and which rows and columns each database role may touch. The grant matrix is verified by tests against PostgreSQL.
+
+![IAM and database roles](docs/diagrams/iam-and-db-roles.svg)
+
+### Build, deploy, verify, tear down
+Preflight gates, CDK bootstrap/synth/diff/deploy, immutable ARM64 image, one-off ECS tasks for migration, import, and seeding, release, smoke tests and drills, and tagged teardown.
+
+![Deployment pipeline](docs/diagrams/deployment-pipeline.svg)
+
+### Ontology data model
+Typed objects and relationships with cardinality. Synthetic carrier and disruption types are marked and labelled everywhere they appear.
+
+![Ontology](docs/diagrams/ontology.svg)
+
+---
 
 ## System design
 
-The spec's six workload scenarios each map to a built mechanism, measured evidence, and a recorded scale trigger for what was deliberately not built. Full write-up with diagrams: **[docs/system-design.md](docs/system-design.md)**.
+Six workload scenarios. Each one maps to a mechanism that was built, measured evidence, and a recorded **scale trigger** for the service deliberately not built yet. Full write-up: **[docs/system-design.md](docs/system-design.md)**.
 
 ![System design overview](docs/diagrams/system-design.svg)
 
-| Scenario | Built | Measured | Deferred, with trigger |
+| Scenario | Built | Measured | Deferred until |
 |---|---|---|---|
-| Too many reads | Indexes, index-range predicate, keyset pagination, ETags, metadata cache, `private, no-store` | p95 **591 ms** at 20 readers (deployed) | Read replica if p95 > 750 ms; scoped result cache |
-| Too many writes | COPY in 1,000-row batches in one transaction, quarantine, append-only audit, background ECS import | Full import **9.3 s**; reimport no-op | Partitioning and incremental upserts; no sharding |
-| Timely updates | 2 s polling with ETag/304 and exponential idle backoff (15 s cap) | Browser tests | SSE/WebSockets for many sub-second watchers |
-| Slow jobs | 202 + job ID, outbox → SQS, worker capped at 2 jobs, leases, checkpoints | Deployed job 10–16 s | Autoscale workers on SQS depth |
-| Failures | Idempotency, paid-call reservation, no SDK retries, DLQ, circuit breaker | **4/4 live drills** | Fleet-wide breaker beyond 1 worker |
-| Read/write contention | Logical CQRS, revision → 409, row and advisory locks, unique keys | 4 concurrent approvals → 1 case | Separate read store or event sourcing |
+| Too many reads | Indexes, index-range predicate, keyset pagination, ETags, metadata cache, `private, no-store` | p95 **591 ms** at 20 users | p95 > 750 ms → read replica; repeated scoped reads → scoped cache |
+| Too many writes | COPY in 1,000-row batches in one transaction, quarantine, append-only audit | **9.3 s** full import; identical re-import is a no-op | Incremental imports → partitioning and upserts (no sharding) |
+| Timely updates | Polling with ETag/304 and exponential idle backoff (2 → 15 s) | Browser tests | Many sub-second watchers → SSE/WebSockets |
+| Slow jobs | 202 + job ID, outbox → SQS, bounded worker, leases, checkpoints | Deployed jobs 10–16 s | Queue depth → autoscale workers |
+| Failures | Idempotency, paid-call reservation, no SDK retries, DLQ, circuit breaker | **4/4** live drills | More than 1 worker → fleet-wide breaker |
+| Read/write contention | Logical CQRS, revision → 409, row and advisory locks, unique keys | 4 concurrent approvals → **1** case | Measured contention → separate read store |
 
-Diagrams: [read scaling](docs/diagrams/read-scaling.svg) · [write path](docs/diagrams/write-path.svg) · [polling and backoff](docs/diagrams/polling-backoff.svg) · [job and paid-call state machines](docs/diagrams/state-machines.svg) · [CQRS and contention](docs/diagrams/cqrs-contention.svg).
+### 1. Scaling reads
+![Read scaling](docs/diagrams/read-scaling.svg)
 
-## Stack
+### 2. The write path
+![Write path](docs/diagrams/write-path.svg)
 
-React 19, TypeScript 5, Vite, Tailwind 4, TanStack Query, Cytoscape.js; Python 3.12, FastAPI, Pydantic 2; PostgreSQL 16, SQLAlchemy 2, psycopg 3, Alembic; boto3 Bedrock Converse; SQS/DLQ, Cognito, ECS Fargate, CloudFront, ALB, RDS, S3, Secrets Manager, ECR, CloudWatch; CDK v2 Python; pytest, Ruff, Playwright, local-only MLflow 3.
+### 3. Timely updates: polling with exponential backoff
+![Polling and backoff](docs/diagrams/polling-backoff.svg)
 
-## Reproduction
+### 4–5. Slow jobs and failures: state machines
+![Job and paid-call state machines](docs/diagrams/state-machines.svg)
+
+### 6. Read/write contention: logical CQRS
+![CQRS and contention](docs/diagrams/cqrs-contention.svg)
+
+---
+
+## Measured results
+
+Every number below comes from a recorded run. Targets are not results.
+
+| Area | Result | Target | |
+|---|---|---|---|
+| Read latency (deployed, 20 concurrent users) | p95 **591 ms**, 0 errors | < 750 ms | ✅ |
+| AI job latency | p95 ≤ 4.4 s per job | < 60 s | ✅ |
+| Authorization and approval failures accepted | **0** across 20 security scenarios and 18 HTTPS checks | 0 | ✅ |
+| Unsupported causal claims accepted | **0** (44 caught and sent to review) | 0 | ✅ |
+| Live failure drills | **4 / 4** | — | ✅ |
+| AI investigation task success | **0.581** (best cell) vs **1.000** for the deterministic baseline | ≥ 0.90 | ❌ |
+| Relationship recall | ≤ 0.53 (precision 1.000) | ≥ 0.95 | ❌ |
+| Human time saved | untested | ≥ 25 % | — |
+
+**Recommendation: ship the deterministic workspace (B0).**
+- The AI candidate did not clear the pre-registered success margin over the non-AI baseline.
+- Typed ontology evidence beat the same facts served flat by +4.7 to +21.7 points on Nova Lite, and every safety control held.
+- On this benchmark, though, the baseline already answers correctly.
+
+Details: [results](docs/results.md) · [pilot decision](docs/pilot.md) · [business case](docs/business_case.md) · [raw evaluation report](docs/evidence/eval/20261018T1745-bedrock/report.json)
+
+**AI spend:** the whole evaluation, including two runs that were stopped and fixed, cost about **$0.71** in Bedrock calls. The deployed stack's estimated run rate was about **$74/month**, from AWS Price List rates.
+
+## Engineering highlights
+
+- **Profiling beat guessing.** The first load test missed its latency target (p95 947 ms). Profiling showed the API re-parsing its signing key on every request, so the cause was CPU, not the database. Caching the parsed key brought p95 down to 189 ms locally without adding a read replica.
+- **Exactly-once outcome on at-least-once delivery.** A live drill killed the worker after it finished a job but before acknowledging SQS. The message was redelivered, the new worker recognised the finished job, and exactly **one** case was opened. A repeat approval returned 409.
+- **A cloud constraint, diagnosed.** The AWS account's organization policy blocked core services in us-east-1. Read-only probes per region found the one region that allowed them (us-east-2), and the decision was recorded as D-023.
+- **A secret leak caught and closed.** A failed migration printed a database password into CloudWatch through an ORM error message. The log stream was deleted, the secret rotated, and every database engine switched to `hide_parameters=True`, with a test.
+- **AI guardrails that measurably work.** The validator caught 44 causal claims, model-made arithmetic, and invented IDs before anything reached a reviewer. Paid model calls are reserved in PostgreSQL before they are sent, so a crash can never cause a silent second charge.
+
+## Try it
+
+- **No setup:** open the [sandbox app](https://abh2050.github.io/ontology-ops/sandbox/) or the [evidence replay](https://abh2050.github.io/ontology-ops/evidence/). They run fully in the browser on authored fixture data; all actions are simulated and no API calls are made (verified by Playwright).
+- **Run locally** (Docker, Python 3.12 with `uv`, Node 22):
 
 ```bash
 uv sync --locked
@@ -71,41 +164,76 @@ uv run ops data import --directory data/fixtures --batch fixtures-v1 --download-
 uv run ops data pick-as-of --batch fixtures-v1
 uv run ops seed-users --mode local
 uv run ops scenario generate --seed 42 --scenario base-v1
-uv run uvicorn ops.api:app --host 127.0.0.1 --port 8000
+uv run uvicorn ops.api:app --host 127.0.0.1 --port 8000   # API
+uv run ops worker --queue fixture --provider fixture        # free deterministic worker
+npm --prefix frontend ci && npm --prefix frontend run dev   # UI
 ```
 
-In another terminal:
+<details>
+<summary><b>Full reproduction, tests, and cloud deployment</b></summary>
+
+**Tests**
 
 ```bash
-npm --prefix frontend ci
-npm --prefix frontend run dev
-```
-
-Use a local token from `ops.auth.issue_local_token` in the local sign-in form. Tokens stay in session storage; do not save tokens in source files, screenshots, or logs. The local API refuses local identity mode outside `DEPLOY_ENV=local`. `uv run ops worker --queue fixture --provider fixture` runs the free deterministic stand-in; fixture output is not model evidence. The deployed worker uses Bedrock and incurs inference charges.
-
-For full-data reproduction, obtain exactly the five required [Olist files](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) with your own Kaggle account, place them under `data/raw/olist/`, then import, validate, pick-as-of, and seed users again. The data is CC BY-NC-SA 4.0 and is not redistributed in the static demos. See `uv run ops --help` and [the handoff](docs/HANDOFF.md).
-
-```bash
-uv run pytest -q
+uv run pytest -q              # 287 backend tests (unit + PostgreSQL integration)
 uv run ruff check .
-npm --prefix frontend test
-npm --prefix frontend run package:pages
+npm --prefix frontend test    # Playwright, including zero-API checks for static apps
 ```
 
-`scripts/export_replay.py` regenerates the authored-only export from a seeded local database. Static replay is pinned to fixtures-v1 at 2018-03-15 23:59:59 dataset local and operator_a scope. Live builds load public Cognito identifiers from `/ui-config.json`; no browser AWS credentials are needed. Model IDs live only in `configs/models.yaml`. Paid evaluations and cloud releases require owner approval.
+**Full dataset.** Download exactly the five required [Olist files](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) with your own Kaggle account into `data/raw/olist/`. Then run `ops data import`, `validate`, `pick-as-of`, and `seed-users`. The data is CC BY-NC-SA 4.0 and is not redistributed here.
 
-## Synthetic layer disclosure
+**Local sign-in.** Mint a token with `ops.auth.issue_local_token('operator_a')`. Local identity mode refuses to start outside `DEPLOY_ENV=local`. Fixture-worker output is not model evidence.
 
-Olist contains no carrier identities or causes of delay. Seeded fictional carriers and disruption events demonstrate context traversal, labelled **Synthetic scenario**. Temporal or regional overlap never establishes a cause. Authored commerce fixtures are labelled **Authored**, and static actions are explicitly simulations. The evidence replay uses deterministic queries of authored records; its simulated action text is hand-authored and is not a recorded model response.
+**Evaluation.** Run `uv run ops eval --suite frozen --provider fixture` for a free dry run. The `--provider bedrock --confirm-paid` mode makes paid calls. Model IDs live only in `configs/models.yaml`.
 
-## Limitations
+**AWS.** Deployment is driven by `scripts/deploy.py` (`preflight`, `diff`, `infra`, `image`, `upload-data`, `task migrate|import|seed`, `release`, `smoke`). Every paid step needs explicit approval. `scripts/teardown.py` prints the tagged inventory first. See [HANDOFF.md](docs/HANDOFF.md) and the [decisions log](docs/decisions.md).
 
-Human investigation speed, operational error reduction, and financial return are untested. Gold-v1 cannot establish incremental AI value. There was one record run per cell, with no statistical significance test. Model outputs failed strict validation in 68 of 404 jobs. Multi-seller tests rely mainly on authored fixtures. Source timestamps are timezone-less and labelled dataset local; historical views mask later events. A displayed graph is capped at 50 nodes, separately from totals. The circuit breaker is process-local and assumes one worker.
+</details>
 
-## Cloud resource status
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, TypeScript 5, Vite, Tailwind CSS 4, TanStack Query, Cytoscape.js |
+| Backend | Python 3.12, FastAPI, Uvicorn, Pydantic 2 |
+| Data | PostgreSQL 16, SQLAlchemy 2, psycopg 3, Alembic |
+| AI | Amazon Bedrock Converse (Nova Lite, Nova 2 Lite) with strict client-side Pydantic validation |
+| AWS | CloudFront, ALB, ECS Fargate, RDS, SQS + DLQ, Cognito, Secrets Manager, S3, ECR, CloudWatch, IAM |
+| IaC / CI | AWS CDK v2 (Python), GitHub Actions, GitHub Pages |
+| Quality | pytest, Ruff, Playwright, MLflow 3 (local tracking) |
+
+## Repository map
+
+```
+backend/ops/      API, auth, ontology, queries (authorized tools), commands (approval),
+                  agents (planner, analyst, validator), jobs (outbox, consumer, breaker), evals
+infra/            AWS CDK stack (Python)
+frontend/         React app: live, evidence-replay, and sandbox adapters
+scripts/          deploy, teardown, drills, load test, diagrams, gold-set tools
+docs/             site (index.html), diagrams/, system-design.md, results.md, decisions.md,
+                  evidence/ (latency, drills, smoke, eval, teardown), progress/ (M1–M6)
+data/             fixtures (authored), gold set (frozen benchmark), scenarios
+```
+
+## Data, synthetic layer, and limitations
+
+- **Data.** Brazilian E-Commerce Public Dataset by Olist, CC BY-NC-SA 4.0. The public apps use authored fixtures only.
+- **Synthetic layer.** Olist has no carriers or causes of delay. Fictional carriers and disruption events demonstrate context traversal and are labelled **Synthetic scenario** everywhere. Overlap in time or region never establishes a cause.
+- **Limitations.**
+  - Human time savings and financial return are untested.
+  - This benchmark cannot show AI advantage, because the baseline is perfect by construction.
+  - There was one evaluation run per cell.
+  - 68 of 404 AI jobs failed strict output validation.
+  - Multi-seller cases rely mainly on authored fixtures.
+  - The circuit breaker is process-local, which assumes one worker.
+
+## Cloud status
 
 **Torn down on 2026-10-19.**
-- The stack ran in **us-east-2** from 2026-10-17 to 2026-10-19 (decisions D-023 and D-024).
-- `OntologyOpsStack` and `CDKToolkit` were deleted with **no final RDS snapshot**, as the owner chose. Direct service checks found no retained billable resources; see [teardown verification](docs/evidence/teardown-20261019.md).
-- The estimated run rate while deployed was **$74.47/month**.
-- Charges for the deployed period will still appear in billing after Cost Explorer's 24–48 h lag. They are not zero.
+- The stack ran in us-east-2 from 2026-10-17 to 2026-10-19 and was then deleted, including the CDK bootstrap, with no database snapshot kept.
+- Direct service checks found no retained billable resources → [teardown verification](docs/evidence/teardown-20261019.md).
+- Charges for the deployed period will still appear in billing after Cost Explorer's lag.
+
+---
+
+<sub>Built by Abhishek Shah · Specification: [docs/prd.md](docs/prd.md) · Decisions: [docs/decisions.md](docs/decisions.md) · Milestone reports: [docs/progress/](docs/progress/)</sub>
