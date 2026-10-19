@@ -1,0 +1,33 @@
+{
+  "schema_version":1,
+  "diagram_type":"architecture",
+  "meta":{
+    "title":"Historical AWS request and worker path — stack torn down",
+    "locale":"en",
+    "output":"docs/assets/case-study/system-explorer.html",
+    "quality_profile":"showcase",
+    "repository":{"url":"https://github.com/abh2050/ontology-ops.git","revision":"8534842dc471787159f59a070fbb7af8a4992597"}
+  },
+  "components":[
+    {"id":"browser","type":"frontend","label":"React workspace","sublabel":"scoped operator UI","pos":[40,40],"size":[140,64],"sources":[{"path":"frontend/src/App.tsx","line":37,"end_line":55}]},
+    {"id":"edge","type":"cloud","label":"CloudFront + ALB","sublabel":"HTTP origin leg","pos":[285,40],"size":[145,64],"sources":[{"path":"infra/stack.py","line":123,"end_line":146}]},
+    {"id":"api","type":"backend","label":"FastAPI / Fargate","sublabel":"scope + approval gates","pos":[535,40],"size":[155,64],"sources":[{"path":"infra/stack.py","line":211,"end_line":223},{"path":"backend/ops/queries/scope.py","line":1,"end_line":30},{"path":"backend/ops/commands/proposals.py","line":215,"end_line":246}]},
+    {"id":"postgres","type":"database","label":"RDS PostgreSQL 16","sublabel":"private / TLS required","pos":[840,40],"size":[155,64],"sources":[{"path":"infra/stack.py","line":99,"end_line":113}]},
+    {"id":"worker","type":"backend","label":"Fargate worker","sublabel":"relay + scoped consumer","pos":[840,275],"size":[165,70],"sources":[{"path":"backend/ops/jobs/outbox.py","line":149,"end_line":161},{"path":"backend/ops/jobs/consumer.py","line":291,"end_line":338},{"path":"infra/stack.py","line":225,"end_line":253}]},
+    {"id":"queue","type":"messagebus","label":"SQS + DLQ","sublabel":"5 receives → DLQ","pos":[535,278],"size":[155,64],"sources":[{"path":"infra/stack.py","line":115,"end_line":121},{"path":"backend/ops/jobs/outbox.py","line":149,"end_line":161}]},
+    {"id":"bedrock","type":"cloud","label":"Bedrock Converse","sublabel":"strict Nova responses","pos":[840,510],"size":[165,64],"sources":[{"path":"infra/stack.py","line":225,"end_line":253},{"path":"backend/ops/jobs/consumer.py","line":304,"end_line":321}]}
+  ],
+  "connections":[
+    {"from":"browser","to":"edge","label":"HTTPS","variant":"security"},
+    {"from":"edge","to":"api","label":"HTTP :8000"},
+    {"from":"api","to":"postgres","label":"scoped SQL / TLS","variant":"security"},
+    {"from":"worker","to":"postgres","label":"outbox / checkpoints / results"},
+    {"from":"worker","to":"queue","label":"relay committed jobs","variant":"dashed"},
+    {"from":"queue","to":"worker","label":"consume / ack","variant":"dashed"},
+    {"from":"worker","to":"bedrock","label":"planner + analyst"}
+  ],
+  "cards":[
+    {"dot":"amber","title":"Control ownership","items":["API has no Bedrock invocation or SQS send permission.","Worker owns relay, consumption, tools, inference and result persistence; not approval.","Case creation requires a different, independently scoped reviewer and transactional rechecks."]},
+    {"dot":"slate","title":"Overview boundary","items":["Historical topology, not a currently running deployment. AWS stack and bootstrap were torn down 19 October 2026.","Cognito, CloudWatch, Secrets Manager, S3 and ECR are supporting services omitted from this request/worker slice.","CloudFront-to-ALB uses HTTP. Native AWS symbols and full network detail remain in the linked draw.io topology on the case-study page."]}
+  ]
+}
