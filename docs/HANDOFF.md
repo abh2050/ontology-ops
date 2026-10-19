@@ -1,4 +1,4 @@
-> **Final status (2026-10-19):** M1 to M6 complete. The AWS stack and CDKToolkit are **torn down** (`docs/evidence/teardown-20261019.md`). The site is published from `/docs` on GitHub Pages. The demo video was removed at the owner's request; a new one is pending. Everything below is the earlier handoff, kept for history.
+> **Final status (2026-10-19):** M1 to M6 complete. The AWS stack and CDKToolkit are **torn down** (`docs/evidence/teardown-20261019.md`). The site is published from `/docs` on GitHub Pages. The new 90-second authored Brag walkthrough is exported and embedded near the top of `docs/index.html` (`docs/assets/case-study/brag-demo.mp4`); this addition is locally verified. Confirm GitHub Pages publication separately from the git push. Everything below is the earlier handoff, kept for history.
 
 # Handoff for the next agent (written 2026-10-18)
 

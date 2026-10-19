@@ -17,6 +17,26 @@ try{
   await expect(page.locator('#hero-motion')).toHaveJSProperty('paused',true);
   await expect(page.locator('#hero-motion')).not.toHaveAttribute('src');
   await expect(page.locator('#motion-toggle')).toHaveAttribute('aria-pressed','false');
+  const demo=page.locator('#project-demo');
+  await expect(page.locator('.hero-copy .button')).toHaveAttribute('href','#demo');
+  await expect(demo).toHaveAttribute('preload','none');
+  await expect(demo).toHaveJSProperty('controls',true);
+  await expect(demo).toHaveJSProperty('autoplay',false);
+  await expect(demo).toHaveJSProperty('paused',true);
+  const poster=await page.request.get(new URL(await demo.getAttribute('poster'),base).href);
+  if(!poster.ok())throw Error('Missing demo poster');
+  await demo.scrollIntoViewIfNeeded();
+  await demo.evaluate(video=>{video.preload='metadata';video.load()});
+  await expect.poll(()=>demo.evaluate(video=>video.readyState),{timeout:20000}).toBeGreaterThanOrEqual(1);
+  const duration=await demo.evaluate(video=>video.duration);
+  if(Math.abs(duration-90)>.1)throw Error('Unexpected project demo duration: '+duration);
+  await demo.evaluate(video=>{video.currentTime=23});
+  await expect.poll(()=>demo.evaluate(video=>!video.seeking&&video.readyState>=2),{timeout:20000}).toBe(true);
+  await demo.click();
+  await demo.evaluate(video=>video.play());
+  await expect(demo).toHaveJSProperty('paused',false);
+  await demo.evaluate(video=>video.pause());
+  await demo.evaluate(video=>{video.preload='none';video.load()});
   for(const view of ['queue','graph','review']){
     await page.locator(`[data-view="${view}"]`).click();
     await expect(page.locator('#product-panel')).toHaveAttribute('aria-labelledby','product-tab-'+view);
@@ -55,7 +75,7 @@ try{
     await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);if(overflow){const elements=await page.locator('body *').evaluateAll(elements=>elements.filter(element=>element.getBoundingClientRect().right>innerWidth+.01||element.scrollWidth>element.clientWidth+1).slice(0,20).map(element=>({tag:element.tagName,class:element.className,right:element.getBoundingClientRect().right,scrollWidth:element.scrollWidth,clientWidth:element.clientWidth})));await page.screenshot({path:`${folder}/${width}-overflow.png`});throw Error('Horizontal overflow at '+width+'px: '+JSON.stringify(elements));}
     if(width===390){await page.getByRole('button',{name:'Menu +',exact:true}).click();await expect(page.locator('.menu')).toHaveAttribute('aria-expanded','true');await page.keyboard.press('Escape');await expect(page.locator('.menu')).toHaveAttribute('aria-expanded','false')}
-    if(width===1440||width===390){await page.screenshot({path:`${folder}/${width}-hero.png`});for(const id of ['problem','architecture','evaluation','product']){await page.locator('#'+id).evaluate(element=>element.scrollIntoView({block:'start',behavior:'instant'}));await page.screenshot({path:`${folder}/${width}-${id}.png`})}}
+    if(width===1440||width===390){await page.screenshot({path:`${folder}/${width}-hero.png`});for(const id of ['demo','problem','architecture','evaluation','product']){await page.locator('#'+id).evaluate(element=>element.scrollIntoView({block:'start',behavior:'instant'}));await page.screenshot({path:`${folder}/${width}-${id}.png`})}}
   }
   await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`${folder}/desktop-full.png`,fullPage:true});
   if(apiRequests||errors.length||failed.length||reducedMotionVideoRequests.length)throw Error(JSON.stringify({apiRequests,errors,failed,reducedMotionVideoRequests}));
