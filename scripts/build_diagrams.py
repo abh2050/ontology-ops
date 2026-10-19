@@ -10,6 +10,7 @@ draw.io's native AWS4 library (mxgraph.aws4). Output: docs/diagrams/<name>.drawi
 from __future__ import annotations
 
 import html
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -24,12 +25,33 @@ COMPUTE, NETWORK, DATABASE, APPINT = "#ED7100", "#8C4FFF", "#C925D1", "#E7157B"
 ML, SECURITY, STORAGE, MGMT = "#01A88D", "#DD344C", "#7AA116", "#E7157B"
 INK = "#232F3E"
 
+# Diagrams are wide and get scaled down on GitHub and the Pages site, so body text is
+# scaled up from the nominal sizes used in the layout code below.
+FONT_SCALE = 1.4
+
+
+def _fit_height(label: str, w: float, size: int) -> float:
+    """Rough height a wrapped label needs at the scaled font size (Helvetica metrics)."""
+    px = size * FONT_SCALE
+    per_line = max(1, int((w - 18) / (px * 0.53)))
+    lines = 0
+    for seg in re.split(r"<br\s*/?>", label):
+        plain = html.unescape(re.sub(r"<[^>]+>", "", seg))
+        lines += max(1, -(-len(plain) // per_line))
+    return lines * px * 1.22 + 18
+
+
+def _scale_fonts(style: str) -> str:
+    return re.sub(r"fontSize=(\d+)",
+                  lambda m: f"fontSize={round(int(m.group(1)) * FONT_SCALE)}", style)
+
 
 class Diagram:
     def __init__(self, name: str, title: str, width: int, height: int):
         self.name, self.title, self.w, self.h = name, title, width, height
         self.cells: list[str] = []
         self.n = 0
+        self.bottom = 0.0
 
     def _id(self) -> str:
         self.n += 1
@@ -37,6 +59,7 @@ class Diagram:
 
     def _cell(self, value: str, style: str, x, y, w, h, vertex=True) -> str:
         cid = self._id()
+        style = _scale_fonts(style)
         kind = 'vertex="1"' if vertex else 'edge="1"'
         self.cells.append(
             f'<mxCell id="{cid}" value={quoteattr(value)} style={quoteattr(style)} '
@@ -79,6 +102,8 @@ class Diagram:
 
     def box(self, label: str, x, y, w, h, stroke="#879196", fill="#FFFFFF", font=INK,
             dashed=0, size=11, align="left", valign="top", bold=0, rounded=1) -> str:
+        h = max(h, _fit_height(label, w, size))
+        self.bottom = max(self.bottom, y + h)
         style = (f"rounded={rounded};arcSize=6;whiteSpace=wrap;html=1;strokeColor={stroke};"
                  f"fillColor={fill};fontColor={font};dashed={dashed};fontSize={size};"
                  f"align={align};verticalAlign={valign};spacing=8;fontStyle={bold};")
@@ -100,8 +125,8 @@ class Diagram:
                  f"labelBackgroundColor=#ffffff;fontColor={INK};"
                  + ("startArrow=block;startFill=1;" if both else "") + exit_ + entry)
         self.cells.append(
-            f'<mxCell id="{cid}" value={quoteattr(label)} style={quoteattr(style)} edge="1" '
-            f'parent="1" source="{src}" target="{dst}"><mxGeometry relative="1" '
+            f'<mxCell id="{cid}" value={quoteattr(label)} style={quoteattr(_scale_fonts(style))} '
+            f'edge="1" parent="1" source="{src}" target="{dst}"><mxGeometry relative="1" '
             f'as="geometry">{pts}</mxGeometry></mxCell>')
         return cid
 
@@ -120,8 +145,8 @@ class Diagram:
         else:
             pts, src, dst = "", (x1, y), (x2, y)
         self.cells.append(
-            f'<mxCell id="{cid}" value={quoteattr(label)} style={quoteattr(style)} edge="1" '
-            f'parent="1"><mxGeometry relative="1" as="geometry">'
+            f'<mxCell id="{cid}" value={quoteattr(label)} style={quoteattr(_scale_fonts(style))} '
+            f'edge="1" parent="1"><mxGeometry relative="1" as="geometry">'
             f'<mxPoint x="{src[0]}" y="{src[1]}" as="sourcePoint"/>'
             f'<mxPoint x="{dst[0]}" y="{dst[1]}" as="targetPoint"/>{pts}</mxGeometry></mxCell>')
 
@@ -145,6 +170,7 @@ class Diagram:
 
     def xml(self) -> str:
         body = "".join(self.cells)
+        self.h = max(self.h, int(self.bottom) + 20)
         return (f'<mxfile host="build_diagrams.py"><diagram name={quoteattr(self.title)} '
                 f'id="{self.name}"><mxGraphModel dx="{self.w}" dy="{self.h}" grid="0" '
                 f'gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" '
@@ -161,16 +187,15 @@ def br(*lines: str) -> str:
 # 1. Deployment architecture
 # ---------------------------------------------------------------------------------------
 def deployment() -> Diagram:
-    d = Diagram("aws-deployment", "AWS deployment architecture", 1780, 1110)
+    d = Diagram("aws-deployment", "AWS deployment architecture", 1780, 1160)
     d.header("Ontology-driven operational AI · as deployed with AWS CDK v2 (Python) in us-east-2 · "
              "one stack, 84 resources, all tagged project=ontology-ops")
-    users = d.shape("users", INK, br("<b>Users</b>", "operator · reviewer · viewer",
-                                     "browser (React SPA)"), 40, 330, 56, 56)
-    d.group("cloud", "AWS Cloud", 160, 80, 1600, 1000)
+    users = d.shape("users", INK, br("<b>Users</b>", "browser (React)"), 40, 330, 56, 56)
+    d.group("cloud", "AWS Cloud", 160, 80, 1600, 1060)
     cdn = d.icon("cloudfront", NETWORK, br("<b>Amazon CloudFront</b>", "default *.cloudfront.net",
                                            "AWS-managed TLS cert", "caching off (TTL 0)"),
                  200, 330)
-    d.group("region", "Region us-east-2 (Ohio)", 330, 110, 1415, 955)
+    d.group("region", "Region us-east-2 (Ohio)", 330, 110, 1415, 1015)
     d.group("vpc", "VPC 10.0.0.0/16 · 2 AZs · no NAT gateway", 450, 150, 740, 720)
     igw = d.shape("internet_gateway", NETWORK, br("<b>Internet</b>", "<b>gateway</b>"),
                   425, 340, 50, 50)
@@ -178,23 +203,22 @@ def deployment() -> Diagram:
           font="#147EBA", dashed=1, align="center")
     d.box("<b>Availability Zone B</b>", 835, 195, 340, 655, stroke="#147EBA", fill="none",
           font="#147EBA", dashed=1, align="center")
-    d.group("public", "Public subnet A · route 0.0.0.0/0 → IGW", 492, 225, 322, 360)
-    d.group("public", "Public subnet B · route 0.0.0.0/0 → IGW", 847, 225, 316, 360)
-    d.group("private", "Private isolated subnet A · local routes only", 492, 600, 322, 235)
-    d.group("private", "Private isolated subnet B · local routes only", 847, 600, 316, 235)
+    d.group("public", "Public subnet A → IGW", 492, 225, 322, 360)
+    d.group("public", "Public subnet B → IGW", 847, 225, 316, 360)
+    d.group("private", "Private isolated subnet A", 492, 600, 322, 235)
+    d.group("private", "Private isolated subnet B", 847, 600, 316, 235)
     alb = d.icon("elastic_load_balancing", NETWORK,
-                 br("<b>Application Load Balancer</b>", "HTTP:80 · spans both AZs",
-                    "ingress: CloudFront prefix list only"), 802, 275)
-    api = d.icon("fargate", COMPUTE, br("<b>ECS Fargate · API service</b>",
-                                        "FastAPI + React UI · 1 task",
-                                        "0.25 vCPU · 0.5 GiB · ARM64",
-                                        "public IP for egress · api-sg"), 610, 455)
-    worker = d.icon("fargate", COMPUTE, br("<b>ECS Fargate · worker service</b>",
-                                           "outbox relay + consumer · 1 task",
-                                           "0.5 vCPU · 1 GiB · ARM64",
+                 br("<b>Application Load Balancer</b>", "HTTP:80 · both AZs",
+                    "CloudFront prefix list only"), 802, 275)
+    api = d.icon("fargate", COMPUTE, br("<b>ECS Fargate · API</b>",
+                                        "FastAPI + React · 1 task",
+                                        "0.25 vCPU · ARM64 · api-sg"), 610, 455)
+    worker = d.icon("fargate", COMPUTE, br("<b>ECS Fargate · worker</b>",
+                                           "relay + consumer · 1 task",
+                                           "0.5 vCPU · ARM64",
                                            "no inbound · worker-sg"), 900, 455)
     oneoff = d.icon("ecs", COMPUTE, br("<b>One-off tasks</b>", "migrate · import · seed",
-                                       "ecs run-task"), 1000, 250, size=48)
+                                       "ecs run-task"), 1000, 290, size=48)
     rds = d.icon("rds", DATABASE, br("<b>Amazon RDS PostgreSQL 16</b>", "db.t4g.micro · single-AZ",
                                      "20 GiB gp3 · encrypted · force_ssl",
                                      "db-sg: 5432 from app SGs"),
@@ -204,12 +228,12 @@ def deployment() -> Diagram:
 
     # regional managed services (outside the VPC)
     col1, col2 = 1240, 1500
-    sqs = d.icon("sqs", APPINT, br("<b>Amazon SQS · jobs</b>", "standard · 180 s visibility",
+    sqs = d.icon("sqs", APPINT, br("<b>Amazon SQS · jobs</b>", "180 s visibility",
                                    "4-day retention"), col1, 170)
     dlq = d.icon("sqs", APPINT, br("<b>SQS dead-letter queue</b>", "after 5 receives",
                                    "14-day retention"), col2, 170)
     bedrock = d.icon("bedrock", ML, br("<b>Amazon Bedrock</b>", "Converse API",
-                                       "Nova Lite · Nova 2 Lite (global)"), col1, 330)
+                                       "Nova Lite, Nova 2 Lite"), col1, 330)
     cw = d.icon("cloudwatch_2", MGMT, br("<b>Amazon CloudWatch</b>", "logs (7 days) · alarms",
                                          "DLQ not empty · queue age"), col2, 330)
     sm = d.icon("secrets_manager", SECURITY, br("<b>AWS Secrets Manager</b>",
@@ -233,9 +257,10 @@ def deployment() -> Diagram:
     d.edge(api, rds, "④ SQL · TLS 5432", color=DATABASE)
     d.edge(worker, rds, "outbox · leases · checkpoints", color=DATABASE,
            exit_="exitX=0.5;exitY=1;", entry="entryX=1;entryY=0.25;")
-    d.edge(worker, sqs, "⑤ send · receive · delete", color=APPINT,
-           exit_="exitX=0.5;exitY=0;", entry="entryX=0;entryY=0.5;",
-           points=[(928, 178), (1205, 178), (1205, 198)])
+    d.edge(worker, sqs, "", color=APPINT,
+           exit_="exitX=0.9;exitY=0;", entry="entryX=0;entryY=0.5;",
+           points=[(950, 440), (1150, 440), (1150, 178), (1205, 178), (1205, 198)])
+    d.text("⑤ send · receive · delete", 980, 150, 220, 22, size=10, color=APPINT)
     d.edge(sqs, dlq, "redrive after 5 receives", color=APPINT, dashed=1,
            exit_="exitX=1;exitY=0.5;", entry="entryX=0;entryY=0.5;")
     d.edge(worker, bedrock, "⑥ Converse · strict JSON", color=ML,
@@ -244,23 +269,23 @@ def deployment() -> Diagram:
     d.edge(users, cognito, "sign-in · PKCE", color=SECURITY, dashed=1,
            exit_="exitX=0.5;exitY=1;", entry="entryX=0;entryY=0.5;")
     d.edge(api, cognito, "JWKS (verify token)", color=SECURITY, dashed=1,
-           exit_="exitX=0;exitY=0.5;", entry="entryX=1;entryY=0.5;")
+           exit_="exitX=0;exitY=0.5;", entry="entryX=0.5;entryY=0;", points=[(388, 483)])
     d.edge(dlq, cw, "alarm", color=MGMT, dashed=1, exit_="exitX=1;exitY=0.5;",
            entry="entryX=1;entryY=0.5;", points=[(1700, 198), (1700, 358)])
 
     d.box(br("<b>Numbered request path</b>",
              "① Browser → CloudFront over HTTPS (TLS terminates at the edge).",
-             "② CloudFront → ALB over HTTP:80; ALB security group admits only the AWS-managed",
-             "    prefix list com.amazonaws.global.cloudfront.origin-facing.",
+             "② CloudFront → ALB over HTTP:80; the ALB security group admits only the "
+             "CloudFront origin-facing prefix list.",
              "③ ALB → API task :8000 (api-sg admits only alb-sg).",
              "④ API → RDS with sslmode=require; authorization predicate runs inside every query.",
              "⑤ Worker relays the transactional outbox to SQS and consumes jobs (≤ 2 concurrent).",
              "⑥ Worker calls Bedrock Converse; a deterministic validator checks every answer."),
           470, 900, 720, 150, size=10)
-    d.box(br("<b>All tasks</b> pull the image from ECR, receive DB credentials from Secrets",
-             "Manager at start, and ship logs to CloudWatch. Egress to AWS APIs uses task",
+    d.box(br("<b>All tasks</b> pull the image from ECR, receive DB credentials from Secrets "
+             "Manager at start, and ship logs to CloudWatch. Egress to AWS APIs uses task "
              "public IPs through the IGW (no NAT, no VPC endpoints: ~$0 fixed network cost).",
-             "API role: S3 only. Worker role: SQS + 2 Bedrock models. No role can approve",
+             "API role: S3 only. Worker role: SQS + 2 Bedrock models. No role can approve "
              "proposals except via the API's DB role."), 1240, 925, 500, 120, size=10,
           fill="#F7F8F8")
     _ = (oneoff, ecr, sm, s3, iam, cfn)
@@ -292,7 +317,7 @@ def network() -> Diagram:
     d.box("<b>oneoff-task-sg</b>  in: none", 650, 420, 215, 180, **sg)
     oneoff = d.icon("ecs", COMPUTE, br("<b>One-off tasks</b>", "migrate/import/seed"), 735, 485,
                     size=48)
-    d.box(br("<b>db-sg</b>  in: tcp/5432 from api-sg, worker-sg,", "oneoff-task-sg · out: none"),
+    d.box("<b>db-sg</b>  in: tcp/5432 from api-sg, worker-sg, oneoff-task-sg · out: none",
           940, 300, 300, 200, **sg)
     rds = d.icon("rds", DATABASE, br("<b>RDS PostgreSQL 16</b>", "rds.force_ssl=1",
                                      "storage encrypted (KMS)"), 1062, 375)
@@ -316,13 +341,13 @@ def network() -> Diagram:
     d.box(br("<b>Encryption and secrets</b>",
              "• Viewer↔CloudFront TLS; RDS connections sslmode=require with force_ssl.",
              "• RDS storage, SQS (SSE-SQS), S3 (SSE-S3) encrypted at rest.",
-             "• DB passwords generated in Secrets Manager, injected as ECS secrets;",
-             "  never in images, env files, logs (SQLAlchemy hide_parameters=True).",
+             "• DB passwords generated in Secrets Manager, injected as ECS secrets; "
+             "never in images, env files, logs (SQLAlchemy hide_parameters=True).",
              "• Browser keeps Cognito tokens in session memory only."),
           40, 760, 520, 130, size=10)
     d.box(br("<b>Accepted residual risk (demo, D-024)</b>",
-             "CloudFront→ALB is HTTP inside AWS (no custom domain/cert). The prefix list",
-             "admits any CloudFront distribution, so the API still verifies a Cognito",
+             "CloudFront→ALB is HTTP inside AWS (no custom domain/cert). The prefix list "
+             "admits any CloudFront distribution, so the API still verifies a Cognito "
              "access token and a provisioned user on every request."),
           580, 760, 480, 130, size=10, stroke="#DD3522")
     d.box(br("<b>Identity</b>",
@@ -370,7 +395,7 @@ def request_flow() -> Diagram:
              "• Scope is re-read from PostgreSQL on every request; nothing is cached by role.",
              "• An order is visible only if every seller on it is granted to the caller.",
              "• Logs carry route template, status, latency only: never IDs or tokens."),
-          40, 790 - 20, 640, 70, size=10, fill="#F7F8F8")
+          40, 820, 900, 70, size=10, fill="#F7F8F8")
     return d
 
 
@@ -415,8 +440,8 @@ def job_flow() -> Diagram:
         d.message(x1, x2, y, label, dashed=dashed)
         y += 44 if x1 != x2 else 60
     d.box(br("<b>Failure handling (all drilled on the deployed stack)</b>",
-             "• <b>Crash before ack</b> → SQS redelivers after 180 s → claim sees a terminal job →",
-             "  ack without work → still exactly one case.",
+             "• <b>Crash before ack</b> → SQS redelivers after 180 s → claim sees a terminal job "
+             "→ ack without work → still exactly one case.",
              "• <b>Bedrock timeout</b> → job held <i>unknown</i>; never auto-retried "
              "(ops recover-job).",
              "• <b>5 known provider failures</b> → circuit breaker open 60 s; one half-open probe.",
@@ -554,23 +579,26 @@ def ontology() -> Diagram:
                   90, **real)
     line = d.box("<b>OrderLine</b><br>order_id + line_no<br>price · freight (centavos)", 760,
                  160, 210, 90, **real)
-    prod = d.box("<b>Product</b><br>product_id · category", 1130, 120, 190, 70, **real)
-    seller = d.box("<b>Seller</b><br>seller_id · state", 1130, 260, 190, 70, **real)
-    carrier = d.box("<b>Carrier</b> (synthetic)<br>scenario_id + carrier_code", 380, 380, 200,
+    prod = d.box("<b>Product</b><br>product_id · category", 1200, 90, 220, 70, **real)
+    seller = d.box("<b>Seller</b><br>seller_id · state", 1200, 280, 220, 70, **real)
+    carrier = d.box("<b>Carrier</b> (synthetic)<br>scenario_id + carrier_code", 440, 380, 240,
                     80, **synth)
     event = d.box("<b>DisruptionEvent</b> (synthetic)<br>scenario_id + event_id", 60, 380, 230,
                   80, **synth)
     prop = d.box("<b>ActionProposal</b><br>proposal_id · revision · hashes", 760, 420, 230, 80,
                  **app)
-    case = d.box("<b>InvestigationCase</b><br>case_id · case_key", 1130, 420, 200, 80, **app)
+    case = d.box("<b>InvestigationCase</b><br>case_id · case_key", 1200, 420, 220, 80, **app)
     d.edge(cust, order, "places · 1:N")
     d.edge(order, line, "contains · 1:N")
-    d.edge(line, prod, "references · N:1")
-    d.edge(line, seller, "fulfilled_by · N:1 (not blame)")
-    d.edge(order, carrier, "shipped_by · N:1", color="#E7157B", dashed=1)
+    d.edge(line, prod, "references · N:1", exit_="exitX=1;exitY=0.3;",
+           entry="entryX=0;entryY=0.5;")
+    d.edge(line, seller, "fulfilled_by · N:1 (not blame)", exit_="exitX=1;exitY=0.7;",
+           entry="entryX=0;entryY=0.5;")
+    d.edge(order, carrier, "shipped_by · N:1", color="#E7157B", dashed=1,
+           exit_="exitX=0.9;exitY=1;", entry="entryX=0.5;entryY=0;")
     d.edge(event, order, "overlaps · derived", color="#E7157B", dashed=1,
-           exit_="exitX=1;exitY=0.25;", entry="entryX=0.15;entryY=1;")
-    d.edge(prop, case, "approved by an independent reviewer", color="#147EBA")
+           exit_="exitX=1;exitY=0.25;", entry="entryX=0.1;entryY=1;")
+    d.edge(prop, case, "independent approval", color="#147EBA")
     d.box(br("<b>Named derived functions</b> (a change needs a new ontology version)",
              "late_open_order(as_of) · known_delivery_state(as_of) · "
              "seller_associated_late_orders(as_of)",
@@ -858,9 +886,9 @@ def state_machines() -> Diagram:
     d.edge(running, failed, "invalid JSON · rejected · deadline · cap",
            exit_="exitX=0.5;exitY=1;", entry="entryX=0.5;entryY=0;")
     d.edge(running, blocked, "scope changed", exit_="exitX=0.15;exitY=1;",
-           entry="entryX=0.5;entryY=0;", points=[(302, 290), (110, 290)])
+           entry="entryX=0.5;entryY=0;", points=[(302, 310), (110, 310)])
     d.edge(running, unknown, "timeout · sent stage on reclaim", exit_="exitX=0.85;exitY=1;",
-           entry="entryX=0.5;entryY=0;", points=[(407, 250), (890, 250)])
+           entry="entryX=0.5;entryY=0;", points=[(407, 228), (890, 228)])
     d.edge(validating, failed, "validator error", exit_="exitX=0.3;exitY=1;",
            entry="entryX=1;entryY=0.5;", points=[(605, 368)])
     d.box(br("<b>Ack SQS</b> only from ready · failed · blocked · unknown.",
@@ -874,16 +902,17 @@ def state_machines() -> Diagram:
     sent = d.box("<b>sent</b><br>persisted before call", 300, 500, 180, 60, stroke=ML, **st)
     complete = d.box("<b>complete</b><br>+ checkpoint in 1 tx", 620, 500, 200, 60,
                      stroke="#2F7D4F", fill="#F1F8F3", **st)
-    known = d.box("<b>known_failure</b><br>no generation", 300, 660, 180, 60,
+    known = d.box("<b>known_failure</b><br>no generation", 140, 660, 180, 60,
                   stroke=SECURITY, fill="#FDF3F4", **st)
     unk = d.box("<b>unknown</b><br>may have generated", 620, 660, 200, 60, stroke="#B4441C",
                 fill="#FDF3F4", **st)
     d.edge(reserved, sent, "")
     d.edge(sent, complete, "response")
     d.edge(sent, known, "throttle / reject (1 retry if retryable)",
-           exit_="exitX=0.5;exitY=1;", entry="entryX=0.5;entryY=0;")
+           exit_="exitX=0.2;exitY=1;", entry="entryX=0.5;entryY=0;",
+           points=[(336, 615), (230, 615)])
     d.edge(sent, unk, "timeout · dropped connection", exit_="exitX=0.9;exitY=1;",
-           entry="entryX=0.5;entryY=0;", points=[(462, 610), (720, 610)])
+           entry="entryX=0.5;entryY=0;", points=[(462, 615), (720, 615)])
     d.box(br("<b>Circuit breaker</b> (process-local): 5 consecutive known failures → open "
              "60 s → one half-open probe. Blocks admission, so no paid call is reserved.",
              "<b>Reuse</b>: a completed stage is reused after a crash only if request, scope, "
